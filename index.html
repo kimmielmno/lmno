@@ -1,0 +1,953 @@
+Copy<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMNO</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css?family=Rubik:700&display=swap");
+
+        body {
+            font-family: "arial", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #ffffff;
+            padding: 20px;
+        }
+
+        #setup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #gameSetup {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .setup-button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #fff0f0;
+            color: #382b22;
+            border: 2px solid #b18597;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #gameCodeInput {
+            padding: 8px;
+            margin: 10px;
+            border: 2px solid #b18597;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .game-board {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    z-index: 1;
+}
+
+.game-section {
+    width: 100%;
+    text-align: center;
+}
+
+.game-section h3 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.tile-area {
+    min-height: 100px;  /* Add this */
+    background: #ffffff; /* Add this */
+}
+
+        .game-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .tile-area {
+            display: grid;
+            grid-template-columns: repeat(13, 1fr);
+            gap: 8px;
+            row-gap: 20px;
+        }
+
+        .tile {
+            width: 40px;
+            height: 40px;
+            background-color: #e6f2ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+            border: 1.5px solid #4a90e2;
+            border-radius: 0.25em;
+            transform-style: preserve-3d;
+            transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), background 150ms cubic-bezier(0, 0, 0.58, 1);
+            position: relative;
+        }
+
+        .tile::before {
+            position: absolute;
+            content: "";
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #b3d4fc;
+            border-radius: 0.15em;
+            box-shadow: 0 0 0 1.5px #4a90e2, 0 0.350em 0 0 #d6e9ff;
+            transform: translate3d(0, 0.40em, -1em);
+            transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), box-shadow 150ms cubic-bezier(0, 0, 0.58, 1);
+        }
+
+        .tile:hover {
+            background: #d6e9ff;
+            transform: translate(0, 0.25em);
+        }
+
+        .tile:hover::before {
+            box-shadow: 0 0 0 1.5px #4a90e2, 0 0.5em 0 0 #d6e9ff;
+            transform: translate3d(0, 0.5em, -1em);
+        }
+
+        .tile:active {
+            background: #d6e9ff;
+            transform: translate(0em, 0.75em);
+        }
+
+        .tile:active::before {
+            box-shadow: 0 0 0 1.5px #4a90e2, 0 0 #d6e9ff;
+            transform: translate3d(0, 0, -1em);
+        }
+
+        .tile.revealed {
+            background-color: #e0fff0;
+            border-color: #81b597;
+        }
+
+        .tile.revealed::before {
+            background: #c4f9d2;
+            box-shadow: 0 0 0 1.5px #81b597, 0 0.325em 0 0 #e2ffe3;
+        }
+
+        .tile.inactive {
+            background-color: #f0f0f0;
+            border-color: #b5b5b5;
+            cursor: default;
+        }
+
+        .tile.inactive::before {
+            background: #d2d2d2;
+            box-shadow: 0 0 0 1.5px #b5b5b5, 0 0.350em 0 0 #e6e6e6;
+        }
+
+        .draw-pile .tile {
+            background-color: #fff0f0;
+            width: 30px;
+            height: 30px;
+            font-size: 14px;
+            border-color: #b18597;
+            color: #382b22;
+        }
+
+        .draw-pile .tile::before {
+            background: #f9c4d2;
+            box-shadow: 0 0 0 1.5px #b18597, 0 0.30em 0 0 #ffe3e2;
+        }
+
+        .draw-pile .tile:hover {
+            background: #ffe9e9;
+        }
+
+        .draw-pile .tile:hover::before {
+            box-shadow: 0 0 0 1.5px #b18597, 0 0.400em 0 0 #ffe3e2;
+            transform: translate3d(0, 0.400em, -1em);
+        }
+
+        .draw-pile .tile:active {
+            background: #ffe9e9;
+            transform: translate(0em, 0.5em);
+        }
+
+        .draw-pile .tile:active::before {
+            box-shadow: 0 0 0 1.5px #b18597, 0 0 #ffe3e2;
+            transform: translate3d(0, 0, -1em);
+        }
+
+        .draw-pile .tile.face-up {
+            background-color: #fff0f0;
+            border-color: #b18597;
+        }
+
+        .draw-pile .tile.face-up::before {
+            background: #f9c4d2;
+            box-shadow: 0 0 0 1.5px #b18597, 0 0.25em 0 0 #ffe3e2;
+        }
+
+        .game-over {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-top: 20px;
+        }
+
+        #currentTile {
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    min-height: 24px;  /* Add this to reserve space */
+    display: block;    /* Add this */
+}
+
+        .draw-pile {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 8px;
+            max-width: 750px;
+            margin: 20px 0;
+            row-gap: 15px;
+        }
+
+        #discardOption {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        #discardOption button {
+            margin: 0 10px;
+            padding: 5px 10px;
+            font-size: 16px;
+            background-color: #fff0f0;
+            color: #382b22;
+            border: 2px solid #b18597;
+            border-radius: 0.5em;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), background 150ms cubic-bezier(0, 0, 0.58, 1);
+            position: relative;
+        }
+
+        #discardOption button::before {
+            position: absolute;
+            content: "";
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f9c4d2;
+            border-radius: inherit;
+            box-shadow: 0 0 0 2px #b18597, 0 0.25em 0 0 #ffe3e2;
+            transform: translate3d(0, 0.5em, -1em);
+            transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), box-shadow 150ms cubic-bezier(0, 0, 0.58, 1);
+        }
+
+        #discardOption button:hover {
+            background: #ffe9e9;
+            transform: translate(0, 0.25em);
+        }
+
+        #discardOption button:hover::before {
+            box-shadow: 0 0 0 2px #b18597, 0 0.325em 0 0 #ffe3e2;
+            transform: translate3d(0, 0.325em, -1em);
+        }
+
+        #discardOption button:active {
+            background: #ffe9e9;
+            transform: translate(0em, 0.5em);
+        }
+
+        #discardOption button:active::before {
+            box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2;
+            transform: translate3d(0, 0, -1em);
+        }
+    </style>
+</head>
+<body>
+    <div id="setup-overlay">
+        <div id="gameSetup">
+            <h2>LMNO</h2>
+            <div id="playerInfo"></div>
+            <button id="startButton" class="setup-button">Start New Game</button>
+            <button id="joinButton" class="setup-button">Join Game</button>
+            <input type="text" id="gameCodeInput" placeholder="Enter game code" style="display: none;">
+            <div id="waitingMessage" style="display: none;">Waiting for other player...</div>
+        </div>
+    </div>
+
+    <div class="game-board" id="gameBoard" style="display: none;">
+    <div class="game-section">
+        <h3>Player 1</h3>
+        <div class="tile-area" id="player1Area"></div>
+    </div>
+    <div class="game-section">
+        <h3>Draw Pile</h3>
+        <div class="draw-pile" id="drawPile"></div>
+    </div>
+    <div class="game-section">
+        <h3>Player 2</h3>
+        <div class="tile-area" id="player2Area"></div>
+    </div>
+    <div id="currentTile"></div>
+    <div id="discardOption"></div>
+    <div id="gameOverMessage" class="game-over"></div>
+</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+<script>
+// Constants and game state variables
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const socket = io('http://localhost:3000');
+console.log('Attempting socket connection...');
+
+// Game state
+let gameId = null;
+let playerId = null;
+let isMyTurn = false;
+let currentPlayer = 1;
+let gameOver = false;
+let currentTile = null;
+let players = {
+    first: null,
+    second: null
+};
+
+// DOM elements
+const setupOverlay = document.getElementById('setup-overlay');
+const startButton = document.getElementById('startButton');
+const joinButton = document.getElementById('joinButton');
+const gameCodeInput = document.getElementById('gameCodeInput');
+const playerInfo = document.getElementById('playerInfo');
+const waitingMessage = document.getElementById('waitingMessage');
+const gameBoard = document.querySelector('.game-board');
+const player1Area = document.getElementById('player1Area');
+const player2Area = document.getElementById('player2Area');
+const drawPile = document.getElementById('drawPile');
+const currentTileDisplay = document.getElementById('currentTile');
+const discardOption = document.getElementById('discardOption');
+
+// Socket event handlers
+socket.on('connect', () => {
+    console.log('Socket Connected!');
+});
+
+socket.on('connect_error', (error) => {
+    console.log('Connection error:', error);
+});
+
+socket.on('gameCreated', (data) => {
+    console.log('Game created:', data);
+    gameId = data.gameId;
+    playerId = data.playerId;
+    playerInfo.textContent = `Game Code: ${gameId}`;
+    waitingMessage.style.display = 'block';
+});
+
+socket.on('gameStarted', (data) => {
+    gameId = data.gameId;
+    playerId = socket.id;
+    players.first = data.players[0];
+    players.second = data.players[1];
+    setupOverlay.style.display = 'none';
+    gameBoard.style.display = 'flex';
+    isMyTurn = data.players[0] === socket.id;
+    currentPlayer = 1;
+    initGame();
+    updateTileColors();
+});
+
+socket.on('gameMove', (data) => {
+    console.log('Move received:', data);
+    
+    if (data.type === 'discardOffer') {
+    if (data.playerId !== socket.id) {
+        isMyTurn = true;
+        currentPlayer = data.currentPlayer;
+        updateTileColors();
+        discardOption.innerHTML = `
+            Do you want this ${data.tile}?
+            <button onclick="handleDiscardChoice(true)">Keep</button>
+            <button onclick="handleDiscardChoice(false)">Discard</button>
+            `;
+        }
+    } 
+    else if (data.type === 'discardOption') {
+        const isFirstPlayer = socket.id === data.players[0];
+        const isSecondPlayer = socket.id === data.players[1];
+        const otherPlayer = currentPlayer === 1 ? 2 : 1;
+        
+        if ((otherPlayer === 1 && isFirstPlayer) || (otherPlayer === 2 && isSecondPlayer)) {
+            discardOption.innerHTML = `
+                Do you want this ${data.tile}?
+                <button onclick="handleDiscardChoice(true)">Keep</button>
+                <button onclick="handleDiscardChoice(false)">Discard</button>
+            `;
+        } else {
+            discardOption.innerHTML = 'Waiting for other player\'s decision...';
+        }
+    } 
+    else if (data.type === 'discardChoice') {
+    discardOption.innerHTML = '';
+    if (data.accepted) {
+        originalPlayer = data.playerId;
+        if (data.playerId !== socket.id) {
+            isMyTurn = false;
+            currentTileDisplay.textContent = `Current Tile: ${data.tile}`;
+            updateTileColors();
+        }
+    } else {
+        const selectedTile = drawPile.querySelector('.tile.selected');
+        if (selectedTile) selectedTile.remove();
+        currentTile = null;
+        currentTileDisplay.textContent = '';
+        isMyTurn = socket.id === originalPlayer;
+        updateTileColors();
+        }
+    }
+    else if (data.playerId !== socket.id) {
+        console.log('Processing opponent move:', data.type);
+        
+        if (data.type === 'specialTile') {
+   if (data.action === 'skip') {
+       currentTileDisplay.textContent = "Opponent used Skip tile!";
+       const tiles = Array.from(drawPile.children);
+       const skipTile = tiles.find(tile => tile.dataset.letter === '>>');
+       if (skipTile) {
+           skipTile.remove();
+       }
+       
+       setTimeout(() => {
+           currentTileDisplay.textContent = '';
+           currentTile = null;
+           isMyTurn = true;
+           currentPlayer = currentPlayer === 1 ? 2 : 1;
+           updateTileColors();
+       }, 2500);
+
+} else if (data.action === 'reverse') {
+       currentTileDisplay.textContent = "Opponent used Reverse tile!";
+       const tiles = Array.from(drawPile.children);
+       const reverseTile = tiles.find(tile => tile.dataset.letter === '@');
+       if (reverseTile) {
+           reverseTile.remove();
+       }
+       
+       setTimeout(() => {
+           switchPiles();
+           currentTileDisplay.textContent = '';
+           currentTile = null;
+           isMyTurn = true;
+           currentPlayer = currentPlayer === 1 ? 2 : 1;
+           updateTileColors();
+       }, 2500);
+
+} else if (data.action === 'bothHave') {
+    currentTileDisplay.textContent = "Both players have this tile: Your Turn";  // Message for other player
+    const selectedTile = drawPile.querySelector('.tile.selected');
+    if (selectedTile) selectedTile.remove();
+    
+    setTimeout(() => {
+        currentTileDisplay.textContent = '';
+        currentTile = null;
+        isMyTurn = true;
+        currentPlayer = currentPlayer === 1 ? 2 : 1;
+        updateTileColors();
+    }, 2500);
+
+   } else if (data.action === 'duplicate') {  // Add this new case
+       currentTileDisplay.textContent = "Duplicate tile drawn. Your turn!";
+       setTimeout(() => {
+           currentTileDisplay.textContent = '';
+           currentTile = null;
+           isMyTurn = true;
+           currentPlayer = currentPlayer === 1 ? 2 : 1;
+           updateTileColors();
+       }, 2500);
+   }
+        } else if (data.type === 'selectTile') {
+    const tiles = Array.from(drawPile.children);
+    const randomTile = tiles.find(tile => !tile.classList.contains('selected'));
+    if (randomTile) {
+        tiles.forEach(tile => {
+            tile.textContent = tile.dataset.letter;  // Show all letters
+        });
+        randomTile.classList.add('selected');
+        currentTile = data.tile;
+        currentTileDisplay.textContent = `Current Tile: ${data.tile}`;
+            }
+        } else if (data.type === 'placeTile') {
+    const playerArea = socket.id === players.first ? player2Area : player1Area;
+    const tile = playerArea.children[data.position];
+    if (tile) {
+        // Get replaced tile before updating
+        const replacedLetter = tile.dataset.letter;
+        
+        tile.dataset.letter = data.tile;
+        tile.textContent = data.tile;
+        tile.classList.add('revealed');
+        
+        const selectedTile = drawPile.querySelector('.tile.selected');
+        if (selectedTile) selectedTile.remove();
+
+        // Return ALL replaced tiles to draw pile
+        if (replacedLetter) {
+            returnTileToDrawPile(replacedLetter);
+        }
+    }
+    isMyTurn = false;
+    updateTileColors();
+}
+    }
+});
+// Button event listeners
+startButton.addEventListener('click', () => {
+    console.log('Start button clicked');
+    socket.emit('createGame');
+    startButton.disabled = true;
+    joinButton.disabled = true;
+});
+
+joinButton.addEventListener('click', () => {
+    if (gameCodeInput.style.display === 'none') {
+        gameCodeInput.style.display = 'block';
+        joinButton.textContent = 'Submit';
+    } else {
+        const code = gameCodeInput.value.trim().toUpperCase();
+        if (code) {
+            console.log('Attempting to join game:', code);
+            socket.emit('joinGame', code);
+        }
+    }
+});
+
+// Game functions
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function createTiles(container, count, isDrawPile = false) {
+    let letters = [];
+    if (isDrawPile) {
+        const remainingLetters = alphabet.repeat(4).split('');
+        const remainingSpecial = Array(8).fill('>>').concat(Array(8).fill('@'));
+        letters = shuffleArray([...remainingLetters, ...remainingSpecial]).slice(0, count);
+    } else {
+        const alphabetTiles = alphabet.split('');
+        const specialTiles = Array(2).fill('>>').concat(Array(2).fill('@'));
+        letters = shuffleArray([...alphabetTiles, ...specialTiles]).slice(0, count);
+    }
+    
+    for (let i = 0; i < count; i++) {
+        const tile = document.createElement('div');
+        tile.classList.add('tile');
+        tile.dataset.letter = letters[i];
+        if (isDrawPile) {
+            tile.textContent = letters[i];  // Only add this one line
+            tile.addEventListener('click', selectDrawTile);
+        } else {
+            tile.addEventListener('click', placeTile);
+        }
+        container.appendChild(tile);
+    }
+}
+
+function playerHasLetter(player, letter) {
+    const area = player === 1 ? player1Area : player2Area;
+    return Array.from(area.children).some(tile => 
+        tile.classList.contains('revealed') && tile.dataset.letter === letter
+    );
+}
+
+function bothPlayersHaveTile(letter) {
+    return playerHasLetter(1, letter) && playerHasLetter(2, letter);
+}
+
+function removeTileFromDrawPile(letter) {
+    const tilesToRemove = Array.from(drawPile.children).filter(tile => 
+        tile.dataset.letter === letter
+    );
+    tilesToRemove.forEach(tile => tile.remove());
+}
+
+function handleSkipTile(selectedTile) {
+    currentTileDisplay.textContent = "Skip tile!";
+    
+    socket.emit('makeMove', {
+        type: 'specialTile',
+        tile: '>>',
+        action: 'skip',
+        gameId: gameId
+    });
+
+    selectedTile.remove();
+    setTimeout(() => {
+        currentTile = null;
+        currentTileDisplay.textContent = '';
+        isMyTurn = false;
+        currentPlayer = currentPlayer === 1 ? 2 : 1;
+        updateTileColors();
+    }, 2500);
+}
+
+function handleReverseTile(selectedTile) {
+    currentTileDisplay.textContent = "Reverse tile!";
+    
+    socket.emit('makeMove', {
+        type: 'specialTile',
+        tile: '@',
+        action: 'reverse',
+        gameId: gameId
+    });
+
+    selectedTile.remove();
+    setTimeout(() => {
+        switchPiles();
+        currentTile = null;
+        currentTileDisplay.textContent = '';
+        isMyTurn = false;
+        currentPlayer = currentPlayer === 1 ? 2 : 1;
+        updateTileColors();
+    }, 2500);
+}
+
+function selectDrawTile(event) {
+    console.log('Attempting to select tile - isMyTurn:', isMyTurn, 'currentPlayer:', currentPlayer);
+    if (!isMyTurn || gameOver || currentTile) {
+        console.log('Cannot select tile - blocked by:', {
+            turnBlocked: !isMyTurn,
+            gameOverBlocked: gameOver,
+            currentTileBlocked: currentTile
+        });
+        return;
+    }
+
+    const selectedTile = event.target;
+    currentTile = selectedTile.dataset.letter;
+    console.log('Selected tile:', currentTile);
+
+    if (currentTile === '>>') {
+        handleSkipTile(selectedTile);
+        return;
+    }
+
+    if (currentTile === '@') {
+        handleReverseTile(selectedTile);
+        return;
+    }
+
+    drawPile.querySelectorAll('.tile').forEach(tile => {
+    tile.classList.remove('selected');
+    if (tile === selectedTile) {
+        tile.classList.add('selected');
+    }
+});
+    
+    selectedTile.classList.add('selected');
+    selectedTile.textContent = currentTile;
+    currentTileDisplay.textContent = `Current Tile: ${currentTile}`;
+
+    socket.emit('makeMove', {
+        type: 'selectTile',
+        tile: currentTile,
+        gameId: gameId
+    });
+
+    if (bothPlayersHaveTile(currentTile)) {
+    currentTileDisplay.textContent = "Both players have this tile: Skip Turn";  // Message for player drawing duplicate
+    const selectedTile = drawPile.querySelector('.tile.selected');
+    if (selectedTile) selectedTile.remove();
+    
+    socket.emit('makeMove', {
+        type: 'specialTile',
+        tile: currentTile,
+        action: 'bothHave',
+        gameId: gameId
+    });
+
+    setTimeout(() => {
+        currentTileDisplay.textContent = '';
+        currentTile = null;
+        isMyTurn = false;
+        currentPlayer = currentPlayer === 1 ? 2 : 1;
+        updateTileColors();
+    }, 2500);
+    return;
+}
+
+if (playerHasLetter(currentPlayer, currentTile)) {
+    offerDiscardToOtherPlayer(selectedTile);
+    return;
+}
+}
+function offerDiscardToOtherPlayer(selectedTile) {
+    // First set my tiles to inactive
+    isMyTurn = false;
+    currentPlayer = currentPlayer === 1 ? 2 : 1;
+    updateTileColors();
+    
+    socket.emit('makeMove', {
+        type: 'discardOffer',
+        gameId: gameId,
+        tile: currentTile,
+        currentPlayer: currentPlayer,
+        playerId: socket.id
+    });
+    
+    discardOption.innerHTML = 'Waiting for other player\'s decision...';
+}
+
+
+function returnTileToDrawPile(letter, faceUp = false) {
+    const newTile = document.createElement('div');
+    newTile.classList.add('tile');
+    newTile.dataset.letter = letter;
+    newTile.addEventListener('click', selectDrawTile);
+    
+    if (faceUp) {
+        newTile.classList.add('face-up');
+        newTile.textContent = letter;
+    }
+
+    drawPile.appendChild(newTile);
+}
+
+function placeTile(event) {
+    console.log('Attempting to place tile - isMyTurn:', isMyTurn);
+    if (!isMyTurn || gameOver || !currentTile) return;
+    const currentPlayerArea = currentPlayer === 1 ? player1Area : player2Area;
+    if (event.target.parentNode !== currentPlayerArea) return;
+    const position = Array.from(currentPlayerArea.children).indexOf(event.target);
+    if (alphabet[position] !== currentTile && currentTile !== '>>' && currentTile !== '@') return;
+    if (event.target.classList.contains('revealed')) return;
+
+    const replacedLetter = event.target.dataset.letter;
+    socket.emit('makeMove', {
+        type: 'placeTile',
+        tile: currentTile,
+        position: position,
+        gameId: gameId,
+        replacedTile: replacedLetter  // Send the replaced tile info
+    });
+
+    // Place the new tile
+    event.target.dataset.letter = currentTile;
+    event.target.textContent = currentTile;
+    event.target.classList.add('revealed');
+
+    // Remove selected tile from draw pile
+    const selectedTile = drawPile.querySelector('.tile.selected');
+    if (selectedTile) selectedTile.remove();
+
+    // Return ALL replaced tiles to draw pile
+    if (replacedLetter) {
+        returnTileToDrawPile(replacedLetter);
+    }
+
+    currentTile = null;
+    currentTileDisplay.textContent = '';
+    
+    updateTileColors();
+    checkGameEnd(currentPlayerArea);
+}
+
+function handleDiscardChoice(accepted) {
+    socket.emit('makeMove', {
+        type: 'discardChoice',
+        gameId: gameId,
+        accepted: accepted,
+        tile: currentTile,
+        playerId: socket.id,
+        originalPlayerFirst: socket.id === players.first
+    });
+    
+    discardOption.innerHTML = '';
+    
+    if (accepted) {
+        isMyTurn = true;
+        originalPlayer = socket.id;  // Remember who's turn it was
+        currentTileDisplay.textContent = `Current Tile: ${currentTile}`;
+        updateTileColors();
+    } else {
+        const selectedTile = drawPile.querySelector('.tile.selected');
+        if (selectedTile) {
+            selectedTile.remove();
+        }
+        currentTile = null;
+        currentTileDisplay.textContent = '';
+        isMyTurn = socket.id === originalPlayer;  // Return to original player
+        updateTileColors();
+    }
+}
+
+function handleSkipMove(data) {
+    currentTileDisplay.textContent = "Opponent used Skip tile!";
+    const tiles = Array.from(drawPile.children);
+    const skipTile = tiles.find(tile => tile.dataset.letter === '>>');
+    if (skipTile) {
+        skipTile.remove();
+    }
+    
+    setTimeout(() => {
+        currentTileDisplay.textContent = '';
+        currentTile = null;
+        isMyTurn = true;
+        currentPlayer = currentPlayer === 1 ? 2 : 1;
+        updateTileColors();
+    }, 2500);
+}
+
+function handleReverseMove(data) {
+    currentTileDisplay.textContent = "Opponent used Reverse tile!";
+    const tiles = Array.from(drawPile.children);
+    const reverseTile = tiles.find(tile => tile.dataset.letter === '@');
+    if (reverseTile) {
+        reverseTile.remove();
+    }
+    
+    setTimeout(() => {
+        switchPiles();
+        currentTileDisplay.textContent = '';
+        currentTile = null;
+        isMyTurn = true;
+        currentPlayer = currentPlayer === 1 ? 2 : 1;
+        updateTileColors();
+    }, 2500);
+}
+
+function switchPiles() {
+    const player1Tiles = Array.from(player1Area.children);
+    const player2Tiles = Array.from(player2Area.children);
+
+    player1Area.innerHTML = '';
+    player2Area.innerHTML = '';
+
+    player2Tiles.forEach(tile => {
+        const newTile = tile.cloneNode(true);
+        newTile.addEventListener('click', placeTile);
+        player1Area.appendChild(newTile);
+    });
+    
+    player1Tiles.forEach(tile => {
+        const newTile = tile.cloneNode(true);
+        newTile.addEventListener('click', placeTile);
+        player2Area.appendChild(newTile);
+    });
+
+    currentTileDisplay.textContent = "PILES SWITCHED!";
+}
+
+function checkGameEnd(playerArea) {
+    if (checkWinCondition(playerArea)) {
+        gameOver = true;
+        gameOverMessage.textContent = `PLAYER ${currentPlayer} WINS!`;
+        return;
+    }
+
+    if (!canMakeMove()) {
+        gameOver = true;
+        gameOverMessage.textContent = "GAME OVER! IT'S A TIE!";
+        return;
+    }
+}
+
+function checkWinCondition(area) {
+    return Array.from(area.children).every(tile => 
+        tile.classList.contains('revealed')
+    );
+}
+
+function canMakeMove() {
+    return drawPile.children.length > 0;
+}
+
+function updateTileColors() {
+    const player1Tiles = player1Area.querySelectorAll('.tile:not(.revealed)');
+    const player2Tiles = player2Area.querySelectorAll('.tile:not(.revealed)');
+    
+    if (currentPlayer === 1) {
+        if (socket.id === players.first) {
+            // First player's browser
+            player1Tiles.forEach(tile => tile.classList.remove('inactive'));  // Keep my tiles blue
+            player2Tiles.forEach(tile => tile.classList.add('inactive'));     // Other player's tiles gray
+        } else {
+            // Second player's browser
+            player1Tiles.forEach(tile => tile.classList.remove('inactive'));  // Active player's tiles blue
+            player2Tiles.forEach(tile => tile.classList.add('inactive'));     // Keep my tiles gray
+        }
+    } else {
+        if (socket.id === players.second) {
+            // Second player's browser
+            player2Tiles.forEach(tile => tile.classList.remove('inactive'));  // Keep my tiles blue
+            player1Tiles.forEach(tile => tile.classList.add('inactive'));     // Other player's tiles gray
+        } else {
+            // First player's browser
+            player2Tiles.forEach(tile => tile.classList.remove('inactive'));  // Active player's tiles blue
+            player1Tiles.forEach(tile => tile.classList.add('inactive'));     // Keep my tiles gray
+        }
+    }
+}
+function switchPlayer() {
+    isMyTurn = !isMyTurn;
+    currentPlayer = currentPlayer === 1 ? 2 : 1;
+    updateTileColors();
+}
+
+function initGame() {
+    setupOverlay.style.display = 'none';
+    document.getElementById('gameBoard').style.display = 'flex';
+    
+    player1Area.innerHTML = '';
+    player2Area.innerHTML = '';
+    drawPile.innerHTML = '';
+    
+    createTiles(player1Area, 26);
+    createTiles(player2Area, 26);
+    createTiles(drawPile, 60, true);
+    
+    updateTileColors();  // Make sure colors are set initially
+}
+</script>
+</body>
+</html>
