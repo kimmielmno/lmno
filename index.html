@@ -335,7 +335,7 @@ Copy<!DOCTYPE html>
 <script>
 // Constants and game state variables
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const socket = io('lmno-production.up.railway.app');
+const socket = io('http://localhost:3000');
 console.log('Attempting socket connection...');
 
 // Game state
@@ -506,14 +506,13 @@ socket.on('gameMove', (data) => {
     const tiles = Array.from(drawPile.children);
     const randomTile = tiles.find(tile => !tile.classList.contains('selected'));
     if (randomTile) {
-        tiles.forEach(tile => {
-            tile.textContent = tile.dataset.letter;  // Remove this line
-        });
         randomTile.classList.add('selected');
+        randomTile.textContent = data.tile;  // Only show this tile's letter
         currentTile = data.tile;
         currentTileDisplay.textContent = `Current Tile: ${data.tile}`;
     }
-        } else if (data.type === 'placeTile') {
+
+} else if (data.type === 'placeTile') {
     const playerArea = socket.id === players.first ? player2Area : player1Area;
     const tile = playerArea.children[data.position];
     if (tile) {
@@ -571,8 +570,8 @@ function createTiles(container, count, isDrawPile = false) {
     let letters = [];
     if (isDrawPile) {
         const remainingLetters = alphabet.repeat(4).split('');
-        const remainingSpecial = Array(4).fill('>>').concat(Array(4).fill('@'));
-        letters = shuffleArray([...remainingLetters, ...remainingSpecial]).slice(0, 112);
+        const remainingSpecial = Array(8).fill('>>').concat(Array(8).fill('@'));
+        letters = shuffleArray([...remainingLetters, ...remainingSpecial]).slice(0, count);
     } else {
         const alphabetTiles = alphabet.split('');
         const specialTiles = Array(2).fill('>>').concat(Array(2).fill('@'));
@@ -585,7 +584,6 @@ function createTiles(container, count, isDrawPile = false) {
         tile.dataset.letter = letters[i];
         if (isDrawPile) {
             tile.addEventListener('click', selectDrawTile);
-            tile.textContent = letters[i];  // Remove this line to hide letters
         } else {
             tile.addEventListener('click', placeTile);
         }
@@ -680,7 +678,9 @@ function selectDrawTile(event) {
     drawPile.querySelectorAll('.tile').forEach(tile => {
     tile.classList.remove('selected');
     if (tile === selectedTile) {
-        tile.classList.add('selected');
+        tile.textContent = currentTile;  // Only show the selected tile's letter
+    } else {
+        tile.textContent = '';  // Keep other tiles hidden
     }
 });
     
