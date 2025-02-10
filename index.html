@@ -401,12 +401,14 @@ socket.on('gameMove', (data) => {
     if (data.playerId !== socket.id) {
         isMyTurn = true;
         currentPlayer = data.currentPlayer;
+        currentTile = data.tile;  // Set the currentTile to match the offered tile
+        currentTileDisplay.textContent = `Current Tile: ${data.tile}`;  // Show the offered tile
         updateTileColors();
         discardOption.innerHTML = `
             Do you want this ${data.tile}?
             <button onclick="handleDiscardChoice(true)">Keep</button>
             <button onclick="handleDiscardChoice(false)">Discard</button>
-            `;
+        `;
         }
     } 
     else if (data.type === 'discardOption') {
@@ -480,7 +482,7 @@ socket.on('gameMove', (data) => {
        }, 2500);
 
 } else if (data.action === 'bothHave') {
-    currentTileDisplay.textContent = `Both players have tile ${data.tile}: Your Turn`;  // Message for other player
+    currentTileDisplay.textContent = "Both players have this tile: Your Turn";  // Message for other player
     const selectedTile = drawPile.querySelector('.tile.selected');
     if (selectedTile) selectedTile.remove();
     
@@ -490,7 +492,7 @@ socket.on('gameMove', (data) => {
         isMyTurn = true;
         currentPlayer = currentPlayer === 1 ? 2 : 1;
         updateTileColors();
-    }, 3000);
+    }, 2500);
 
    } else if (data.action === 'duplicate') {  // Add this new case
        currentTileDisplay.textContent = "Duplicate tile drawn. Your turn!";
@@ -695,7 +697,7 @@ function selectDrawTile(event) {
     });
 
     if (bothPlayersHaveTile(currentTile)) {
-    currentTileDisplay.textContent = `Both players have tile ${currentTile}: Skip Turn`;  // Message for player drawing duplicate
+    currentTileDisplay.textContent = "Both players have this tile: Skip Turn";  // Message for player drawing duplicate
     const selectedTile = drawPile.querySelector('.tile.selected');
     if (selectedTile) selectedTile.remove();
     
@@ -712,7 +714,7 @@ function selectDrawTile(event) {
         isMyTurn = false;
         currentPlayer = currentPlayer === 1 ? 2 : 1;
         updateTileColors();
-    }, 3000);
+    }, 2500);
     return;
 }
 
@@ -762,15 +764,9 @@ function placeTile(event) {
     if (alphabet[position] !== currentTile && currentTile !== '>>' && currentTile !== '@') return;
     if (event.target.classList.contains('revealed')) return;
 
+    // Get the letter that's being replaced before we place the new one
     const replacedLetter = event.target.dataset.letter;
-    socket.emit('makeMove', {
-        type: 'placeTile',
-        tile: currentTile,
-        position: position,
-        gameId: gameId,
-        replacedTile: replacedLetter  // Send the replaced tile info
-    });
-
+    
     // Place the new tile
     event.target.dataset.letter = currentTile;
     event.target.textContent = currentTile;
@@ -780,15 +776,110 @@ function placeTile(event) {
     const selectedTile = drawPile.querySelector('.tile.selected');
     if (selectedTile) selectedTile.remove();
 
-    // Return ALL replaced tiles to draw pile
-    if (replacedLetter) {
-        returnTileToDrawPile(replacedLetter);
-    }
+    // Handle special tiles being returned
+    if (replacedLetter === '>>') {
+        // Create a temporary tile display without adding to draw pile
+        currentTileDisplay.textContent = "Skip tile activated!";
+        const tempTile = document.createElement('div');
+        tempTile.classList.add('tile', 'face-up');
+        tempTile.textContent = '>>';
+        tempTile.dataset.letter = '>>';
+        drawPile.appendChild(tempTile);
+        
+        socket.emit('makeMove', {
+            type: 'specialTile',
+            tile: '>>',
+            action: 'skip',
+            gameId: gameId
+        });
 
-    currentTile = null;
-    currentTileDisplay.textContent = '';
+        setTimeout(() => {
+            tempTile.remove();
+            currentTileDisplay.textContent = '';
+            currentTile = null;
+            isMyTurn = false;
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateTileColors();
+        }, 3000);
+    } 
+    else if (replacedLetter === '@') {
+        // Create a temporary tile display without adding to draw pile
+        currentTileDisplay.textContent = "Reverse tile activated!";
+        const tempTile = document.createElement('div');
+        tempTile.classList.add('tile', 'face-up');
+        tempTile.textContent = '@';
+        tempTile.dataset.letter = '@';
+        drawPile.appendChild(tempTile);
+        
+        socket.emit('makeMove', {
+            type: 'specialTile',
+            tile: '@',
+            action: 'reverse',
+            gameId: gameId
+        });
+
+        setTimeout(() => {
+            tempTile.remove();
+            switchPiles();
+            currentTileDisplay.textContent = '';
+            currentTile = null;
+            isMyTurn = false;
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateTileColors();
+        }, 3000);
+    } 
+    else if (replacedLetter) {
+    // First check if both players have this letter
+    if (bothPlayersHaveTile(replacedLetter)) {
+        // Create temporary display tile
+        const tempTile = document.createElement('div');
+        tempTile.classList.add('tile', 'face-up');
+        tempTile.textContent = replacedLetter;
+        tempTile.dataset.letter = replacedLetter;
+        drawPile.appendChild(tempTile);
+        
+        currentTileDisplay.textContent = `Both players have tile ${replacedLetter}: Lose Turn`;
+        
+        socket.emit('makeMove', {
+            type: 'specialTile',
+            tile: replacedLetter,
+            action: 'bothHave',
+            gameId: gameId
+        });
+
+        setTimeout(() => {
+            tempTile.remove();
+            currentTileDisplay.textContent = '';
+            currentTile = null;
+            isMyTurn = false;
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateTileColors();
+        }, 3000);
+    }
+    // If only the current player has it, then do the discard offer
+    else if (playerHasLetter(currentPlayer, replacedLetter)) {
+        // ... rest of your working discard offer code ...
     
-    updateTileColors();
+    } else {
+        // Not a duplicate - just return it face up to draw pile
+        returnTileToDrawPile(replacedLetter, true);
+    }
+}
+
+    socket.emit('makeMove', {
+        type: 'placeTile',
+        tile: currentTile,
+        position: position,
+        gameId: gameId,
+        replacedTile: replacedLetter
+    });
+
+    if (!replacedLetter || (replacedLetter !== '>>' && replacedLetter !== '@')) {
+        currentTile = null;
+        currentTileDisplay.textContent = '';
+        updateTileColors();
+    }
+    
     checkGameEnd(currentPlayerArea);
 }
 
@@ -797,7 +888,7 @@ function handleDiscardChoice(accepted) {
         type: 'discardChoice',
         gameId: gameId,
         accepted: accepted,
-        tile: currentTile,
+        tile: currentTile,  // This is already set to the offered tile
         playerId: socket.id,
         originalPlayerFirst: socket.id === players.first
     });
@@ -806,7 +897,9 @@ function handleDiscardChoice(accepted) {
     
     if (accepted) {
         isMyTurn = true;
-        originalPlayer = socket.id;  // Remember who's turn it was
+        originalPlayer = socket.id;
+        // currentTile is already set to the correct tile in the discardOffer handler
+        // Just update the display
         currentTileDisplay.textContent = `Current Tile: ${currentTile}`;
         updateTileColors();
     } else {
@@ -816,7 +909,7 @@ function handleDiscardChoice(accepted) {
         }
         currentTile = null;
         currentTileDisplay.textContent = '';
-        isMyTurn = socket.id === originalPlayer;  // Return to original player
+        isMyTurn = socket.id === originalPlayer;
         updateTileColors();
     }
 }
@@ -881,12 +974,23 @@ function switchPiles() {
 function checkGameEnd(playerArea) {
     if (checkWinCondition(playerArea)) {
         gameOver = true;
+        // Emit game over event to all players
+        socket.emit('makeMove', {
+            type: 'gameOver',
+            gameId: gameId,
+            winner: currentPlayer
+        });
         gameOverMessage.textContent = `PLAYER ${currentPlayer} WINS!`;
         return;
     }
 
     if (!canMakeMove()) {
         gameOver = true;
+        socket.emit('makeMove', {
+            type: 'gameOver',
+            gameId: gameId,
+            winner: 'tie'
+        });
         gameOverMessage.textContent = "GAME OVER! IT'S A TIE!";
         return;
     }
