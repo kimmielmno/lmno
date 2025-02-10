@@ -480,7 +480,7 @@ socket.on('gameMove', (data) => {
        }, 2500);
 
 } else if (data.action === 'bothHave') {
-    currentTileDisplay.textContent = "Both players have this tile: Your Turn";  // Message for other player
+    currentTileDisplay.textContent = `Both players have tile ${data.tile}: Your Turn`;  // Message for other player
     const selectedTile = drawPile.querySelector('.tile.selected');
     if (selectedTile) selectedTile.remove();
     
@@ -490,7 +490,7 @@ socket.on('gameMove', (data) => {
         isMyTurn = true;
         currentPlayer = currentPlayer === 1 ? 2 : 1;
         updateTileColors();
-    }, 2500);
+    }, 3000);
 
    } else if (data.action === 'duplicate') {  // Add this new case
        currentTileDisplay.textContent = "Duplicate tile drawn. Your turn!";
@@ -695,7 +695,7 @@ function selectDrawTile(event) {
     });
 
     if (bothPlayersHaveTile(currentTile)) {
-    currentTileDisplay.textContent = "Both players have this tile: Skip Turn";  // Message for player drawing duplicate
+    currentTileDisplay.textContent = `Both players have tile ${currentTile}: Skip Turn`;  // Message for player drawing duplicate
     const selectedTile = drawPile.querySelector('.tile.selected');
     if (selectedTile) selectedTile.remove();
     
@@ -712,7 +712,7 @@ function selectDrawTile(event) {
         isMyTurn = false;
         currentPlayer = currentPlayer === 1 ? 2 : 1;
         updateTileColors();
-    }, 2500);
+    }, 3000);
     return;
 }
 
