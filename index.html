@@ -335,7 +335,7 @@
 <script>
 // Constants and game state variables
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const socket = io('https://lmno-production.up.railway.app/');
+const socket = io('http://localhost:3000');
 console.log('Attempting socket connection...');
 
 // Game state
@@ -398,15 +398,15 @@ socket.on('gameMove', (data) => {
     console.log('Move received:', data);
     
     if (data.type === 'discardOffer') {
-    if (data.playerId !== socket.id) {
-        isMyTurn = true;
-        currentPlayer = data.currentPlayer;
-        updateTileColors();
-        discardOption.innerHTML = `
-            Do you want this ${data.tile}?
-            <button onclick="handleDiscardChoice(true)">Keep</button>
-            <button onclick="handleDiscardChoice(false)">Discard</button>
-            `;
+        if (data.playerId !== socket.id) {
+            isMyTurn = true;
+            currentPlayer = data.currentPlayer;
+            updateTileColors();
+            discardOption.innerHTML = `
+                Do you want this ${data.tile}?
+                <button onclick="handleDiscardChoice(true)">Keep</button>
+                <button onclick="handleDiscardChoice(false)">Discard</button>
+                `;
         }
     } 
     else if (data.type === 'discardOption') {
@@ -425,115 +425,126 @@ socket.on('gameMove', (data) => {
         }
     } 
     else if (data.type === 'discardChoice') {
-    discardOption.innerHTML = '';
-    if (data.accepted) {
-        originalPlayer = data.playerId;
-        if (data.playerId !== socket.id) {
-            isMyTurn = false;
-            currentTileDisplay.textContent = `Current Tile: ${data.tile}`;
+        discardOption.innerHTML = '';
+        if (data.accepted) {
+            originalPlayer = data.playerId;
+            if (data.playerId !== socket.id) {
+                isMyTurn = false;
+                currentTileDisplay.textContent = `Current Tile: ${data.tile}`;
+                updateTileColors();
+            }
+        } else {
+            const selectedTile = drawPile.querySelector('.tile.selected');
+            if (selectedTile) selectedTile.remove();
+            currentTile = null;
+            currentTileDisplay.textContent = '';
+            isMyTurn = socket.id === originalPlayer;
             updateTileColors();
         }
-    } else {
-        const selectedTile = drawPile.querySelector('.tile.selected');
-        if (selectedTile) selectedTile.remove();
-        currentTile = null;
-        currentTileDisplay.textContent = '';
-        isMyTurn = socket.id === originalPlayer;
-        updateTileColors();
+    }
+    else if (data.type === 'gameOver') {
+        gameOver = true;
+        if (data.winner === 'tie') {
+            gameOverMessage.textContent = "GAME OVER! IT'S A TIE!";
+        } else {
+            const isWinner = (data.winner === 1 && socket.id === players.first) || 
+                           (data.winner === 2 && socket.id === players.second);
+            gameOverMessage.textContent = isWinner ? 
+                `YOU WIN!` : 
+                `PLAYER ${data.winner} WINS!`;
         }
+        isMyTurn = false;
+        updateTileColors();
     }
     else if (data.playerId !== socket.id) {
         console.log('Processing opponent move:', data.type);
         
         if (data.type === 'specialTile') {
-   if (data.action === 'skip') {
-       currentTileDisplay.textContent = "Opponent used Skip tile!";
-       const tiles = Array.from(drawPile.children);
-       const skipTile = tiles.find(tile => tile.dataset.letter === '>>');
-       if (skipTile) {
-           skipTile.remove();
-       }
-       
-       setTimeout(() => {
-           currentTileDisplay.textContent = '';
-           currentTile = null;
-           isMyTurn = true;
-           currentPlayer = currentPlayer === 1 ? 2 : 1;
-           updateTileColors();
-       }, 2500);
+            if (data.action === 'skip') {
+                currentTileDisplay.textContent = "Opponent used Skip tile!";
+                const tiles = Array.from(drawPile.children);
+                const skipTile = tiles.find(tile => tile.dataset.letter === '>>');
+                if (skipTile) {
+                    skipTile.remove();
+                }
+                
+                setTimeout(() => {
+                    currentTileDisplay.textContent = '';
+                    currentTile = null;
+                    isMyTurn = true;
+                    currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    updateTileColors();
+                }, 3000);
 
-} else if (data.action === 'reverse') {
-       currentTileDisplay.textContent = "Opponent used Reverse tile!";
-       const tiles = Array.from(drawPile.children);
-       const reverseTile = tiles.find(tile => tile.dataset.letter === '@');
-       if (reverseTile) {
-           reverseTile.remove();
-       }
-       
-       setTimeout(() => {
-           switchPiles();
-           currentTileDisplay.textContent = '';
-           currentTile = null;
-           isMyTurn = true;
-           currentPlayer = currentPlayer === 1 ? 2 : 1;
-           updateTileColors();
-       }, 2500);
+            } else if (data.action === 'reverse') {
+                currentTileDisplay.textContent = "Opponent used Reverse tile!";
+                const tiles = Array.from(drawPile.children);
+                const reverseTile = tiles.find(tile => tile.dataset.letter === '@');
+                if (reverseTile) {
+                    reverseTile.remove();
+                }
+                
+                setTimeout(() => {
+                    switchPiles();
+                    currentTileDisplay.textContent = '';
+                    currentTile = null;
+                    isMyTurn = true;
+                    currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    updateTileColors();
+                }, 3000);
 
-} else if (data.action === 'bothHave') {
-    currentTileDisplay.textContent = "Both players have this tile: Your Turn";  // Message for other player
-    const selectedTile = drawPile.querySelector('.tile.selected');
-    if (selectedTile) selectedTile.remove();
-    
-    setTimeout(() => {
-        currentTileDisplay.textContent = '';
-        currentTile = null;
-        isMyTurn = true;
-        currentPlayer = currentPlayer === 1 ? 2 : 1;
-        updateTileColors();
-    }, 2500);
+            } else if (data.action === 'bothHave') {
+                currentTileDisplay.textContent = "Both players have this tile: Your Turn";
+                const selectedTile = drawPile.querySelector('.tile.selected');
+                if (selectedTile) selectedTile.remove();
+                
+                setTimeout(() => {
+                    currentTileDisplay.textContent = '';
+                    currentTile = null;
+                    isMyTurn = true;
+                    currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    updateTileColors();
+                }, 3000);
 
-   } else if (data.action === 'duplicate') {  // Add this new case
-       currentTileDisplay.textContent = "Duplicate tile drawn. Your turn!";
-       setTimeout(() => {
-           currentTileDisplay.textContent = '';
-           currentTile = null;
-           isMyTurn = true;
-           currentPlayer = currentPlayer === 1 ? 2 : 1;
-           updateTileColors();
-       }, 2500);
-   }
+            } else if (data.action === 'duplicate') {
+                currentTileDisplay.textContent = "Duplicate tile drawn. Your turn!";
+                setTimeout(() => {
+                    currentTileDisplay.textContent = '';
+                    currentTile = null;
+                    isMyTurn = true;
+                    currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    updateTileColors();
+                }, 3000);
+            }
         } else if (data.type === 'selectTile') {
-    const tiles = Array.from(drawPile.children);
-    const randomTile = tiles.find(tile => !tile.classList.contains('selected'));
-    if (randomTile) {
-        randomTile.classList.add('selected');
-        randomTile.textContent = data.tile;  // Only show this tile's letter
-        currentTile = data.tile;
-        currentTileDisplay.textContent = `Current Tile: ${data.tile}`;
-    }
+            const tiles = Array.from(drawPile.children);
+            const randomTile = tiles.find(tile => !tile.classList.contains('selected'));
+            if (randomTile) {
+                randomTile.classList.add('selected');
+                randomTile.textContent = data.tile;
+                currentTile = data.tile;
+                currentTileDisplay.textContent = `Current Tile: ${data.tile}`;
+            }
+        } else if (data.type === 'placeTile') {
+            const playerArea = socket.id === players.first ? player2Area : player1Area;
+            const tile = playerArea.children[data.position];
+            if (tile) {
+                const replacedLetter = tile.dataset.letter;
+                
+                tile.dataset.letter = data.tile;
+                tile.textContent = data.tile;
+                tile.classList.add('revealed');
+                
+                const selectedTile = drawPile.querySelector('.tile.selected');
+                if (selectedTile) selectedTile.remove();
 
-} else if (data.type === 'placeTile') {
-    const playerArea = socket.id === players.first ? player2Area : player1Area;
-    const tile = playerArea.children[data.position];
-    if (tile) {
-        // Get replaced tile before updating
-        const replacedLetter = tile.dataset.letter;
-        
-        tile.dataset.letter = data.tile;
-        tile.textContent = data.tile;
-        tile.classList.add('revealed');
-        
-        const selectedTile = drawPile.querySelector('.tile.selected');
-        if (selectedTile) selectedTile.remove();
-
-        // Return ALL replaced tiles to draw pile
-        if (replacedLetter) {
-            returnTileToDrawPile(replacedLetter);
+                if (replacedLetter) {
+                    returnTileToDrawPile(replacedLetter);
+                }
+            }
+            isMyTurn = false;
+            updateTileColors();
         }
-    }
-    isMyTurn = false;
-    updateTileColors();
-}
     }
 });
 // Button event listeners
@@ -626,7 +637,7 @@ function handleSkipTile(selectedTile) {
         isMyTurn = false;
         currentPlayer = currentPlayer === 1 ? 2 : 1;
         updateTileColors();
-    }, 2500);
+    }, 3000);
 }
 
 function handleReverseTile(selectedTile) {
@@ -647,7 +658,7 @@ function handleReverseTile(selectedTile) {
         isMyTurn = false;
         currentPlayer = currentPlayer === 1 ? 2 : 1;
         updateTileColors();
-    }, 2500);
+    }, 3000);
 }
 
 function selectDrawTile(event) {
@@ -712,7 +723,7 @@ function selectDrawTile(event) {
         isMyTurn = false;
         currentPlayer = currentPlayer === 1 ? 2 : 1;
         updateTileColors();
-    }, 2500);
+    }, 3000);
     return;
 }
 
@@ -835,7 +846,7 @@ function handleSkipMove(data) {
         isMyTurn = true;
         currentPlayer = currentPlayer === 1 ? 2 : 1;
         updateTileColors();
-    }, 2500);
+    }, 3000);
 }
 
 function handleReverseMove(data) {
@@ -853,7 +864,7 @@ function handleReverseMove(data) {
         isMyTurn = true;
         currentPlayer = currentPlayer === 1 ? 2 : 1;
         updateTileColors();
-    }, 2500);
+    }, 3000);
 }
 
 function switchPiles() {
@@ -882,12 +893,24 @@ function checkGameEnd(playerArea) {
     if (checkWinCondition(playerArea)) {
         gameOver = true;
         gameOverMessage.textContent = `PLAYER ${currentPlayer} WINS!`;
+        // Add this emit event for game over
+        socket.emit('makeMove', {
+            type: 'gameOver',
+            gameId: gameId,
+            winner: currentPlayer
+        });
         return;
     }
 
     if (!canMakeMove()) {
         gameOver = true;
         gameOverMessage.textContent = "GAME OVER! IT'S A TIE!";
+        // Add this emit event for tie game
+        socket.emit('makeMove', {
+            type: 'gameOver',
+            gameId: gameId,
+            winner: 'tie'
+        });
         return;
     }
 }
