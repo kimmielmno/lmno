@@ -581,11 +581,13 @@ function createTiles(container, count, isDrawPile = false) {
     let letters = [];
     if (isDrawPile) {
         const remainingLetters = alphabet.repeat(4).split('');
-        const remainingSpecial = Array(8).fill('>>').concat(Array(8).fill('@'));
+        // Add wild tiles to draw pile
+        const remainingSpecial = Array(4).fill('>>').concat(Array(4).fill('@'), Array(4).fill('?'));
         letters = shuffleArray([...remainingLetters, ...remainingSpecial]).slice(0, count);
     } else {
         const alphabetTiles = alphabet.split('');
-        const specialTiles = Array(2).fill('>>').concat(Array(2).fill('@'));
+        // Add one wild tile to player areas
+        const specialTiles = Array(1).fill('>>').concat(Array(1).fill('@'), Array(1).fill('?'));
         letters = shuffleArray([...alphabetTiles, ...specialTiles]).slice(0, count);
     }
     
@@ -601,14 +603,21 @@ function createTiles(container, count, isDrawPile = false) {
         container.appendChild(tile);
     }
 }
-
 function playerHasLetter(player, letter) {
     const area = player === 1 ? player1Area : player2Area;
-    return Array.from(area.children).some(tile => 
-        tile.classList.contains('revealed') && tile.dataset.letter === letter
-    );
+    return Array.from(area.children).some(tile => {
+        if (!tile.classList.contains('revealed')) return false;
+        
+        // If it's a wild tile, check what letter position it's representing
+        if (tile.dataset.letter === '?') {
+            const position = Array.from(area.children).indexOf(tile);
+            return alphabet[position] === letter;
+        }
+        
+        // Regular tile check
+        return tile.dataset.letter === letter;
+    });
 }
-
 function bothPlayersHaveTile(letter) {
     return playerHasLetter(1, letter) && playerHasLetter(2, letter);
 }
@@ -770,7 +779,8 @@ function placeTile(event) {
     const currentPlayerArea = currentPlayer === 1 ? player1Area : player2Area;
     if (event.target.parentNode !== currentPlayerArea) return;
     const position = Array.from(currentPlayerArea.children).indexOf(event.target);
-    if (alphabet[position] !== currentTile && currentTile !== '>>' && currentTile !== '@') return;
+    // Added wild tile check
+    if (currentTile !== '?' && alphabet[position] !== currentTile && currentTile !== '>>' && currentTile !== '@') return;
     if (event.target.classList.contains('revealed')) return;
 
     const replacedLetter = event.target.dataset.letter;
@@ -779,7 +789,7 @@ function placeTile(event) {
         tile: currentTile,
         position: position,
         gameId: gameId,
-        replacedTile: replacedLetter  // Send the replaced tile info
+        replacedTile: replacedLetter
     });
 
     // Place the new tile
@@ -791,7 +801,7 @@ function placeTile(event) {
     const selectedTile = drawPile.querySelector('.tile.selected');
     if (selectedTile) selectedTile.remove();
 
-    // Return ALL replaced tiles to draw pile
+    // Return replaced tiles to draw pile
     if (replacedLetter) {
         returnTileToDrawPile(replacedLetter);
     }
