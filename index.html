@@ -460,38 +460,45 @@ socket.on('gameMove', (data) => {
         console.log('Processing opponent move:', data.type);
         
         if (data.type === 'specialTile') {
-            if (data.action === 'skip') {
-                currentTileDisplay.textContent = "Opponent used Skip tile!";
-                const tiles = Array.from(drawPile.children);
-                const skipTile = tiles.find(tile => tile.dataset.letter === '>>');
-                if (skipTile) {
-                    skipTile.remove();
-                }
-                
-                setTimeout(() => {
-                    currentTileDisplay.textContent = '';
-                    currentTile = null;
-                    isMyTurn = true;
-                    currentPlayer = currentPlayer === 1 ? 2 : 1;
-                    updateTileColors();
-                }, 3000);
-
-            } else if (data.action === 'reverse') {
-                currentTileDisplay.textContent = "Opponent used Reverse tile!";
-                const tiles = Array.from(drawPile.children);
-                const reverseTile = tiles.find(tile => tile.dataset.letter === '@');
-                if (reverseTile) {
-                    reverseTile.remove();
-                }
-                
-                setTimeout(() => {
-                    switchPiles();
-                    currentTileDisplay.textContent = '';
-                    currentTile = null;
-                    isMyTurn = true;
-                    currentPlayer = currentPlayer === 1 ? 2 : 1;
-                    updateTileColors();
-                }, 3000);
+    if (data.action === 'skip') {
+        currentTileDisplay.textContent = "Opponent used Skip tile!";
+        const tiles = Array.from(drawPile.children);
+        const skipTile = tiles.find(tile => tile.dataset.letter === '>>');
+        if (skipTile) {
+            skipTile.classList.add('selected');
+            skipTile.textContent = '>>';
+            
+            setTimeout(() => {
+                skipTile.remove();
+                currentTileDisplay.textContent = '';
+                currentTile = null;
+                isMyTurn = true;
+                currentPlayer = currentPlayer === 1 ? 2 : 1;
+                updateTileColors();
+            }, 3000);
+        }
+    } else if (data.action === 'reverse') {
+    currentTileDisplay.textContent = "Opponent used Reverse tile!";
+    const tiles = Array.from(drawPile.children);
+    const reverseTile = tiles.find(tile => tile.dataset.letter === '@');
+    if (reverseTile) {
+        reverseTile.classList.add('selected');
+        reverseTile.textContent = '@';
+        
+        // First show the tile for 3 seconds, then do the switch
+        setTimeout(() => {
+            reverseTile.remove();
+            currentTileDisplay.textContent = '';
+            currentTile = null;
+            
+            // Both players switch piles at the same time
+            switchPiles();
+            
+            isMyTurn = true;
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateTileColors();
+        }, 3000);
+        }
 
             } else if (data.action === 'bothHave') {
                 currentTileDisplay.textContent = "Both players have this tile: Your Turn";
@@ -517,14 +524,19 @@ socket.on('gameMove', (data) => {
                 }, 3000);
             }
         } else if (data.type === 'selectTile') {
-            const tiles = Array.from(drawPile.children);
-            const randomTile = tiles.find(tile => !tile.classList.contains('selected'));
-            if (randomTile) {
-                randomTile.classList.add('selected');
-                randomTile.textContent = data.tile;
-                currentTile = data.tile;
-                currentTileDisplay.textContent = `Current Tile: ${data.tile}`;
-            }
+    const tiles = Array.from(drawPile.children);
+    // Use the position from the data instead of finding first unselected tile
+    const tileToSelect = tiles[data.tilePosition];
+    if (tileToSelect) {
+        tiles.forEach(tile => {
+            tile.classList.remove('selected');
+            tile.textContent = '';
+        });
+        tileToSelect.classList.add('selected');
+        tileToSelect.textContent = data.tile;
+        currentTile = data.tile;
+        currentTileDisplay.textContent = `Current Tile: ${data.tile}`;
+    }
         } else if (data.type === 'placeTile') {
             const playerArea = socket.id === players.first ? player2Area : player1Area;
             const tile = playerArea.children[data.position];
@@ -631,6 +643,8 @@ function removeTileFromDrawPile(letter) {
 
 function handleSkipTile(selectedTile) {
     currentTileDisplay.textContent = "Skip tile!";
+    selectedTile.classList.add('selected');
+    selectedTile.textContent = '>>';
     
     socket.emit('makeMove', {
         type: 'specialTile',
@@ -639,8 +653,8 @@ function handleSkipTile(selectedTile) {
         gameId: gameId
     });
 
-    selectedTile.remove();
     setTimeout(() => {
+        selectedTile.remove();
         currentTile = null;
         currentTileDisplay.textContent = '';
         isMyTurn = false;
@@ -651,6 +665,8 @@ function handleSkipTile(selectedTile) {
 
 function handleReverseTile(selectedTile) {
     currentTileDisplay.textContent = "Reverse tile!";
+    selectedTile.classList.add('selected');
+    selectedTile.textContent = '@';
     
     socket.emit('makeMove', {
         type: 'specialTile',
@@ -659,11 +675,15 @@ function handleReverseTile(selectedTile) {
         gameId: gameId
     });
 
-    selectedTile.remove();
+    // First show the tile for 3 seconds, then do the switch
     setTimeout(() => {
-        switchPiles();
-        currentTile = null;
+        selectedTile.remove();
         currentTileDisplay.textContent = '';
+        currentTile = null;
+        
+        // Both players switch piles at the same time
+        switchPiles();
+        
         isMyTurn = false;
         currentPlayer = currentPlayer === 1 ? 2 : 1;
         updateTileColors();
@@ -680,8 +700,9 @@ function selectDrawTile(event) {
         });
         return;
     }
-
     const selectedTile = event.target;
+    // Get the index of the selected tile
+    const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
     currentTile = selectedTile.dataset.letter;
     console.log('Selected tile:', currentTile);
 
@@ -689,57 +710,59 @@ function selectDrawTile(event) {
         handleSkipTile(selectedTile);
         return;
     }
-
     if (currentTile === '@') {
         handleReverseTile(selectedTile);
         return;
     }
 
-    drawPile.querySelectorAll('.tile').forEach(tile => {
-    tile.classList.remove('selected');
-    if (tile === selectedTile) {
-        tile.textContent = currentTile;  // Only show the selected tile's letter
-    } else {
-        tile.textContent = '';  // Keep other tiles hidden
+    // Check for both players having tile BEFORE checking individual player
+    if (currentTile !== '?' && bothPlayersHaveTile(currentTile)) {
+        currentTileDisplay.textContent = "Both players have this tile: Skip Turn";
+        selectedTile.classList.add('selected');
+        selectedTile.textContent = currentTile;
+        
+        socket.emit('makeMove', {
+            type: 'specialTile',
+            tile: currentTile,
+            action: 'bothHave',
+            gameId: gameId
+        });
+
+        setTimeout(() => {
+            selectedTile.remove();
+            currentTileDisplay.textContent = '';
+            currentTile = null;
+            isMyTurn = false;
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateTileColors();
+        }, 3000);
+        return;
     }
-});
+
+    drawPile.querySelectorAll('.tile').forEach(tile => {
+        tile.classList.remove('selected');
+        if (tile === selectedTile) {
+            tile.textContent = currentTile;
+        } else {
+            tile.textContent = '';
+        }
+    });
     
     selectedTile.classList.add('selected');
     selectedTile.textContent = currentTile;
     currentTileDisplay.textContent = `Current Tile: ${currentTile}`;
-
     socket.emit('makeMove', {
         type: 'selectTile',
         tile: currentTile,
+        tilePosition: tilePosition,  // Add the position
         gameId: gameId
     });
-
-    if (bothPlayersHaveTile(currentTile)) {
-    currentTileDisplay.textContent = "Both players have this tile: Skip Turn";  // Message for player drawing duplicate
-    const selectedTile = drawPile.querySelector('.tile.selected');
-    if (selectedTile) selectedTile.remove();
     
-    socket.emit('makeMove', {
-        type: 'specialTile',
-        tile: currentTile,
-        action: 'bothHave',
-        gameId: gameId
-    });
-
-    setTimeout(() => {
-        currentTileDisplay.textContent = '';
-        currentTile = null;
-        isMyTurn = false;
-        currentPlayer = currentPlayer === 1 ? 2 : 1;
-        updateTileColors();
-    }, 3000);
-    return;
-}
-
-if (playerHasLetter(currentPlayer, currentTile)) {
-    offerDiscardToOtherPlayer(selectedTile);
-    return;
-}
+    // Only check for duplicates if this isn't a wild tile
+    if (currentTile !== '?' && playerHasLetter(currentPlayer, currentTile)) {
+        offerDiscardToOtherPlayer(selectedTile);
+        return;
+    }
 }
 function offerDiscardToOtherPlayer(selectedTile) {
     // First set my tiles to inactive
