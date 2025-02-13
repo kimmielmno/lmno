@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LMNO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         @import url("https://fonts.googleapis.com/css?family=Rubik:700&display=swap");
 
@@ -299,6 +300,105 @@
             box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2;
             transform: translate3d(0, 0, -1em);
         }
+@media screen and (max-width: 480px) {
+    .game-board {
+        position: fixed;
+        width: 100%;
+        max-width: 100vw;
+        padding: 10px;
+        gap: 15px;
+        transform: none;
+        top: 0;
+        left: 0;
+    }
+
+    .tile {
+        width: 22px !important;
+        height: 22px !important;
+        font-size: 12px !important;
+    }
+
+    .tile::before {
+        transform: translate3d(0, 0.20em, -1em);
+    }
+
+    .draw-pile {
+        grid-template-columns: repeat(10, 1fr);
+        gap: 4px;
+        max-width: 95vw;
+        margin: 10px 0;
+    }
+
+    .draw-pile .tile {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 10px !important;
+    }
+
+    .tile-area {
+        gap: 4px;
+        row-gap: 8px;
+        width: 95vw;
+    }
+
+    .game-section {
+        gap: 15px;
+    }
+
+    .game-section h3 {
+        font-size: 14px;
+        margin: 5px 0;
+    }
+
+    #currentTile {
+        font-size: 14px;
+        margin-top: 8px;
+    }
+
+    #discardOption {
+        font-size: 14px;
+        margin-top: 10px;
+    }
+
+    #discardOption button {
+        margin: 0 5px;
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    #gameSetup {
+        width: 90%;
+        max-width: 300px;
+        padding: 15px;
+    }
+
+    .setup-button {
+        width: 80%;
+        margin: 8px auto;
+        padding: 12px;
+        font-size: 16px;
+        min-height: 44px;
+        display: block;
+    }
+
+    #gameCodeInput {
+        width: 80%;
+        padding: 12px;
+        font-size: 16px;
+        margin: 10px auto;
+        min-height: 44px;
+        display: block;
+    }
+
+    h2 {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    body {
+        padding: 5px;
+    }
+}
     </style>
 </head>
 <body>
@@ -566,7 +666,8 @@ startButton.addEventListener('click', () => {
     joinButton.disabled = true;
 });
 
-joinButton.addEventListener('click', () => {
+function handleJoinAction(event) {
+    event.preventDefault(); // Prevent any default behavior
     if (gameCodeInput.style.display === 'none') {
         gameCodeInput.style.display = 'block';
         joinButton.textContent = 'Submit';
@@ -577,8 +678,22 @@ joinButton.addEventListener('click', () => {
             socket.emit('joinGame', code);
         }
     }
-});
+}
 
+// Add both click and touch events for join button
+joinButton.addEventListener('click', handleJoinAction);
+joinButton.addEventListener('touchstart', handleJoinAction);
+
+// Add enter key functionality for input field
+gameCodeInput.addEventListener('keyup', (event) => {
+    if (event.key === 'Enter') {
+        const code = gameCodeInput.value.trim().toUpperCase();
+        if (code) {
+            console.log('Attempting to join game:', code);
+            socket.emit('joinGame', code);
+        }
+    }
+});
 // Game functions
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
