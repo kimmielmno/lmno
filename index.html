@@ -300,6 +300,14 @@
             box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2;
             transform: translate3d(0, 0, -1em);
         }
+.game-section h3 {
+        margin-bottom: 5px !important;  /* Reduce space between label and tiles */
+    }
+
+    /* Adjust overall game section spacing */
+    .game-section {
+        gap: 10px !important;  /* Reduce space between sections */
+    }
 @media screen and (max-width: 480px) {
     .game-board {
         position: fixed;
@@ -312,96 +320,31 @@
         top: 0;
     }
 
-    /* Player tile areas */
-    #player1Area,
-    #player2Area {
-        display: grid;
+    .tile-area {
         grid-template-columns: repeat(9, 1fr) !important;
-        gap: 6px !important;    /* Increased from 4px to match draw pile */
+        gap: 4px;
         row-gap: 10px !important;
-        width: 95vw;
     }
 
-    .tile-area .tile {
-        width: 30px !important;
-        height: 30px !important;
-        font-size: 14px !important;
-    }
-
-    /* Draw pile */
     .draw-pile {
         grid-template-columns: repeat(8, 1fr);
-        gap: 6px;              /* Matching gap size */
-        row-gap: 10px !important;
-        max-width: 95vw;
-        margin: 10px 0;
+        gap: 4px;
+        row-gap: 10px;
     }
 
+.tile-area .tile,
     .draw-pile .tile {
         width: 30px !important;
         height: 30px !important;
         font-size: 14px !important;
     }
+.game-section h3 {
+        margin-bottom: 5px !important;  /* Reduce space between label and tiles */
+    }
 
+    /* Adjust overall game section spacing */
     .game-section {
-        gap: 10px;
-    }
-
-    .game-section h3 {
-        font-size: 14px;
-        margin: 5px 0;
-    }
-.game-section h3:contains("Draw Pile") {
-        display: none;
-    }
-
-    #currentTile {
-        font-size: 14px;
-        margin-top: 8px;
-    }
-
-    #discardOption {
-        font-size: 14px;
-        margin-top: 10px;
-    }
-
-    #discardOption button {
-        margin: 0 5px;
-        padding: 4px 8px;
-        font-size: 12px;
-    }
-
-    #gameSetup {
-        width: 90%;
-        max-width: 300px;
-        padding: 15px;
-    }
-
-    .setup-button {
-        width: 80%;
-        margin: 8px auto;
-        padding: 12px;
-        font-size: 16px;
-        min-height: 44px;
-        display: block;
-    }
-
-    #gameCodeInput {
-        width: 80%;
-        padding: 12px;
-        font-size: 16px;
-        margin: 10px auto;
-        min-height: 44px;
-        display: block;
-    }
-
-    h2 {
-        font-size: 24px;
-        margin-bottom: 15px;
-    }
-
-    body {
-        padding: 5px;
+        gap: 10px !important;  /* Reduce space between sections */
     }
 }
     </style>
@@ -424,9 +367,9 @@
         <div class="tile-area" id="player1Area"></div>
     </div>
     <div class="game-section">
-        <h3> </h3>
-        <div class="draw-pile" id="drawPile"></div>
-    </div>
+    <!-- <h3>Draw Pile</h3> -->
+    <div class="draw-pile" id="drawPile"></div>
+</div>
     <div class="game-section">
         <h3>Player 2</h3>
         <div class="tile-area" id="player2Area"></div>
