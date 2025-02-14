@@ -178,7 +178,15 @@
             background: #d2d2d2;
             box-shadow: 0 0 0 1.5px #b5b5b5, 0 0.350em 0 0 #e6e6e6;
         }
+         .tile.revealed.inactive {
+            background-color: #e0fff0;  /* Keep the green background */
+            border-color: #81b597;      /* Keep the green border */
+}
 
+         .tile.revealed.inactive::before {
+            background: #c4f9d2;        /* Keep the green shadow */
+            box-shadow: 0 0 0 1.5px #81b597, 0 0.325em 0 0 #e2ffe3;
+}
         .draw-pile .tile {
             background-color: #fff0f0;
             width: 30px;
@@ -313,39 +321,80 @@
         position: fixed;
         width: 100%;
         max-width: 100vw;
+        min-height: 100vh;  /* Add this to fill screen height */
         padding: 10px;
         gap: 15px;
         left: 50%;
         transform: translateX(-50%);
         top: 0;
+        background: white;  /* Make sure background extends */
     }
 
     .tile-area {
         grid-template-columns: repeat(9, 1fr) !important;
-        gap: 4px;
-        row-gap: 10px !important;
+        gap: 6px !important;     /* Increased from 4px */
+        row-gap: 12px !important;  /* Increased from 10px */
     }
 
     .draw-pile {
         grid-template-columns: repeat(8, 1fr);
-        gap: 4px;
-        row-gap: 10px;
+        gap: 6px;              /* Increased from 4px */
+        row-gap: 12px;         /* Increased from 10px */
     }
 
-.tile-area .tile,
+    .tile-area .tile,
     .draw-pile .tile {
         width: 30px !important;
         height: 30px !important;
         font-size: 14px !important;
     }
-.game-section h3 {
-        margin-bottom: 5px !important;  /* Reduce space between label and tiles */
+
+    /* Player switching styles */
+    #player2Area {
+        display: none;
     }
 
-    /* Adjust overall game section spacing */
-    .game-section {
-        gap: 10px !important;  /* Reduce space between sections */
+    #player2Area.active {
+        display: grid;
     }
+
+    #player1Area.inactive {
+        display: none;
+    }
+
+    /* Hide inactive player labels */
+    .game-section:has(#player1Area.inactive) > h3,
+    .game-section:has(#player2Area:not(.active)) > h3 {
+        display: none;
+    }
+
+    /* Message visibility */
+    #currentTile {
+        min-height: 30px;
+        position: fixed;
+        bottom: 120px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        padding: 10px;
+        width: 90%;
+        text-align: center;
+        z-index: 1000;
+    }
+
+    #discardOption {
+        min-height: 50px;
+        position: fixed;
+        bottom: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        padding: 10px;
+        width: 90%;
+        text-align: center;
+        z-index: 1000;
+    }
+}  }
 }
     </style>
 </head>
@@ -383,7 +432,7 @@
 <script>
 // Constants and game state variables
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const socket = io('https://lmno-production.up.railway.app/');
+const socket = io('http://localhost:3000');
 console.log('Attempting socket connection...');
 
 // Game state
@@ -1021,6 +1070,7 @@ function switchPiles() {
     });
 
     currentTileDisplay.textContent = "PILES SWITCHED!";
+    updateTileColors(); // Add this call
 }
 function checkGameEnd(playerArea) {
     if (checkWinCondition(playerArea)) {
@@ -1059,28 +1109,79 @@ function canMakeMove() {
 }
 
 function updateTileColors() {
-    const player1Tiles = player1Area.querySelectorAll('.tile:not(.revealed)');
-    const player2Tiles = player2Area.querySelectorAll('.tile:not(.revealed)');
+    // Get ALL tiles, not just unrevealed ones
+    const player1Tiles = player1Area.querySelectorAll('.tile');
+    const player2Tiles = player2Area.querySelectorAll('.tile');
     
     if (currentPlayer === 1) {
         if (socket.id === players.first) {
             // First player's browser
-            player1Tiles.forEach(tile => tile.classList.remove('inactive'));  // Keep my tiles blue
-            player2Tiles.forEach(tile => tile.classList.add('inactive'));     // Other player's tiles gray
+            player1Tiles.forEach(tile => {
+                tile.classList.remove('inactive');
+                // Only show text content if revealed
+                if (!tile.classList.contains('revealed')) {
+                    tile.textContent = '';
+                }
+            });
+            player2Tiles.forEach(tile => {
+                tile.classList.add('inactive');
+                // Only show text content if revealed
+                if (!tile.classList.contains('revealed')) {
+                    tile.textContent = '';
+                }
+            });
+            player1Area.classList.remove('inactive');
+            player2Area.classList.remove('active');
         } else {
             // Second player's browser
-            player1Tiles.forEach(tile => tile.classList.remove('inactive'));  // Active player's tiles blue
-            player2Tiles.forEach(tile => tile.classList.add('inactive'));     // Keep my tiles gray
+            player1Tiles.forEach(tile => {
+                tile.classList.remove('inactive');
+                if (!tile.classList.contains('revealed')) {
+                    tile.textContent = '';
+                }
+            });
+            player2Tiles.forEach(tile => {
+                tile.classList.add('inactive');
+                if (!tile.classList.contains('revealed')) {
+                    tile.textContent = '';
+                }
+            });
+            player1Area.classList.remove('inactive');
+            player2Area.classList.remove('active');
         }
     } else {
         if (socket.id === players.second) {
             // Second player's browser
-            player2Tiles.forEach(tile => tile.classList.remove('inactive'));  // Keep my tiles blue
-            player1Tiles.forEach(tile => tile.classList.add('inactive'));     // Other player's tiles gray
+            player2Tiles.forEach(tile => {
+                tile.classList.remove('inactive');
+                if (!tile.classList.contains('revealed')) {
+                    tile.textContent = '';
+                }
+            });
+            player1Tiles.forEach(tile => {
+                tile.classList.add('inactive');
+                if (!tile.classList.contains('revealed')) {
+                    tile.textContent = '';
+                }
+            });
+            player2Area.classList.add('active');
+            player1Area.classList.add('inactive');
         } else {
             // First player's browser
-            player2Tiles.forEach(tile => tile.classList.remove('inactive'));  // Active player's tiles blue
-            player1Tiles.forEach(tile => tile.classList.add('inactive'));     // Keep my tiles gray
+            player2Tiles.forEach(tile => {
+                tile.classList.remove('inactive');
+                if (!tile.classList.contains('revealed')) {
+                    tile.textContent = '';
+                }
+            });
+            player1Tiles.forEach(tile => {
+                tile.classList.add('inactive');
+                if (!tile.classList.contains('revealed')) {
+                    tile.textContent = '';
+                }
+            });
+            player2Area.classList.add('active');
+            player1Area.classList.add('inactive');
         }
     }
 }
