@@ -683,6 +683,20 @@ function handleJoinAction(event) {
 joinButton.addEventListener('click', handleJoinAction);
 joinButton.addEventListener('touchstart', handleJoinAction);
 
+function handleJoinAction(event) {
+    event.preventDefault(); // Prevent any default behavior
+    if (gameCodeInput.style.display === 'none') {
+        gameCodeInput.style.display = 'block';
+        joinButton.textContent = 'Submit';
+    } else {
+        const code = gameCodeInput.value.trim().toUpperCase();
+        if (code) {
+            console.log('Attempting to join game:', code);
+            socket.emit('joinGame', code);
+        }
+    }
+}
+
 // Add enter key functionality for input field
 gameCodeInput.addEventListener('keyup', (event) => {
     if (event.key === 'Enter') {
