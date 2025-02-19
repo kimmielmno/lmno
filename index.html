@@ -33,11 +33,8 @@
         }
 
         #gameSetup {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            text-align: center;
+    padding: 20px;
+    text-align: center;
         }
 
         .setup-button {
@@ -68,10 +65,7 @@
     flex-direction: column;
     align-items: center;
     gap: 30px;
-    background: white;
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
     z-index: 1;
 }
 
@@ -187,6 +181,39 @@
             background: #c4f9d2;        /* Keep the green shadow */
             box-shadow: 0 0 0 1.5px #81b597, 0 0.325em 0 0 #e2ffe3;
 }
+@keyframes wiggle {
+    0% { transform: rotate(0deg); background-color: #e0fff0; }
+    25% { transform: rotate(-5deg); background-color: #ffe9e9; }
+    75% { transform: rotate(5deg); background-color: #ffe9e9; }
+    100% { transform: rotate(0deg); background-color: #ffe9e9; }
+}
+
+.tile.wiggle {
+    animation: wiggle 0.5s ease-in-out infinite;
+}
+
+.tile.wiggle::before {
+    background: #c4f9d2; /* Start with green */
+    transition: background-color 0.5s ease;
+}
+
+.tile.wiggle.pink::before {
+    background: #f9c4d2; /* Transition to pink */
+}
+@keyframes redWiggle {
+    0% { transform: rotate(0deg); background-color: #ffe0e0; }
+    25% { transform: rotate(-5deg); background-color: #ffcaca; }
+    75% { transform: rotate(5deg); background-color: #ffb5b5; }
+    100% { transform: rotate(0deg); background-color: #ffe0e0; }
+}
+
+.tile.redWiggle {
+    animation: redWiggle 0.5s ease-in-out infinite;
+}
+
+.tile.redWiggle::before {
+    background: #ffcaca;
+}
         .draw-pile .tile {
             background-color: #fff0f0;
             width: 30px;
@@ -245,14 +272,27 @@
     display: block;    /* Add this */
 }
 
-        .draw-pile {
-            display: grid;
-            grid-template-columns: repeat(15, 1fr);
-            gap: 8px;
-            max-width: 750px;
-            margin: 20px 0;
-            row-gap: 15px;
-        }
+
+.draw-pile {
+    display: grid;
+    grid-template-columns: repeat(13, 1fr);
+    grid-template-rows: repeat(3, minmax(30px, auto)); /* Define 3 fixed rows */
+    grid-auto-rows: 0; /* Any additional rows take no space */
+    gap: 8px;
+    row-gap: 15px; /* Keep your original row gap */
+    max-width: 750px;
+    margin: 20px 0;
+    min-height: 120px;
+}
+
+.game-section:nth-child(2) {
+    min-height: 160px;
+}
+
+/* Make sure tiles align to the top within the draw pile */
+.draw-pile .tile {
+    align-self: start;
+}
 
         #discardOption {
             margin-top: 20px;
@@ -311,11 +351,21 @@
 .game-section h3 {
         margin-bottom: 5px !important;  /* Reduce space between label and tiles */
     }
+#currentTile, #discardOption {
+    visibility: hidden;
+    height: 0;
+    margin: 0;
+    padding: 0;
+}
 
     /* Adjust overall game section spacing */
     .game-section {
-        gap: 10px !important;  /* Reduce space between sections */
+        gap: 15px !important;  /* Reduce space between sections */
     }
+.game-section:nth-child(3) {   /* This targets the third game section which has Player 2 */
+    margin-top: -0px;
+
+
 @media screen and (max-width: 480px) {
     .game-board {
         position: fixed;
@@ -416,16 +466,14 @@
         <div class="tile-area" id="player1Area"></div>
     </div>
     <div class="game-section">
-    <!-- <h3>Draw Pile</h3> -->
-    <div class="draw-pile" id="drawPile"></div>
-</div>
+        <div class="draw-pile" id="drawPile"></div>
+    </div>
     <div class="game-section">
-        <h3>Player 2</h3>
         <div class="tile-area" id="player2Area"></div>
+        <h3>Player 2</h3>
     </div>
     <div id="currentTile"></div>
     <div id="discardOption"></div>
-    <div id="gameOverMessage" class="game-over"></div>
 </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
@@ -470,6 +518,29 @@ socket.on('connect', () => {
 socket.on('connect_error', (error) => {
     console.log('Connection error:', error);
 });
+socket.on('syncRequest', (data) => {
+    if (data.playerId !== socket.id && gameId === data.gameId) {
+        // If I think it's my turn but other player also thinks it's their turn
+        if (isMyTurn && data.myTurn) {
+            console.log('Turn conflict detected, resolving...');
+            // Player 1 gets priority in conflicts
+            if (socket.id === players.second) {
+                isMyTurn = false;
+                console.log('Yielding turn to Player 1');
+            }
+        }
+        
+        // Make sure we agree on whose turn it is
+        if (currentPlayer !== data.myPlayer) {
+            console.log('Player number mismatch, syncing...');
+            if (socket.id === players.second) {
+                currentPlayer = data.myPlayer === 1 ? 2 : 1;
+            }
+        }
+        
+        updateTileColors();
+    }
+});
 
 socket.on('gameCreated', (data) => {
     console.log('Game created:', data);
@@ -494,100 +565,139 @@ socket.on('gameStarted', (data) => {
 
 socket.on('gameMove', (data) => {
     console.log('Move received:', data);
-    
     if (data.type === 'discardOffer') {
-        if (data.playerId !== socket.id) {
-            isMyTurn = true;
-            currentPlayer = data.currentPlayer;
-            updateTileColors();
-            discardOption.innerHTML = `
-                Do you want this ${data.tile}?
-                <button onclick="handleDiscardChoice(true)">Keep</button>
-                <button onclick="handleDiscardChoice(false)">Discard</button>
-                `;
-        }
-    } 
-    else if (data.type === 'discardOption') {
-        const isFirstPlayer = socket.id === data.players[0];
-        const isSecondPlayer = socket.id === data.players[1];
-        const otherPlayer = currentPlayer === 1 ? 2 : 1;
+    if (data.playerId !== socket.id) {
+        const tiles = Array.from(drawPile.children);
         
-        if ((otherPlayer === 1 && isFirstPlayer) || (otherPlayer === 2 && isSecondPlayer)) {
-            discardOption.innerHTML = `
-                Do you want this ${data.tile}?
-                <button onclick="handleDiscardChoice(true)">Keep</button>
-                <button onclick="handleDiscardChoice(false)">Discard</button>
-            `;
-        } else {
-            discardOption.innerHTML = 'Waiting for other player\'s decision...';
-        }
-    } 
-    else if (data.type === 'discardChoice') {
-        discardOption.innerHTML = '';
-        if (data.accepted) {
-            originalPlayer = data.playerId;
-            if (data.playerId !== socket.id) {
-                isMyTurn = false;
-                currentTileDisplay.textContent = `Current Tile: ${data.tile}`;
-                updateTileColors();
+        // Clear any existing text and animations
+        tiles.forEach(tile => {
+            if (!tile.classList.contains('wiggle')) {
+                tile.textContent = '';
             }
+            tile.classList.remove('wiggle', 'pink', 'duplicate-offer');
+        });
+        
+        // IMPROVED TILE FINDING: Look for tile by letter
+        let matchingTile = tiles.find(tile => tile.dataset.letter === data.tile);
+        
+        // If no matching tile found, create one at the end of the draw pile
+        if (!matchingTile) {
+            console.log('No matching tile found for letter:', data.tile, 'creating one');
+            matchingTile = document.createElement('div');
+            matchingTile.classList.add('tile');
+            matchingTile.dataset.letter = data.tile;
+            matchingTile.addEventListener('click', selectDrawTile);
+            drawPile.appendChild(matchingTile);
+        }
+        
+        // Apply animation classes
+        matchingTile.classList.add('wiggle', 'duplicate-offer');
+        matchingTile.textContent = data.tile;
+        
+        // Hide text on all other matching tiles
+        tiles.forEach(tile => {
+            if (tile !== matchingTile && tile.dataset.letter === data.tile) {
+                tile.textContent = '';
+            }
+        });
+        
+        // Disable clicking on other tiles
+        tiles.forEach(tile => {
+            if (tile !== matchingTile) {
+                tile.style.pointerEvents = 'none';
+            }
+        });
+        
+        setTimeout(() => {
+            matchingTile.classList.add('pink');
+        }, 250);
+
+        matchingTile.addEventListener('click', () => {
+            // Re-enable clicking on all tiles after this one is played
+            tiles.forEach(tile => {
+                tile.style.pointerEvents = 'auto';
+            });
+            const duplicateTiles = drawPile.querySelectorAll('.duplicate-offer');
+            duplicateTiles.forEach(tile => tile.remove());
+        }, { once: true });
+        
+        isMyTurn = true;
+        currentPlayer = data.currentPlayer;
+        updateTileColors();
+    }
+}
+    if (data.type === 'gameOver') {
+    gameOver = true;
+    
+    if (data.winner === 'tie') {
+        // For a tie, show message in both player labels
+        const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+        const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+        player1Label.textContent = "Player 1: It's a Tie!";
+        player2Label.textContent = "Player 2: It's a Tie!";
+    } else {
+        // Update the labels based on who won
+        const winnerNum = parseInt(data.winner);
+        const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+        const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+        
+        if (winnerNum === 1) {
+            player1Label.textContent = "Player 1: Winner!";
+            player2Label.textContent = "Player 2: Player 1 Wins!";
         } else {
-            const selectedTile = drawPile.querySelector('.tile.selected');
-            if (selectedTile) selectedTile.remove();
-            currentTile = null;
-            currentTileDisplay.textContent = '';
-            isMyTurn = socket.id === originalPlayer;
-            updateTileColors();
+            player1Label.textContent = "Player 1: Player 2 Wins!";
+            player2Label.textContent = "Player 2: Winner!";
         }
     }
-    else if (data.type === 'gameOver') {
-        gameOver = true;
-        if (data.winner === 'tie') {
-            gameOverMessage.textContent = "GAME OVER! IT'S A TIE!";
-        } else {
-            const isWinner = (data.winner === 1 && socket.id === players.first) || 
-                           (data.winner === 2 && socket.id === players.second);
-            gameOverMessage.textContent = isWinner ? 
-                `YOU WIN!` : 
-                `PLAYER ${data.winner} WINS!`;
-        }
-        isMyTurn = false;
-        updateTileColors();
+    
+    isMyTurn = false;
+    updateTileColors();
     }
     else if (data.playerId !== socket.id) {
         console.log('Processing opponent move:', data.type);
         
         if (data.type === 'specialTile') {
     if (data.action === 'skip') {
-        currentTileDisplay.textContent = "Opponent used Skip tile!";
-        const tiles = Array.from(drawPile.children);
-        // Use the position instead of find
-        const skipTile = tiles[data.tilePosition];
-        if (skipTile) {
-            skipTile.classList.add('selected');
-            skipTile.textContent = '>>';
-            
-            setTimeout(() => {
-                skipTile.remove();
-                currentTileDisplay.textContent = '';
-                currentTile = null;
-                isMyTurn = true;
-                currentPlayer = currentPlayer === 1 ? 2 : 1;
-                updateTileColors();
-            }, 3000);
+    currentTileDisplay.textContent = "Opponent used Skip tile!";
+    
+    // Add message to receiving player's label
+    const nextPlayer = data.currentPlayer === 1 ? 2 : 1;
+    const playerLabel = document.querySelector(`.game-section:nth-child(${nextPlayer === 1 ? 1 : 3}) h3`);
+    playerLabel.textContent = `Player ${nextPlayer}: Skipped!`;
+    
+    const tiles = Array.from(drawPile.children);
+    const skipTile = tiles[data.tilePosition];
+    if (skipTile) {
+        skipTile.classList.add('selected');
+        skipTile.textContent = '>>';
+        
+        setTimeout(() => {
+            skipTile.remove();
+            currentTileDisplay.textContent = '';
+            playerLabel.textContent = `Player ${nextPlayer}`;  // Reset label
+            currentTile = null;
+            isMyTurn = true;
+            currentPlayer = nextPlayer;
+            updateTileColors();
+        }, 3000);
         }
     } else if (data.action === 'reverse') {
     currentTileDisplay.textContent = "Opponent used Reverse tile!";
+    
+    // For receiving player, use currentPlayer directly since it's already correct
+    const playerLabel = document.querySelector(`.game-section:nth-child(${currentPlayer === 1 ? 1 : 3}) h3`);
+    playerLabel.textContent = `Player ${currentPlayer}: Reversed!`;
+    
     const tiles = Array.from(drawPile.children);
     const reverseTile = tiles[data.tilePosition];
     if (reverseTile) {
         reverseTile.classList.add('selected');
         reverseTile.textContent = '@';
         
-        // Make sure both browsers switch at the same time
         setTimeout(() => {
             reverseTile.remove();
             currentTileDisplay.textContent = '';
+            playerLabel.textContent = `Player ${currentPlayer}`;  // Reset label
             currentTile = null;
             
             // Ensure switch happens at same time
@@ -599,28 +709,72 @@ socket.on('gameMove', (data) => {
         }
 
             } else if (data.action === 'bothHave') {
-    currentTileDisplay.textContent = "Both players have this tile: Your Turn";
-    const selectedTile = drawPile.querySelector('.tile.selected');
-    if (selectedTile) selectedTile.remove();
-    
-    // Add to discarded letters
-    if (data.discardedLetter) {
-        discardedLetters.push(data.discardedLetter);
-        // Remove all instances of this letter from draw pile
-        const allSameTiles = Array.from(drawPile.children).filter(tile => 
-            tile.dataset.letter === data.discardedLetter
-        );
-        allSameTiles.forEach(tile => tile.remove());
+    if (data.playerId !== socket.id) {  // Make sure we're on the receiving browser
+        currentTileDisplay.textContent = "Both players have this tile: Your Turn";
+        
+        // Get the next player number
+        const nextPlayer = data.currentPlayer === 1 ? 2 : 1;
+        const playerLabel = document.querySelector(`.game-section:nth-child(${nextPlayer === 1 ? 1 : 3}) h3`);
+        playerLabel.textContent = `Player ${nextPlayer}: Both have ${data.tile}`;
+        
+        const selectedTile = drawPile.querySelector('.tile.selected');
+        if (selectedTile) selectedTile.remove();
+        
+        if (data.discardedLetter) {
+            discardedLetters.push(data.discardedLetter);
+            const allSameTiles = Array.from(drawPile.children).filter(tile => 
+                tile.dataset.letter === data.discardedLetter
+            );
+            allSameTiles.forEach(tile => tile.remove());
+        }
+        
+        setTimeout(() => {
+            currentTileDisplay.textContent = '';
+            playerLabel.textContent = `Player ${nextPlayer}`;
+            currentTile = null;
+            isMyTurn = true;
+            currentPlayer = nextPlayer;
+            updateTileColors();
+        }, 3000);
     }
-    
-    setTimeout(() => {
-        currentTileDisplay.textContent = '';
-        currentTile = null;
-        isMyTurn = true;
-        currentPlayer = currentPlayer === 1 ? 2 : 1;
-        updateTileColors();
-    }, 3000);
             }
+else if (data.type === 'pileSwitch') {
+    if (data.playerId !== socket.id) {
+        console.log('Received pile switch sync');
+        
+        // Force synchronization of both player areas
+        const player1NewState = data.player2State; // Reversed on purpose
+        const player2NewState = data.player1State; // Reversed on purpose
+        
+        // Clear and rebuild player 1 area
+        player1Area.innerHTML = '';
+        player1NewState.forEach(tileData => {
+            const newTile = document.createElement('div');
+            newTile.classList.add('tile');
+            if (tileData.revealed) newTile.classList.add('revealed');
+            newTile.dataset.letter = tileData.letter;
+            if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
+            newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
+            newTile.addEventListener('click', placeTile);
+            player1Area.appendChild(newTile);
+        });
+        
+        // Clear and rebuild player 2 area
+        player2Area.innerHTML = '';
+        player2NewState.forEach(tileData => {
+            const newTile = document.createElement('div');
+            newTile.classList.add('tile');
+            if (tileData.revealed) newTile.classList.add('revealed');
+            newTile.dataset.letter = tileData.letter;
+            if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
+            newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
+            newTile.addEventListener('click', placeTile);
+            player2Area.appendChild(newTile);
+        });
+        
+        updateTileColors();
+    }
+}
         } else if (data.type === 'selectTile') {
     const tiles = Array.from(drawPile.children);
     // Use the position from the data instead of finding first unselected tile
@@ -633,7 +787,7 @@ socket.on('gameMove', (data) => {
         tileToSelect.classList.add('selected');
         tileToSelect.textContent = data.tile;
         currentTile = data.tile;
-        currentTileDisplay.textContent = `Current Tile: ${data.tile}`;
+        currentTileDisplay.textContent = ``;
     }
         } else if (data.type === 'placeTile') {
             const playerArea = socket.id === players.first ? player2Area : player1Area;
@@ -715,17 +869,73 @@ function shuffleArray(array) {
     }
     return array;
 }
+function syncGameState() {
+    if (gameId && playerId) {
+        // Get count of remaining tiles
+        const remainingTiles = drawPile.children.length;
+        
+        socket.emit('syncRequest', {
+            gameId: gameId,
+            myTurn: isMyTurn,
+            myPlayer: currentPlayer,
+            remainingTiles: remainingTiles,
+            timestamp: Date.now()
+        });
+        
+        // Increase sync frequency when few tiles remain
+        if (remainingTiles < 10 && syncInterval._idleTimeout > 2000) {
+            clearInterval(syncInterval);
+            syncInterval = setInterval(syncGameState, 2000); // More frequent checks
+        }
+    }
+}
+    // Add this function to periodically check and sync draw pile state
+function syncDrawPile() {
+    if (gameId && drawPile.children.length < 10) {
+        // Only sync when few tiles remain
+        const tilePositions = Array.from(drawPile.children).map(tile => ({
+            letter: tile.dataset.letter,
+            position: Array.from(drawPile.children).indexOf(tile)
+        }));
+        
+        socket.emit('syncDrawPile', {
+            gameId: gameId,
+            tiles: tilePositions,
+            currentPlayer: currentPlayer,
+            isMyTurn: isMyTurn
+        });
+    }
+}
 
+// Run every 2 seconds when getting low on tiles
+const drawPileInterval = setInterval(syncDrawPile, 2000);
+
+// Add this handler to your socket.on section
+socket.on('syncDrawPile', (data) => {
+    if (data.gameId === gameId && data.playerId !== socket.id) {
+        // Make sure turns are in sync
+        if (currentPlayer !== data.currentPlayer) {
+            console.log('Syncing current player:', data.currentPlayer);
+            currentPlayer = data.currentPlayer;
+            isMyTurn = socket.id === (currentPlayer === 1 ? players.first : players.second);
+            updateTileColors();
+        }
+    }
+});
+
+// Start with normal interval
+let syncInterval = setInterval(syncGameState, 5000);
 function createTiles(container, count, isDrawPile = false) {
     let letters = [];
     if (isDrawPile) {
-        const remainingLetters = alphabet.repeat(4).split('');
-        // Add wild tiles to draw pile
+        // Reduce from 4 to 2 sets
+        const remainingLetters = alphabet.repeat(2).split('');
+        // Keep the same number of special tiles
         const remainingSpecial = Array(4).fill('>>').concat(Array(4).fill('@'), Array(4).fill('?'));
         letters = shuffleArray([...remainingLetters, ...remainingSpecial]).slice(0, count);
     } else {
+        // Player areas stay the same
         const alphabetTiles = alphabet.split('');
-        // Add one wild tile to player areas
         const specialTiles = Array(1).fill('>>').concat(Array(1).fill('@'), Array(1).fill('?'));
         letters = shuffleArray([...alphabetTiles, ...specialTiles]).slice(0, count);
     }
@@ -742,15 +952,104 @@ function createTiles(container, count, isDrawPile = false) {
         container.appendChild(tile);
     }
 }
+
+// Add this with your other game state variables
+const letterCounts = {};
+
+// Initialize letter counts in initGame
+function initGame() {
+    setupOverlay.style.display = 'none';
+    document.getElementById('gameBoard').style.display = 'flex';
+    
+    player1Area.innerHTML = '';
+    player2Area.innerHTML = '';
+    drawPile.innerHTML = '';
+    
+    // Reset letter counts
+    alphabet.split('').forEach(letter => {
+        letterCounts[letter] = 0;
+    });
+    letterCounts['>>'] = 0;
+    letterCounts['@'] = 0;
+    letterCounts['?'] = 0;
+    
+    createTiles(player1Area, 26);
+    createTiles(player2Area, 26);
+    createTiles(drawPile, 38, true);
+    
+    // Count initial tile distribution
+    countAllTiles();
+    
+    updateTileColors();
+}
+function cleanupDuplicateTiles() {
+  if (!gameId || !playerId || gameOver) return;
+  
+  // Check all tiles in draw pile
+  const drawPileTiles = Array.from(drawPile.children);
+  const tilesToRemove = [];
+  
+  drawPileTiles.forEach(tile => {
+    const letter = tile.dataset.letter;
+    // Skip special tiles
+    if (letter === '>>' || letter === '@' || letter === '?') return;
+    
+    // Check if both players have this letter
+    if (bothPlayersHaveTile(letter)) {
+      tilesToRemove.push(tile);
+    }
+  });
+  
+  // Silently remove tiles
+  if (tilesToRemove.length > 0) {
+    console.log(`Automatically removing ${tilesToRemove.length} tiles that both players have`);
+    tilesToRemove.forEach(tile => tile.remove());
+  }
+}
+
+// Run cleanup every 3 seconds
+const cleanupInterval = setInterval(cleanupDuplicateTiles, 3000);
+
+// Add a function to count all tiles in the game
+function countAllTiles() {
+    // Reset counts
+    Object.keys(letterCounts).forEach(key => {
+        letterCounts[key] = 0;
+    });
+    
+    // Count player 1 tiles
+    Array.from(player1Area.children).forEach(tile => {
+        const letter = tile.dataset.letter;
+        if (letter) letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+    });
+    
+    // Count player 2 tiles
+    Array.from(player2Area.children).forEach(tile => {
+        const letter = tile.dataset.letter;
+        if (letter) letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+    });
+    
+    // Count draw pile tiles
+    Array.from(drawPile.children).forEach(tile => {
+        const letter = tile.dataset.letter;
+        if (letter) letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+    });
+    
+    // Log for debugging
+    console.log('Current letter counts:', {...letterCounts});
+}
 function playerHasLetter(player, letter) {
     const area = player === 1 ? player1Area : player2Area;
     return Array.from(area.children).some(tile => {
         if (!tile.classList.contains('revealed')) return false;
         
-        // If it's a wild tile, check what letter position it's representing
+        // If it's a wild tile, check if it was placed in a position 
+        // corresponding to this letter, not what letter it represents
         if (tile.dataset.letter === '?') {
+            // Only count if the wild tile is actually representing this letter
             const position = Array.from(area.children).indexOf(tile);
-            return alphabet[position] === letter;
+            const actualLetter = alphabet[position];
+            return actualLetter === letter;
         }
         
         // Regular tile check
@@ -770,31 +1069,44 @@ function removeTileFromDrawPile(letter) {
 
 function handleSkipTile(selectedTile) {
     currentTileDisplay.textContent = "Skip tile!";
+    
+    // Add message to player label
+    const activePlayer = currentPlayer;  // Store current player before it changes
+    const playerLabel = document.querySelector(`.game-section:nth-child(${activePlayer === 1 ? 1 : 3}) h3`);
+    playerLabel.textContent = `Player ${activePlayer}: Skip!`;
+    
     selectedTile.classList.add('selected');
     selectedTile.textContent = '>>';
     
-    // Get the position of the selected tile
     const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
+    const nextPlayer = currentPlayer === 1 ? 2 : 1;
     
-    socket.emit('makeMove', {
-        type: 'specialTile',
-        tile: '>>',
-        action: 'skip',
-        tilePosition: tilePosition,  // Add this
-        gameId: gameId
-    });
+    sendMove({
+    type: 'specialTile',
+    tile: '>>',
+    action: 'skip',
+    tilePosition: tilePosition
+});
+    
     setTimeout(() => {
         selectedTile.remove();
-        currentTile = null;
         currentTileDisplay.textContent = '';
+        playerLabel.textContent = `Player ${activePlayer}`;  // Reset label
+        currentTile = null;
         isMyTurn = false;
-        currentPlayer = currentPlayer === 1 ? 2 : 1;
+        currentPlayer = nextPlayer;
         updateTileColors();
     }, 3000);
 }
 
 function handleReverseTile(selectedTile) {
     currentTileDisplay.textContent = "Reverse tile!";
+    
+    // Add message to player label
+    const activePlayer = currentPlayer;  // Store current player before it changes
+    const playerLabel = document.querySelector(`.game-section:nth-child(${activePlayer === 1 ? 1 : 3}) h3`);
+    playerLabel.textContent = `Player ${activePlayer}: Reverse!`;
+    
     selectedTile.classList.add('selected');
     selectedTile.textContent = '@';
     
@@ -805,17 +1117,17 @@ function handleReverseTile(selectedTile) {
         tile: '@',
         action: 'reverse',
         tilePosition: tilePosition,
+        currentPlayer: currentPlayer,  // Track current player
         gameId: gameId,
-        playerId: socket.id  // Add this to track who initiated
+        playerId: socket.id
     });
-
-    // Wait for full animation before switching
+    
     setTimeout(() => {
         selectedTile.remove();
         currentTileDisplay.textContent = '';
+        playerLabel.textContent = `Player ${activePlayer}`;  // Reset label using stored player
         currentTile = null;
         
-        // Do the switch after the tile is removed
         switchPiles();
         isMyTurn = false;
         currentPlayer = currentPlayer === 1 ? 2 : 1;
@@ -851,10 +1163,13 @@ function selectDrawTile(event) {
     // Check for both players having tile BEFORE checking individual player
     if (currentTile !== '?' && bothPlayersHaveTile(currentTile)) {
     currentTileDisplay.textContent = "Both players have this tile: Skip Turn";
+    const activePlayer = currentPlayer;
+    const playerLabel = document.querySelector(`.game-section:nth-child(${activePlayer === 1 ? 1 : 3}) h3`);
+    playerLabel.textContent = `Player ${activePlayer}: Both have ${currentTile}`;
+    
     selectedTile.classList.add('selected');
     selectedTile.textContent = currentTile;
     
-    // Add to discarded letters
     discardedLetters.push(currentTile);
     
     socket.emit('makeMove', {
@@ -862,10 +1177,10 @@ function selectDrawTile(event) {
         tile: currentTile,
         action: 'bothHave',
         gameId: gameId,
-        discardedLetter: currentTile  // Send this to other player
+        discardedLetter: currentTile,
+        currentPlayer: currentPlayer  // Add this to track who's sending
     });
 
-    // Remove all instances of this letter from draw pile
     const allSameTiles = Array.from(drawPile.children).filter(tile => 
         tile.dataset.letter === currentTile
     );
@@ -873,6 +1188,7 @@ function selectDrawTile(event) {
 
     setTimeout(() => {
         currentTileDisplay.textContent = '';
+        playerLabel.textContent = `Player ${activePlayer}`;
         currentTile = null;
         isMyTurn = false;
         currentPlayer = currentPlayer === 1 ? 2 : 1;
@@ -892,7 +1208,7 @@ function selectDrawTile(event) {
     
     selectedTile.classList.add('selected');
     selectedTile.textContent = currentTile;
-    currentTileDisplay.textContent = `Current Tile: ${currentTile}`;
+    currentTileDisplay.textContent = ``;
     socket.emit('makeMove', {
         type: 'selectTile',
         tile: currentTile,
@@ -901,10 +1217,32 @@ function selectDrawTile(event) {
     });
     
     // Only check for duplicates if this isn't a wild tile
-    if (currentTile !== '?' && playerHasLetter(currentPlayer, currentTile)) {
-        offerDiscardToOtherPlayer(selectedTile);
-        return;
-    }
+if (currentTile !== '?' && playerHasLetter(currentPlayer, currentTile)) {
+    // Add red wiggle animation with color transition
+    selectedTile.classList.add('redWiggle', 'duplicate-offer');
+    selectedTile.textContent = currentTile;
+    
+    socket.emit('makeMove', {
+        type: 'discardOffer',
+        gameId: gameId,
+        tile: currentTile,
+        currentPlayer: currentPlayer === 1 ? 2 : 1,
+        playerId: socket.id,
+        tilePosition: Array.from(drawPile.children).indexOf(selectedTile)
+    });
+    
+    setTimeout(() => {
+        const duplicateTile = drawPile.querySelector('.duplicate-offer');
+        if (duplicateTile) {
+            duplicateTile.remove();
+        }
+        currentTile = null;
+        isMyTurn = false;
+        currentPlayer = currentPlayer === 1 ? 2 : 1;
+        updateTileColors();
+    }, 3000);
+    return;
+}
 }
 function offerDiscardToOtherPlayer(selectedTile) {
     // First set my tiles to inactive
@@ -925,6 +1263,15 @@ function offerDiscardToOtherPlayer(selectedTile) {
 
 
 function returnTileToDrawPile(letter, faceUp = false) {
+    // Count tiles first
+    countAllTiles();
+    
+    // Check if we already have 4 of this letter
+    if (letterCounts[letter] >= 4) {
+        console.log(`Already have ${letterCounts[letter]} of letter ${letter}, not adding more`);
+        return;
+    }
+    
     const newTile = document.createElement('div');
     newTile.classList.add('tile');
     newTile.dataset.letter = letter;
@@ -936,6 +1283,9 @@ function returnTileToDrawPile(letter, faceUp = false) {
     }
 
     drawPile.appendChild(newTile);
+    
+    // Update count
+    letterCounts[letter] = (letterCounts[letter] || 0) + 1;
 }
 
 function placeTile(event) {
@@ -944,11 +1294,17 @@ function placeTile(event) {
     const currentPlayerArea = currentPlayer === 1 ? player1Area : player2Area;
     if (event.target.parentNode !== currentPlayerArea) return;
     const position = Array.from(currentPlayerArea.children).indexOf(event.target);
-    // Added wild tile check
     if (currentTile !== '?' && alphabet[position] !== currentTile && currentTile !== '>>' && currentTile !== '@') return;
     if (event.target.classList.contains('revealed')) return;
 
     const replacedLetter = event.target.dataset.letter;
+
+    // Find and remove the animated tile from draw pile
+    const animatedTile = drawPile.querySelector('.wiggle');
+    if (animatedTile) {
+        animatedTile.remove();
+    }
+    
     socket.emit('makeMove', {
         type: 'placeTile',
         tile: currentTile,
@@ -978,34 +1334,21 @@ function placeTile(event) {
     checkGameEnd(currentPlayerArea);
 }
 
-function handleDiscardChoice(accepted) {
-    socket.emit('makeMove', {
-        type: 'discardChoice',
-        gameId: gameId,
-        accepted: accepted,
-        tile: currentTile,
-        playerId: socket.id,
-        originalPlayerFirst: socket.id === players.first
-    });
-    
-    discardOption.innerHTML = '';
-    
-    if (accepted) {
-        isMyTurn = true;
-        originalPlayer = socket.id;  // Remember who's turn it was
-        currentTileDisplay.textContent = `Current Tile: ${currentTile}`;
-        updateTileColors();
-    } else {
-        const selectedTile = drawPile.querySelector('.tile.selected');
-        if (selectedTile) {
-            selectedTile.remove();
-        }
-        currentTile = null;
-        currentTileDisplay.textContent = '';
-        isMyTurn = socket.id === originalPlayer;  // Return to original player
-        updateTileColors();
-    }
+function sendMove(moveData) {
+  // Ensure these properties are included in every move
+  const baseData = {
+    gameId: gameId,
+    playerId: socket.id,
+    currentPlayer: currentPlayer,
+    nextPlayer: currentPlayer === 1 ? 2 : 1,  // Always calculate next player
+    timestamp: Date.now()
+  };
+  
+  // Merge with specific move data
+  socket.emit('makeMove', {...baseData, ...moveData});
 }
+
+
 
 function handleSkipMove(data) {
     currentTileDisplay.textContent = "Opponent used Skip tile!";
@@ -1067,7 +1410,7 @@ function switchPiles() {
         if (tileData.revealed) newTile.classList.add('revealed');
         newTile.dataset.letter = tileData.letter;
         if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
-        newTile.textContent = tileData.wildValue || tileData.letter;
+        newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
         newTile.addEventListener('click', placeTile);
         player1Area.appendChild(newTile);
     });
@@ -1078,39 +1421,77 @@ function switchPiles() {
         if (tileData.revealed) newTile.classList.add('revealed');
         newTile.dataset.letter = tileData.letter;
         if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
-        newTile.textContent = tileData.wildValue || tileData.letter;
+        newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
         newTile.addEventListener('click', placeTile);
         player2Area.appendChild(newTile);
     });
 
-    currentTileDisplay.textContent = "PILES SWITCHED!";
+    // Send a specific sync event after pile switch
+    sendMove({
+        type: 'pileSwitch',
+        player1State: player1Tiles,
+        player2State: player2Tiles
+    });
+
     updateTileColors(); // Add this call
 }
 function checkGameEnd(playerArea) {
-    if (checkWinCondition(playerArea)) {
+    // Check if all tiles in player area are revealed
+    if (Array.from(playerArea.children).every(tile => tile.classList.contains('revealed'))) {
         gameOver = true;
-        gameOverMessage.textContent = `PLAYER ${currentPlayer} WINS!`;
-        // Add this emit event for game over
+        
+        // Find player number based on area
+        const winningPlayer = playerArea === player1Area ? 1 : 2;
+        
+        // Update both player labels
+        const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+        const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+        
+        if (winningPlayer === 1) {
+            player1Label.textContent = "Player 1: Winner!";
+            player2Label.textContent = "Player 2: Player 1 Wins!";
+        } else {
+            player1Label.textContent = "Player 1: Player 2 Wins!";
+            player2Label.textContent = "Player 2: Winner!";
+        }
+        
+        // Send game over to other player
         socket.emit('makeMove', {
             type: 'gameOver',
             gameId: gameId,
-            winner: currentPlayer
+            winner: winningPlayer,
+            timestamp: Date.now()
         });
-        return;
+        
+        isMyTurn = false;
+        updateTileColors();
+        return true;
     }
-
-    if (!canMakeMove()) {
+    
+    // Check for tie (no more moves possible)
+    if (drawPile.children.length === 0) {
         gameOver = true;
-        gameOverMessage.textContent = "GAME OVER! IT'S A TIE!";
-        // Add this emit event for tie game
+        
+        // Update both player labels for tie
+        const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+        const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+        player1Label.textContent = "Player 1: It's a Tie!";
+        player2Label.textContent = "Player 2: It's a Tie!";
+        
         socket.emit('makeMove', {
             type: 'gameOver',
             gameId: gameId,
-            winner: 'tie'
+            winner: 'tie',
+            timestamp: Date.now()
         });
-        return;
+        
+        isMyTurn = false;
+        updateTileColors();
+        return true;
     }
-}
+    
+    return false;
+    }
 
 function checkWinCondition(area) {
     return Array.from(area.children).every(tile => 
@@ -1215,7 +1596,7 @@ function initGame() {
     
     createTiles(player1Area, 26);
     createTiles(player2Area, 26);
-    createTiles(drawPile, 60, true);
+    createTiles(drawPile, 38, true);
     
     updateTileColors();  // Make sure colors are set initially
 }
