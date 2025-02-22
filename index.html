@@ -707,37 +707,66 @@ socket.on('gameMove', (data) => {
             updateTileColors();
         }, 3000);
         }
+else if (data.type === 'cleanupTiles') {
+  if (data.playerId !== socket.id) {
+    console.log('Received cleanup request for letters:', data.removedLetters);
+    
+    data.removedLetters.forEach(letter => {
+      // Add to tracking array
+      if (!discardedLetters.includes(letter)) {
+        discardedLetters.push(letter);
+      }
+      
+      // Remove tiles
+      const tilesToRemove = Array.from(drawPile.children).filter(tile => 
+        tile.dataset.letter === letter
+      );
+      tilesToRemove.forEach(tile => tile.remove());
+    });
+  }
+}
 
             } else if (data.action === 'bothHave') {
-    if (data.playerId !== socket.id) {  // Make sure we're on the receiving browser
-        currentTileDisplay.textContent = "Both players have this tile: Your Turn";
+    if (data.playerId !== socket.id) {
+        // Process SILENTLY - no messages
         
-        // Get the next player number
-        const nextPlayer = data.currentPlayer === 1 ? 2 : 1;
-        const playerLabel = document.querySelector(`.game-section:nth-child(${nextPlayer === 1 ? 1 : 3}) h3`);
-        playerLabel.textContent = `Player ${nextPlayer}: Both have ${data.tile}`;
-        
+        // Clean up any selected tile
         const selectedTile = drawPile.querySelector('.tile.selected');
         if (selectedTile) selectedTile.remove();
         
+        // Remove discarded letter tiles
         if (data.discardedLetter) {
-            discardedLetters.push(data.discardedLetter);
+            if (!discardedLetters.includes(data.discardedLetter)) {
+                discardedLetters.push(data.discardedLetter);
+            }
+            
             const allSameTiles = Array.from(drawPile.children).filter(tile => 
                 tile.dataset.letter === data.discardedLetter
             );
             allSameTiles.forEach(tile => tile.remove());
         }
         
+        // Update game state silently
         setTimeout(() => {
-            currentTileDisplay.textContent = '';
-            playerLabel.textContent = `Player ${nextPlayer}`;
             currentTile = null;
             isMyTurn = true;
-            currentPlayer = nextPlayer;
+            currentPlayer = data.currentPlayer === 1 ? 2 : 1;
             updateTileColors();
-        }, 3000);
+        }, 1000);
     }
-            }
+}
+// Handle the new reserve tile event in socket handler
+// Add this to your socket.on('gameMove') handler:
+if (data.type === 'addReserveTile') {
+    if (data.playerId !== socket.id) {
+        // Add the reserve tile to my draw pile too
+        const tile = document.createElement('div');
+        tile.classList.add('tile');
+        tile.dataset.letter = data.letter;
+        tile.addEventListener('click', selectDrawTile);
+        drawPile.appendChild(tile);
+    }
+}
 else if (data.type === 'pileSwitch') {
     if (data.playerId !== socket.id) {
         console.log('Received pile switch sync');
@@ -928,11 +957,17 @@ let syncInterval = setInterval(syncGameState, 5000);
 function createTiles(container, count, isDrawPile = false) {
     let letters = [];
     if (isDrawPile) {
-        // Reduce from 4 to 2 sets
-        const remainingLetters = alphabet.repeat(2).split('');
+        // Use the original 2 sets of alphabet for visible tiles
+        const visibleLetters = alphabet.repeat(2).split('');
         // Keep the same number of special tiles
-        const remainingSpecial = Array(4).fill('>>').concat(Array(4).fill('@'), Array(4).fill('?'));
-        letters = shuffleArray([...remainingLetters, ...remainingSpecial]).slice(0, count);
+        const visibleSpecial = Array(4).fill('>>').concat(Array(4).fill('@'), Array(4).fill('?'));
+        
+        // Create the visible set that matches the original count
+        letters = shuffleArray([...visibleLetters, ...visibleSpecial]).slice(0, count);
+        
+        // Create a hidden reserve of tiles (not added to DOM yet)
+        // Store this on the window object to access it later
+        window.reserveTiles = alphabet.split(''); // 1 extra alphabet as reserve
     } else {
         // Player areas stay the same
         const alphabetTiles = alphabet.split('');
@@ -940,7 +975,7 @@ function createTiles(container, count, isDrawPile = false) {
         letters = shuffleArray([...alphabetTiles, ...specialTiles]).slice(0, count);
     }
     
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < letters.length; i++) {
         const tile = document.createElement('div');
         tile.classList.add('tile');
         tile.dataset.letter = letters[i];
@@ -953,62 +988,99 @@ function createTiles(container, count, isDrawPile = false) {
     }
 }
 
+// Add function to add reserve tiles when needed
+function addReserveTileIfNeeded() {
+    // Skip if no reserve or game over
+    if (!window.reserveTiles || window.reserveTiles.length === 0 || gameOver) return;
+    
+    // Calculate how many more tiles are needed
+    const p1Unrevealed = Array.from(player1Area.children).filter(t => !t.classList.contains('revealed')).length;
+    const p2Unrevealed = Array.from(player2Area.children).filter(t => !t.classList.contains('revealed')).length;
+    const maxUnrevealed = Math.max(p1Unrevealed, p2Unrevealed);
+    const drawPileCount = drawPile.children.length;
+    
+    // Check if we need to add a reserve tile
+    if (drawPileCount < maxUnrevealed) {
+        // Draw pile too low, add ONE reserve tile at a time (to keep it subtle)
+        if (window.reserveTiles.length > 0) {
+            // Get next reserve tile
+            const letter = window.reserveTiles.pop();
+            
+            // Skip if this letter is already discarded
+            if (discardedLetters.includes(letter)) {
+                // Try again with next tile
+                setTimeout(addReserveTileIfNeeded, 100);
+                return;
+            }
+            
+            // Add one new tile to draw pile
+            const tile = document.createElement('div');
+            tile.classList.add('tile');
+            tile.dataset.letter = letter;
+            tile.addEventListener('click', selectDrawTile);
+            drawPile.appendChild(tile);
+            
+            // Sync with other player
+            socket.emit('makeMove', {
+                type: 'addReserveTile',
+                gameId: gameId,
+                playerId: socket.id,
+                letter: letter,
+                timestamp: Date.now()
+            });
+        }
+    }
+}
+
 // Add this with your other game state variables
 const letterCounts = {};
 
-// Initialize letter counts in initGame
-function initGame() {
-    setupOverlay.style.display = 'none';
-    document.getElementById('gameBoard').style.display = 'flex';
-    
-    player1Area.innerHTML = '';
-    player2Area.innerHTML = '';
-    drawPile.innerHTML = '';
-    
-    // Reset letter counts
-    alphabet.split('').forEach(letter => {
-        letterCounts[letter] = 0;
-    });
-    letterCounts['>>'] = 0;
-    letterCounts['@'] = 0;
-    letterCounts['?'] = 0;
-    
-    createTiles(player1Area, 26);
-    createTiles(player2Area, 26);
-    createTiles(drawPile, 38, true);
-    
-    // Count initial tile distribution
-    countAllTiles();
-    
-    updateTileColors();
-}
+
 function cleanupDuplicateTiles() {
-  if (!gameId || !playerId || gameOver) return;
-  
-  // Check all tiles in draw pile
-  const drawPileTiles = Array.from(drawPile.children);
-  const tilesToRemove = [];
-  
-  drawPileTiles.forEach(tile => {
-    const letter = tile.dataset.letter;
-    // Skip special tiles
-    if (letter === '>>' || letter === '@' || letter === '?') return;
+    if (!gameId || !playerId || gameOver) return;
     
-    // Check if both players have this letter
-    if (bothPlayersHaveTile(letter)) {
-      tilesToRemove.push(tile);
+    // Calculate minimum needed tiles
+    const p1Unrevealed = Array.from(player1Area.children).filter(t => !t.classList.contains('revealed')).length;
+    const p2Unrevealed = Array.from(player2Area.children).filter(t => !t.classList.contains('revealed')).length;
+    const maxUnrevealed = Math.max(p1Unrevealed, p2Unrevealed);
+    
+    // Check every letter
+    for (const letter of alphabet.split('')) {
+        // If both players have this letter
+        if (bothPlayersHaveTile(letter)) {
+            // Remove all instances of this letter from draw pile
+            const tilesToRemove = Array.from(drawPile.children).filter(tile => 
+                tile.dataset.letter === letter
+            );
+            
+            if (tilesToRemove.length > 0) {
+                // Track discarded letter
+                if (!discardedLetters.includes(letter)) {
+                    discardedLetters.push(letter);
+                }
+                
+                // Remove the tiles
+                tilesToRemove.forEach(tile => tile.remove());
+                
+                // Notify other player
+                socket.emit('makeMove', {
+                    type: 'cleanupTiles',
+                    gameId: gameId,
+                    playerId: socket.id,
+                    removedLetters: [letter],
+                    timestamp: Date.now()
+                });
+            }
+        }
     }
-  });
-  
-  // Silently remove tiles
-  if (tilesToRemove.length > 0) {
-    console.log(`Automatically removing ${tilesToRemove.length} tiles that both players have`);
-    tilesToRemove.forEach(tile => tile.remove());
-  }
+    
+    // After cleanup, check if we need more tiles
+    if (drawPile.children.length < maxUnrevealed + 5) {
+        addReserveTileIfNeeded();
+    }
 }
 
-// Run cleanup every 3 seconds
-const cleanupInterval = setInterval(cleanupDuplicateTiles, 3000);
+
 
 // Add a function to count all tiles in the game
 function countAllTiles() {
@@ -1056,9 +1128,78 @@ function playerHasLetter(player, letter) {
         return tile.dataset.letter === letter;
     });
 }
+// Updated function that completely removes all "both have" messages
 function bothPlayersHaveTile(letter) {
-    return playerHasLetter(1, letter) && playerHasLetter(2, letter);
+    // Skip special tiles
+    if (letter === '>>' || letter === '@' || letter === '?') {
+        return false;
+    }
+    
+    // Check if player 1 has the letter revealed
+    const p1Has = Array.from(player1Area.children).some(tile => {
+        if (!tile.classList.contains('revealed')) return false;
+        
+        // Direct match for regular tiles
+        if (tile.dataset.letter === letter) return true;
+        
+        // For wild tiles, check position
+        if (tile.dataset.letter === '?') {
+            const position = Array.from(player1Area.children).indexOf(tile);
+            if (position >= 0 && position < alphabet.length) {
+                return alphabet[position] === letter;
+            }
+        }
+        return false;
+    });
+    
+    // Check if player 2 has the letter revealed
+    const p2Has = Array.from(player2Area.children).some(tile => {
+        if (!tile.classList.contains('revealed')) return false;
+        
+        // Direct match for regular tiles
+        if (tile.dataset.letter === letter) return true;
+        
+        // For wild tiles, check position
+        if (tile.dataset.letter === '?') {
+            const position = Array.from(player2Area.children).indexOf(tile);
+            if (position >= 0 && position < alphabet.length) {
+                return alphabet[position] === letter;
+            }
+        }
+        return false;
+    });
+    
+    // Return result without any console logs or messages
+    return p1Has && p2Has;
 }
+
+// Function to clear any "both have" messages that might appear
+function clearBothHaveMessages() {
+    // Clear currentTileDisplay if it has "both have" message
+    if (currentTileDisplay && 
+        currentTileDisplay.textContent && 
+        currentTileDisplay.textContent.toLowerCase().includes('both')) {
+        currentTileDisplay.textContent = '';
+    }
+    
+    // Clear player labels if they have "both have" messages
+    const allLabels = document.querySelectorAll('.game-section h3');
+    allLabels.forEach(label => {
+        if (label.textContent && 
+            label.textContent.toLowerCase().includes('both have')) {
+            // Keep just the player part
+            const playerPart = label.textContent.split(':')[0].trim();
+            if (playerPart) {
+                label.textContent = playerPart;
+            }
+        }
+    });
+}
+
+// Run this frequently
+setInterval(clearBothHaveMessages, 100);
+
+
 
 function removeTileFromDrawPile(letter) {
     const tilesToRemove = Array.from(drawPile.children).filter(tile => 
@@ -1136,7 +1277,6 @@ function handleReverseTile(selectedTile) {
 }
 
 function selectDrawTile(event) {
-    console.log('Attempting to select tile - isMyTurn:', isMyTurn, 'currentPlayer:', currentPlayer);
     if (!isMyTurn || gameOver || currentTile) {
         console.log('Cannot select tile - blocked by:', {
             turnBlocked: !isMyTurn,
@@ -1145,12 +1285,13 @@ function selectDrawTile(event) {
         });
         return;
     }
+    
     const selectedTile = event.target;
-    // Get the index of the selected tile
     const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
     currentTile = selectedTile.dataset.letter;
     console.log('Selected tile:', currentTile);
 
+    // Handle special tiles first
     if (currentTile === '>>') {
         handleSkipTile(selectedTile);
         return;
@@ -1160,43 +1301,7 @@ function selectDrawTile(event) {
         return;
     }
 
-    // Check for both players having tile BEFORE checking individual player
-    if (currentTile !== '?' && bothPlayersHaveTile(currentTile)) {
-    currentTileDisplay.textContent = "Both players have this tile: Skip Turn";
-    const activePlayer = currentPlayer;
-    const playerLabel = document.querySelector(`.game-section:nth-child(${activePlayer === 1 ? 1 : 3}) h3`);
-    playerLabel.textContent = `Player ${activePlayer}: Both have ${currentTile}`;
-    
-    selectedTile.classList.add('selected');
-    selectedTile.textContent = currentTile;
-    
-    discardedLetters.push(currentTile);
-    
-    socket.emit('makeMove', {
-        type: 'specialTile',
-        tile: currentTile,
-        action: 'bothHave',
-        gameId: gameId,
-        discardedLetter: currentTile,
-        currentPlayer: currentPlayer  // Add this to track who's sending
-    });
-
-    const allSameTiles = Array.from(drawPile.children).filter(tile => 
-        tile.dataset.letter === currentTile
-    );
-    allSameTiles.forEach(tile => tile.remove());
-
-    setTimeout(() => {
-        currentTileDisplay.textContent = '';
-        playerLabel.textContent = `Player ${activePlayer}`;
-        currentTile = null;
-        isMyTurn = false;
-        currentPlayer = currentPlayer === 1 ? 2 : 1;
-        updateTileColors();
-    }, 3000);
-    return;
-}
-
+    // Normal tile selection logic
     drawPile.querySelectorAll('.tile').forEach(tile => {
         tile.classList.remove('selected');
         if (tile === selectedTile) {
@@ -1208,41 +1313,42 @@ function selectDrawTile(event) {
     
     selectedTile.classList.add('selected');
     selectedTile.textContent = currentTile;
-    currentTileDisplay.textContent = ``;
+    currentTileDisplay.textContent = '';
+    
     socket.emit('makeMove', {
         type: 'selectTile',
         tile: currentTile,
-        tilePosition: tilePosition,  // Add the position
-        gameId: gameId
-    });
-    
-    // Only check for duplicates if this isn't a wild tile
-if (currentTile !== '?' && playerHasLetter(currentPlayer, currentTile)) {
-    // Add red wiggle animation with color transition
-    selectedTile.classList.add('redWiggle', 'duplicate-offer');
-    selectedTile.textContent = currentTile;
-    
-    socket.emit('makeMove', {
-        type: 'discardOffer',
+        tilePosition: tilePosition,
         gameId: gameId,
-        tile: currentTile,
-        currentPlayer: currentPlayer === 1 ? 2 : 1,
-        playerId: socket.id,
-        tilePosition: Array.from(drawPile.children).indexOf(selectedTile)
+        playerId: socket.id
     });
     
-    setTimeout(() => {
-        const duplicateTile = drawPile.querySelector('.duplicate-offer');
-        if (duplicateTile) {
-            duplicateTile.remove();
-        }
-        currentTile = null;
-        isMyTurn = false;
-        currentPlayer = currentPlayer === 1 ? 2 : 1;
-        updateTileColors();
-    }, 3000);
-    return;
-}
+    // Check for duplicate in player's own board
+    if (currentTile !== '?' && playerHasLetter(currentPlayer, currentTile)) {
+        selectedTile.classList.add('redWiggle', 'duplicate-offer');
+        
+        socket.emit('makeMove', {
+            type: 'discardOffer',
+            gameId: gameId,
+            tile: currentTile,
+            currentPlayer: currentPlayer === 1 ? 2 : 1,
+            playerId: socket.id,
+            tilePosition: tilePosition
+        });
+        
+        setTimeout(() => {
+            const duplicateTile = drawPile.querySelector('.duplicate-offer');
+            if (duplicateTile) {
+                duplicateTile.remove();
+            }
+            currentTile = null;
+            isMyTurn = false;
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateTileColors();
+        }, 3000);
+        
+        return;
+    }
 }
 function offerDiscardToOtherPlayer(selectedTile) {
     // First set my tiles to inactive
@@ -1329,6 +1435,9 @@ function placeTile(event) {
 
     currentTile = null;
     currentTileDisplay.textContent = '';
+    
+    // IMMEDIATELY run cleanup to remove any now-shared letters
+    cleanupDuplicateTiles();
     
     updateTileColors();
     checkGameEnd(currentPlayerArea);
@@ -1596,9 +1705,12 @@ function initGame() {
     
     createTiles(player1Area, 26);
     createTiles(player2Area, 26);
-    createTiles(drawPile, 38, true);
+    createTiles(drawPile, 38, true); // Keep original 38 tiles
     
-    updateTileColors();  // Make sure colors are set initially
+    updateTileColors();
+    
+    // Run initial cleanup after a short delay
+    setTimeout(cleanupDuplicateTiles, 500);
 }
 </script>
 </body>
