@@ -957,19 +957,24 @@ let syncInterval = setInterval(syncGameState, 5000);
 function createTiles(container, count, isDrawPile = false) {
     let letters = [];
     if (isDrawPile) {
-        // Use the original 2 sets of alphabet for visible tiles
+        // Track special tile counts
+        let skipCount = 0, reverseCount = 0, wildCount = 0;
+        
         const visibleLetters = alphabet.repeat(2).split('');
-        // Keep the same number of special tiles
-        const visibleSpecial = Array(4).fill('>>').concat(Array(4).fill('@'), Array(4).fill('?'));
+        const specialTiles = Array(4).fill('>>').concat(Array(4).fill('@'), Array(4).fill('?'));
+        letters = shuffleArray([...visibleLetters, ...specialTiles]);
         
-        // Create the visible set that matches the original count
-        letters = shuffleArray([...visibleLetters, ...visibleSpecial]).slice(0, count);
+        // Ensure we don't exceed special tile limits
+        letters = letters.filter(letter => {
+            if (letter === '>>') return skipCount++ < 4;
+            if (letter === '@') return reverseCount++ < 4;
+            if (letter === '?') return wildCount++ < 4;
+            return true;
+        }).slice(0, count);
         
-        // Create a hidden reserve of tiles (not added to DOM yet)
-        // Store this on the window object to access it later
-        window.reserveTiles = alphabet.split(''); // 1 extra alphabet as reserve
+        window.reserveTiles = alphabet.split('');
     } else {
-        // Player areas stay the same
+        // Player areas stay exactly the same
         const alphabetTiles = alphabet.split('');
         const specialTiles = Array(1).fill('>>').concat(Array(1).fill('@'), Array(1).fill('?'));
         letters = shuffleArray([...alphabetTiles, ...specialTiles]).slice(0, count);
@@ -1324,8 +1329,21 @@ function selectDrawTile(event) {
     });
     
     // Check for duplicate in player's own board
-    if (currentTile !== '?' && playerHasLetter(currentPlayer, currentTile)) {
-        selectedTile.classList.add('redWiggle', 'duplicate-offer');
+if (currentTile !== '?' && playerHasLetter(currentPlayer, currentTile)) {
+    // First check if both players have this tile
+    if (bothPlayersHaveTile(currentTile)) {
+        // Silently clean up the tile without animation
+        selectedTile.remove();
+        if (!discardedLetters.includes(currentTile)) {
+            discardedLetters.push(currentTile);
+        }
+        // Let player select another tile
+        currentTile = null;
+        return;
+    }
+    
+    // Only do wiggle animation if not both have
+    selectedTile.classList.add('redWiggle', 'duplicate-offer');
         
         socket.emit('makeMove', {
             type: 'discardOffer',
@@ -1420,14 +1438,23 @@ function placeTile(event) {
     });
 
     // Place the new tile
-    event.target.dataset.letter = currentTile;
-    event.target.textContent = currentTile;
-    event.target.classList.add('revealed');
+event.target.dataset.letter = currentTile;
+event.target.textContent = currentTile;
+event.target.classList.add('revealed');
 
-    // Remove selected tile from draw pile
-    const selectedTile = drawPile.querySelector('.tile.selected');
-    if (selectedTile) selectedTile.remove();
+// Add a brief "pop" animation to the placed tile
+event.target.animate([
+    { transform: 'scale(1)' },
+    { transform: 'scale(1.2)' },
+    { transform: 'scale(1)' }
+], {
+    duration: 300,
+    easing: 'ease-out'
+});
 
+// Remove selected tile from draw pile
+const selectedTile = drawPile.querySelector('.tile.selected');
+if (selectedTile) selectedTile.remove();
     // Return replaced tiles to draw pile
     if (replacedLetter) {
         returnTileToDrawPile(replacedLetter);
