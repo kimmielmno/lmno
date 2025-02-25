@@ -650,8 +650,15 @@
     <div id="gameSetup">
         <div class="game-title">LMNO</div>
         
+        <!-- Name Entry Screen (FIRST SCREEN) -->
+        <div id="nameEntryScreen">
+            <div class="setup-message">Enter your name:</div>
+            <input type="text" id="playerNameInput" placeholder="Your Name" maxlength="15" class="name-input">
+            <button id="submitNameButton" class="setup-button">Continue</button>
+        </div>
+        
         <!-- Start Game Screen -->
-        <div id="startScreen">
+        <div id="startScreen" style="display: none;">
             <button id="startButton" class="setup-button">Start New Game</button>
             <button id="joinButton" class="setup-button">Join Game</button>
         </div>
@@ -701,6 +708,8 @@ const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const emojis = ['🦊', '🐢', '🐘', '🦁', '🐬', '🦄', '🐠', '🦋', '🐵'];
 let gameEmojis = []; // Will store the 3 emojis for the current game
 let selectedEmojis = []; // Will store the user's emoji selection
+let playerName = "Player 1";
+let opponentName = "Player 2";
 const socket = io('https://lmno-production.up.railway.app/');
 console.log('Attempting socket connection...');
 
@@ -712,9 +721,13 @@ let currentPlayer = 1;
 let gameOver = false;
 let currentTile = null;
 let discardedLetters = [];  // Track letters that have been discarded
+let iAmPlayer1 = false;
 let players = {
-    first: null,
-    second: null
+    first: null,  // Player 1's socket ID
+    second: null, // Player 2's socket ID
+    names: {      // Map of socket IDs to names
+        
+    }
 };
 
 // DOM elements
@@ -738,11 +751,81 @@ const backButton = document.getElementById('backButton');
 const gameCodeEmojis = document.getElementById('gameCodeEmojis');
 const emojiGrid = document.getElementById('emojiGrid');
 const emojiSelection = document.getElementById('emojiSelection');
+const nameEntryScreen = document.getElementById('nameEntryScreen');
+const playerNameInput = document.getElementById('playerNameInput');
+const submitNameButton = document.getElementById('submitNameButton');
 const emojiSlots = [
     document.getElementById('slot1'),
     document.getElementById('slot2'),
     document.getElementById('slot3')
 ];
+
+let nameRetryCounts = 0;
+const nameRetryInterval = setInterval(() => {
+    // Only try 5 times
+    if (nameRetryCounts > 5 || !gameId) {
+        clearInterval(nameRetryInterval);
+        return;
+    }
+    
+    // If we're in a game and the other player doesn't have our name
+    if (gameId && playerId) {
+        console.log("Sending name again");
+        socket.emit('playerName', {
+            gameId: gameId,
+            playerId: socket.id,
+            name: playerName
+        });
+        nameRetryCounts++;
+    }
+}, 2000);
+
+// Add name entry styling
+const style = document.createElement('style');
+style.textContent = `
+.name-input {
+    padding: 12px;
+    margin: 20px auto;
+    display: block;
+    width: 80%;
+    max-width: 250px;
+    border: 2px solid #D3D3D3;
+    border-radius: 5px;
+    font-size: 16px;
+    text-align: center;
+    background-color: #ffffff;
+}
+
+.name-input:focus {
+    outline: none;
+    border-color: #b18597;
+`;
+document.head.appendChild(style);
+
+// Handle name submission
+submitNameButton.addEventListener('click', () => {
+    const name = playerNameInput.value.trim();
+    
+    if (name.length > 0) {
+        playerName = name;
+        console.log('Player name set to:', playerName);
+        
+        // Move to the main menu
+        nameEntryScreen.style.display = 'none';
+        startScreen.style.display = 'block';
+    } else {
+        // Shake the input if empty
+        playerNameInput.classList.add('shake');
+        setTimeout(() => playerNameInput.classList.remove('shake'), 500);
+    }
+});
+
+// Allow Enter key to submit name
+playerNameInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        submitNameButton.click();
+    }
+});
 
 // Socket event handlers
 socket.on('connect', () => {
@@ -752,6 +835,33 @@ socket.on('connect', () => {
 socket.on('connect_error', (error) => {
     console.log('Connection error:', error);
 });
+
+
+
+// Add handler for join failures (wrong emoji code)
+socket.on('joinFailed', () => {
+    console.log('Join failed - incorrect emoji code');
+    
+    // Apply shake animation to the emoji selection
+    emojiSelection.classList.add('shake');
+    
+    // Show error message
+    const setupMessage = document.querySelector('#joinScreen .setup-message');
+    setupMessage.textContent = 'Wrong emoji code! Try again';
+    setupMessage.style.color = '#e74c3c';
+    
+    // Reset the animations after they complete
+    setTimeout(() => {
+        emojiSelection.classList.remove('shake');
+        
+        // Reset message after a short delay
+        setTimeout(() => {
+            setupMessage.textContent = 'Pick the 3 emojis to join:';
+            setupMessage.style.color = '#2c3e50';
+        }, 2000);
+    }, 500);
+});
+
 socket.on('syncRequest', (data) => {
     if (data.playerId !== socket.id && gameId === data.gameId) {
         // If I think it's my turn but other player also thinks it's their turn
@@ -799,6 +909,12 @@ socket.on('gameCreated', (data) => {
     // Display the emojis
     displayGameEmojis(gameEmojis);
     
+    // Send player name to server
+    socket.emit('playerName', {
+        gameId: gameId,
+        name: playerName
+    });
+    
     // Switch to create screen
     startScreen.style.display = 'none';
     createScreen.style.display = 'block';
@@ -815,9 +931,56 @@ socket.on('gameStarted', (data) => {
     currentPlayer = 1;
     initGame();
     updateTileColors();
+    
+    // Send my name to the other player using makeMove
+    setTimeout(() => {
+        socket.emit('makeMove', {
+            type: 'shareName',
+            gameId: gameId,
+            playerId: socket.id,
+            isPlayer1: iAmPlayer1,
+            name: playerName,
+            timestamp: Date.now()
+        });
+    }, 1000); // Wait 1 second to make sure game is fully set up
+setTimeout(updatePlayerLabelsBasedOnPosition, 500);
+});
+
+// Handle receiving opponent's name
+socket.on('playerName', (data) => {
+    if (data.playerId && data.playerId !== socket.id) {
+        console.log("Received opponent name:", data.name);
+        players.names[data.playerId] = data.name;
+        opponentName = data.name;
+        updatePlayerLabels();
+    }
 });
 
 socket.on('gameMove', (data) => {
+if (data.type === 'shareName' && data.playerId !== socket.id) {
+        console.log("Received name data:", data);
+        
+        const topLabel = document.querySelector('.game-section:nth-child(1) h3');
+        const bottomLabel = document.querySelector('.game-section:nth-child(3) h3');
+        
+        if (data.isPlayer1) {
+            // Received player 1's name, goes on top
+            topLabel.textContent = data.name;
+        } else {
+            // Received player 2's name, goes on bottom
+            bottomLabel.textContent = data.name;
+        }
+        
+        // Send my name back in case they missed it
+        socket.emit('makeMove', {
+            type: 'shareName',
+            gameId: gameId,
+            playerId: socket.id,
+            isPlayer1: iAmPlayer1,
+            name: playerName,
+            timestamp: Date.now()
+        });
+    }
     console.log('Move received:', data);
     if (data.type === 'discardOffer') {
     if (data.playerId !== socket.id) {
@@ -887,20 +1050,29 @@ socket.on('gameMove', (data) => {
         // For a tie, show message in both player labels
         const player1Label = document.querySelector('.game-section:nth-child(1) h3');
         const player2Label = document.querySelector('.game-section:nth-child(3) h3');
-        player1Label.textContent = "Player 1: It's a Tie!";
-        player2Label.textContent = "Player 2: It's a Tie!";
+        
+        const p1Name = socket.id === players.first ? playerName : opponentName;
+        const p2Name = socket.id === players.second ? playerName : opponentName;
+        
+        player1Label.textContent = `${p1Name}: It's a Tie!`;
+        player2Label.textContent = `${p2Name}: It's a Tie!`;
     } else {
         // Update the labels based on who won
         const winnerNum = parseInt(data.winner);
         const player1Label = document.querySelector('.game-section:nth-child(1) h3');
         const player2Label = document.querySelector('.game-section:nth-child(3) h3');
         
+        const p1Name = socket.id === players.first ? playerName : opponentName;
+        const p2Name = socket.id === players.second ? playerName : opponentName;
+        
         if (winnerNum === 1) {
-            player1Label.textContent = "Player 1: Winner!";
-            player2Label.textContent = "Player 2: Player 1 Wins!";
+            const winnerName = socket.id === players.first ? playerName : opponentName;
+            player1Label.textContent = `${p1Name}: Winner!`;
+            player2Label.textContent = `${p2Name}: ${winnerName} Wins!`;
         } else {
-            player1Label.textContent = "Player 1: Player 2 Wins!";
-            player2Label.textContent = "Player 2: Winner!";
+            const winnerName = socket.id === players.second ? playerName : opponentName;
+            player1Label.textContent = `${p1Name}: ${winnerName} Wins!`;
+            player2Label.textContent = `${p2Name}: Winner!`;
         }
     }
     
@@ -917,7 +1089,10 @@ socket.on('gameMove', (data) => {
     // Add message to receiving player's label
     const nextPlayer = data.currentPlayer === 1 ? 2 : 1;
     const playerLabel = document.querySelector(`.game-section:nth-child(${nextPlayer === 1 ? 1 : 3}) h3`);
-    playerLabel.textContent = `Player ${nextPlayer}: Skipped!`;
+    const playerName = nextPlayer === 1 ? 
+        (socket.id === players.first ? playerName : opponentName) : 
+        (socket.id === players.second ? playerName : opponentName);
+    playerLabel.textContent = `${playerName}: Skipped!`;
     
     const tiles = Array.from(drawPile.children);
     const skipTile = tiles[data.tilePosition];
@@ -928,7 +1103,7 @@ socket.on('gameMove', (data) => {
         setTimeout(() => {
             skipTile.remove();
             currentTileDisplay.textContent = '';
-            playerLabel.textContent = `Player ${nextPlayer}`;  // Reset label
+            updatePlayerLabels();  // Reset label
             currentTile = null;
             isMyTurn = true;
             currentPlayer = nextPlayer;
@@ -940,7 +1115,10 @@ socket.on('gameMove', (data) => {
     
     // For receiving player, use currentPlayer directly since it's already correct
     const playerLabel = document.querySelector(`.game-section:nth-child(${currentPlayer === 1 ? 1 : 3}) h3`);
-    playerLabel.textContent = `Player ${currentPlayer}: Reversed!`;
+    const playerName = currentPlayer === 1 ? 
+        (socket.id === players.first ? playerName : opponentName) : 
+        (socket.id === players.second ? playerName : opponentName);
+    playerLabel.textContent = `${playerName}: Reversed!`;
     
     const tiles = Array.from(drawPile.children);
     const reverseTile = tiles[data.tilePosition];
@@ -951,7 +1129,7 @@ socket.on('gameMove', (data) => {
         setTimeout(() => {
             reverseTile.remove();
             currentTileDisplay.textContent = '';
-            playerLabel.textContent = `Player ${currentPlayer}`;  // Reset label
+            updatePlayerLabels();  // Reset label
             currentTile = null;
             
             // Ensure switch happens at same time
@@ -1094,13 +1272,38 @@ else if (data.type === 'pileSwitch') {
         }
     }
 });
+
 // Button event listeners
 startButton.addEventListener('click', () => {
     console.log('Start button clicked');
+    iAmPlayer1 = true; // Add this line to set as player 1
     socket.emit('createGame');
     startButton.disabled = true;
     joinButton.disabled = true;
 });
+
+function updatePlayerLabelsBasedOnPosition() {
+    const topLabel = document.querySelector('.game-section:nth-child(1) h3');
+    const bottomLabel = document.querySelector('.game-section:nth-child(3) h3');
+    
+    if (iAmPlayer1) {
+        // I'm player 1, so my name goes on top
+        topLabel.textContent = playerName;
+    } else {
+        // I'm player 2, so my name goes on bottom
+        bottomLabel.textContent = playerName;
+    }
+    
+    // Share my name with opponent using makeMove
+    socket.emit('makeMove', {
+        type: 'shareName',
+        gameId: gameId,
+        playerId: socket.id,
+        isPlayer1: iAmPlayer1,
+        name: playerName,
+        timestamp: Date.now()
+    });
+}
 
 function handleJoinAction(event) {
     event.preventDefault(); // Prevent any default behavior
@@ -1131,13 +1334,17 @@ backButton.addEventListener('click', () => {
     updateEmojiSelection();
 });
 
+// Fix the submitJoinButton click handler:
 submitJoinButton.addEventListener('click', () => {
     // Check if 3 emojis are selected
     if (selectedEmojis.length === 3) {
-        // Direct mapping from emoji index to character
+        // Set this player as player 2 (the joiner)
+        iAmPlayer1 = false;
+        
+        // Direct mapping from emoji index to character (unchanged from original)
         const charMap = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
         
-        // Convert emojis to a string code using consistent mapping
+        // Convert emojis to a string code using consistent mapping (unchanged)
         const code = selectedEmojis.map(emoji => {
             const index = emojis.indexOf(emoji);
             const char = charMap[index];
@@ -1146,7 +1353,7 @@ submitJoinButton.addEventListener('click', () => {
         }).join('');
         
         console.log('Attempting to join game with emoji code:', code);
-        socket.emit('joinGame', code);
+        socket.emit('joinGame', code); // Keep original format
     } else {
         // Visual feedback that we need 3 emojis
         emojiSelection.classList.add('shake');
@@ -1156,20 +1363,24 @@ submitJoinButton.addEventListener('click', () => {
     }
 });
 
-function handleJoinAction(event) {
-    event.preventDefault(); // Prevent any default behavior
-    if (gameCodeInput.style.display === 'none') {
-        gameCodeInput.style.display = 'block';
-        joinButton.textContent = 'Submit';
-    } else {
-        const code = gameCodeInput.value.trim().toUpperCase();
-        if (code) {
-            console.log('Attempting to join game:', code);
-            socket.emit('joinGame', code);
-        }
-    }
+// Function to update player labels with names
+function updatePlayerLabels() {
+    const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+    const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+    
+    // Get the actual names for each position
+    const player1Name = players.first && players.names[players.first] 
+        ? players.names[players.first] : "Player 1";
+    
+    const player2Name = players.second && players.names[players.second]
+        ? players.names[players.second] : "Player 2";
+    
+    console.log("Updating labels with:", {player1Name, player2Name});
+    
+    // Update the labels
+    player1Label.textContent = player1Name;
+    player2Label.textContent = player2Name;
 }
-
 
 // Game functions
 function shuffleArray(array) {
@@ -1500,7 +1711,10 @@ function handleSkipTile(selectedTile) {
     // Add message to player label
     const activePlayer = currentPlayer;  // Store current player before it changes
     const playerLabel = document.querySelector(`.game-section:nth-child(${activePlayer === 1 ? 1 : 3}) h3`);
-    playerLabel.textContent = `Player ${activePlayer}: Skip!`;
+    const name = activePlayer === 1 ? 
+        (socket.id === players.first ? playerName : opponentName) : 
+        (socket.id === players.second ? playerName : opponentName);
+    playerLabel.textContent = `${name}: Skip!`;
     
     selectedTile.classList.add('selected');
     selectedTile.textContent = '>>';
@@ -1518,7 +1732,7 @@ function handleSkipTile(selectedTile) {
     setTimeout(() => {
         selectedTile.remove();
         currentTileDisplay.textContent = '';
-        playerLabel.textContent = `Player ${activePlayer}`;  // Reset label
+        updatePlayerLabels();  // Reset label
         currentTile = null;
         isMyTurn = false;
         currentPlayer = nextPlayer;
@@ -1532,7 +1746,10 @@ function handleReverseTile(selectedTile) {
     // Add message to player label
     const activePlayer = currentPlayer;  // Store current player before it changes
     const playerLabel = document.querySelector(`.game-section:nth-child(${activePlayer === 1 ? 1 : 3}) h3`);
-    playerLabel.textContent = `Player ${activePlayer}: Reverse!`;
+    const name = activePlayer === 1 ? 
+        (socket.id === players.first ? playerName : opponentName) : 
+        (socket.id === players.second ? playerName : opponentName);
+    playerLabel.textContent = `${name}: Reverse!`;
     
     selectedTile.classList.add('selected');
     selectedTile.textContent = '@';
@@ -1552,7 +1769,7 @@ function handleReverseTile(selectedTile) {
     setTimeout(() => {
         selectedTile.remove();
         currentTileDisplay.textContent = '';
-        playerLabel.textContent = `Player ${activePlayer}`;  // Reset label using stored player
+        updatePlayerLabels();  // Reset label using stored player
         currentTile = null;
         
         switchPiles();
@@ -1860,16 +2077,19 @@ function checkGameEnd(playerArea) {
         // Find player number based on area
         const winningPlayer = playerArea === player1Area ? 1 : 2;
         
-        // Update both player labels
+        // Update both player labels with real names
         const player1Label = document.querySelector('.game-section:nth-child(1) h3');
         const player2Label = document.querySelector('.game-section:nth-child(3) h3');
         
+        const p1Name = socket.id === players.first ? playerName : opponentName;
+        const p2Name = socket.id === players.second ? playerName : opponentName;
+        
         if (winningPlayer === 1) {
-            player1Label.textContent = "Player 1: Winner!";
-            player2Label.textContent = "Player 2: Player 1 Wins!";
+            player1Label.textContent = `${p1Name}: Winner!`;
+            player2Label.textContent = `${p2Name}: ${p1Name} Wins!`;
         } else {
-            player1Label.textContent = "Player 1: Player 2 Wins!";
-            player2Label.textContent = "Player 2: Winner!";
+            player1Label.textContent = `${p1Name}: ${p2Name} Wins!`;
+            player2Label.textContent = `${p2Name}: Winner!`;
         }
         
         // Send game over to other player
@@ -1892,8 +2112,12 @@ function checkGameEnd(playerArea) {
         // Update both player labels for tie
         const player1Label = document.querySelector('.game-section:nth-child(1) h3');
         const player2Label = document.querySelector('.game-section:nth-child(3) h3');
-        player1Label.textContent = "Player 1: It's a Tie!";
-        player2Label.textContent = "Player 2: It's a Tie!";
+        
+        const p1Name = socket.id === players.first ? playerName : opponentName;
+        const p2Name = socket.id === players.second ? playerName : opponentName;
+        
+        player1Label.textContent = `${p1Name}: It's a Tie!`;
+        player2Label.textContent = `${p2Name}: It's a Tie!`;
         
         socket.emit('makeMove', {
             type: 'gameOver',
@@ -2013,13 +2237,22 @@ function initGame() {
     
     createTiles(player1Area, 26);
     createTiles(player2Area, 26);
-    createTiles(drawPile, 38, true); // Keep original 38 tiles
+    createTiles(drawPile, 38, true);
+    
+    // Set your own name in the correct position
+    const topLabel = document.querySelector('.game-section:nth-child(1) h3');
+    const bottomLabel = document.querySelector('.game-section:nth-child(3) h3');
+    
+    if (iAmPlayer1) {
+        topLabel.textContent = playerName;
+    } else {
+        bottomLabel.textContent = playerName;
+    }
     
     updateTileColors();
-    
-    // Run initial cleanup after a short delay
     setTimeout(cleanupDuplicateTiles, 500);
 }
+
 // New functions for emoji code handling
 function displayGameEmojis(emojis) {
     gameCodeEmojis.innerHTML = '';
@@ -2089,6 +2322,35 @@ function handleEmojiSelection(emoji, button) {
     }
     
     updateEmojiSelection();
+}
+function fixPlayerLabels() {
+    console.log("Fixing player labels");
+    
+    // 1. Get the label elements
+    const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+    const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+    
+    // 2. Get this browser's player position (1 or 2)
+    const myPosition = socket.id === players.first ? 1 : 2;
+    
+    // 3. Update labels based on position
+    if (myPosition === 1) {
+        // I'm player 1
+        player1Label.textContent = playerName;
+        socket.emit('sendName', {
+            gameId: gameId,
+            position: 1,
+            name: playerName
+        });
+    } else {
+        // I'm player 2
+        player2Label.textContent = playerName;
+        socket.emit('sendName', {
+            gameId: gameId,
+            position: 2,
+            name: playerName
+        });
+    }
 }
 
 function updateEmojiSelection() {
