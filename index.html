@@ -38,15 +38,54 @@
         }
 
         .setup-button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #fff0f0;
-            color: #382b22;
-            border: 2px solid #b18597;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #fff0f0;
+    color: #382b22;
+    border: 2px solid #b18597;
+    border-radius: 0.5em;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), background 150ms cubic-bezier(0, 0, 0.58, 1);
+    position: relative;
+}
+
+.setup-button::before {
+    position: absolute;
+    content: "";
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #f9c4d2;
+    border-radius: inherit;
+    box-shadow: 0 0 0 2px #b18597, 0 0.25em 0 0 #ffe3e2;
+    transform: translate3d(0, 0.5em, -1em);
+    transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), box-shadow 150ms cubic-bezier(0, 0, 0.58, 1);
+}
+
+.setup-button:hover {
+    background: #ffe9e9;
+    transform: translate(0, 0.25em);
+}
+
+.setup-button:hover::before {
+    box-shadow: 0 0 0 2px #b18597, 0 0.325em 0 0 #ffe3e2;
+    transform: translate3d(0, 0.325em, -1em);
+}
+
+.setup-button:active {
+    background: #ffe9e9;
+    transform: translate(0em, 0.5em);
+}
+
+.setup-button:active::before {
+    box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2;
+    transform: translate3d(0, 0, -1em);
+}
 
         #gameCodeInput {
             padding: 8px;
@@ -365,6 +404,164 @@
 .game-section:nth-child(3) {   /* This targets the third game section which has Player 2 */
     margin-top: -0px;
 
+}
+
+/* Add new emoji selector styles */
+.emoji-code {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    gap: 10px;
+}
+
+.emoji {
+    font-size: 32px;
+    padding: 10px;
+    cursor: default;
+    background: #fff0f0;
+    border-radius: 50%;
+    border: 2px solid #b18597;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    transition: transform 0.2s;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+}
+
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 15px;   /* Keep horizontal spacing reasonable */
+    row-gap: 25px;      /* Increase vertical spacing between rows */
+    margin: 20px 0;
+    padding: 10px;      /* Add some padding around the entire grid */
+}
+
+.emoji-button {
+    font-size: 32px;
+    padding: 10px;
+    cursor: pointer;
+    background-color: #fff0f0;
+    color: #382b22;
+    border: 2px solid #b18597;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    transform-style: preserve-3d;
+    transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), background 150ms cubic-bezier(0, 0, 0.58, 1);
+    position: relative;
+}
+
+.emoji-button::before {
+    position: absolute;
+    content: "";
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #f9c4d2;
+    border-radius: inherit;
+    box-shadow: 0 0 0 2px #b18597, 0 0.25em 0 0 #ffe3e2;
+    /* Reduce this value to bring the pink shadow closer to the button */
+    transform: translate3d(0, 0.25em, -1em); /* Changed from 0.5em to 0.25em */
+    transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), box-shadow 150ms cubic-bezier(0, 0, 0.58, 1);
+}
+
+
+.emoji-button:hover {
+    background: #ffe9e9;
+    transform: translate(0, 0.25em);
+}
+
+.emoji-button:hover::before {
+    box-shadow: 0 0 0 2px #b18597, 0 0.25em 0 0 #ffe3e2;
+    /* Reduce this value as well */
+    transform: translate3d(0, 0.15em, -1em); /* Changed from 0.325em to 0.15em */
+}
+
+.emoji-button:active {
+    background: #ffe9e9;
+    transform: translate(0em, 0.5em);
+}
+
+.emoji-button:active::before {
+    box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2;
+    transform: translate3d(0, 0, -1em);
+}  transform: translate3d(0, 0, -1em);
+}
+
+.emoji-button.selected {
+    background-color: #e0fff0;
+    border-color: #81b597;
+}
+
+.emoji-button.selected {
+    background-color: #e0fff0;  /* Green background */
+    border-color: b18597;      /* Green border */
+}
+
+.emoji-selection {
+    display: flex;
+    flex-direction: row; /* Explicitly set to row */
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+    gap: 10px;
+    min-height: 70px;
+    width: 100%; /* Ensure full width */
+}
+
+/* Style for individual emoji slots */
+.emoji-slot {
+    width: 50px;
+    height: 50px;
+    border: 2px dashed #b18597;
+    border-radius: 50%;
+    background: rgba(255,240,240,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    flex: 0 0 auto; /* Prevent shrinking or growing */
+}
+
+/* Make the game title more playful */
+.game-title {
+    font-size: 42px;
+    color: #000000;
+    text-align: center;
+    margin-bottom: 25px;
+    font-weight: bold;
+}
+
+.setup-message {
+    margin: 15px 0;
+    font-size: 18px;
+    color: #2c3e50;
+    text-align: center;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
 
 @media screen and (max-width: 480px) {
     .game-board {
@@ -450,15 +647,36 @@
 </head>
 <body>
     <div id="setup-overlay">
-        <div id="gameSetup">
-            <h2>LMNO</h2>
-            <div id="playerInfo"></div>
+    <div id="gameSetup">
+        <div class="game-title">LMNO</div>
+        
+        <!-- Start Game Screen -->
+        <div id="startScreen">
             <button id="startButton" class="setup-button">Start New Game</button>
             <button id="joinButton" class="setup-button">Join Game</button>
-            <input type="text" id="gameCodeInput" placeholder="Enter game code" style="display: none;">
-            <div id="waitingMessage" style="display: none;">Waiting for other player...</div>
+        </div>
+        
+        <!-- Create Game Screen (shows emoji code) -->
+        <div id="createScreen" style="display: none;">
+            <div class="setup-message">Share these emojis with your friend:</div>
+            <div class="emoji-code" id="gameCodeEmojis"></div>
+            <div id="waitingMessage" class="setup-message">Waiting for other player...</div>
+        </div>
+        
+        <!-- Join Game Screen (emoji selection) -->
+        <div id="joinScreen" style="display: none;">
+            <div class="setup-message">Pick the 3 emojis to join:</div>
+            <div class="emoji-selection" id="emojiSelection">
+                <div class="emoji-slot" id="slot1"></div>
+                <div class="emoji-slot" id="slot2"></div>
+                <div class="emoji-slot" id="slot3"></div>
+            </div>
+            <div class="emoji-grid" id="emojiGrid"></div>
+            <button id="submitJoinButton" class="setup-button">Join Game</button>
+            <button id="backButton" class="setup-button">Back</button>
         </div>
     </div>
+</div>
 
     <div class="game-board" id="gameBoard" style="display: none;">
     <div class="game-section">
@@ -480,6 +698,9 @@
 <script>
 // Constants and game state variables
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const emojis = ['🦊', '🐢', '🐘', '🦁', '🐬', '🦄', '🐠', '🦋', '🐵'];
+let gameEmojis = []; // Will store the 3 emojis for the current game
+let selectedEmojis = []; // Will store the user's emoji selection
 const socket = io('https://lmno-production.up.railway.app/');
 console.log('Attempting socket connection...');
 
@@ -509,6 +730,19 @@ const player2Area = document.getElementById('player2Area');
 const drawPile = document.getElementById('drawPile');
 const currentTileDisplay = document.getElementById('currentTile');
 const discardOption = document.getElementById('discardOption');
+const startScreen = document.getElementById('startScreen');
+const createScreen = document.getElementById('createScreen');
+const joinScreen = document.getElementById('joinScreen');
+const submitJoinButton = document.getElementById('submitJoinButton');
+const backButton = document.getElementById('backButton');
+const gameCodeEmojis = document.getElementById('gameCodeEmojis');
+const emojiGrid = document.getElementById('emojiGrid');
+const emojiSelection = document.getElementById('emojiSelection');
+const emojiSlots = [
+    document.getElementById('slot1'),
+    document.getElementById('slot2'),
+    document.getElementById('slot3')
+];
 
 // Socket event handlers
 socket.on('connect', () => {
@@ -543,11 +777,31 @@ socket.on('syncRequest', (data) => {
 });
 
 socket.on('gameCreated', (data) => {
-    console.log('Game created:', data);
+    console.log('Game created with ID:', data.gameId);
     gameId = data.gameId;
     playerId = data.playerId;
-    playerInfo.textContent = `Game Code: ${gameId}`;
-    waitingMessage.style.display = 'block';
+    
+    // Direct mapping from A-I to emoji index
+    const emojiMap = {
+        'A': 0, 'B': 1, 'C': 2, 
+        'D': 3, 'E': 4, 'F': 5,
+        'G': 6, 'H': 7, 'I': 8
+    };
+    
+    // Convert the gameId to emojis using direct mapping
+    const gameIdChars = gameId.split('');
+    gameEmojis = gameIdChars.map(char => {
+        const index = emojiMap[char];
+        console.log(`Converting ${char} to emoji index ${index}: ${emojis[index]}`);
+        return emojis[index];
+    });
+    
+    // Display the emojis
+    displayGameEmojis(gameEmojis);
+    
+    // Switch to create screen
+    startScreen.style.display = 'none';
+    createScreen.style.display = 'block';
 });
 
 socket.on('gameStarted', (data) => {
@@ -863,8 +1117,44 @@ function handleJoinAction(event) {
 }
 
 // Add both click and touch events for join button
-joinButton.addEventListener('click', handleJoinAction);
-joinButton.addEventListener('touchstart', handleJoinAction);
+joinButton.addEventListener('click', () => {
+    startScreen.style.display = 'none';
+    joinScreen.style.display = 'block';
+    createEmojiGrid();
+});
+
+backButton.addEventListener('click', () => {
+    joinScreen.style.display = 'none';
+    startScreen.style.display = 'block';
+    // Reset selections
+    selectedEmojis = [];
+    updateEmojiSelection();
+});
+
+submitJoinButton.addEventListener('click', () => {
+    // Check if 3 emojis are selected
+    if (selectedEmojis.length === 3) {
+        // Direct mapping from emoji index to character
+        const charMap = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+        
+        // Convert emojis to a string code using consistent mapping
+        const code = selectedEmojis.map(emoji => {
+            const index = emojis.indexOf(emoji);
+            const char = charMap[index];
+            console.log(`Converting emoji ${emoji} (index ${index}) to char ${char}`);
+            return char;
+        }).join('');
+        
+        console.log('Attempting to join game with emoji code:', code);
+        socket.emit('joinGame', code);
+    } else {
+        // Visual feedback that we need 3 emojis
+        emojiSelection.classList.add('shake');
+        setTimeout(() => {
+            emojiSelection.classList.remove('shake');
+        }, 500);
+    }
+});
 
 function handleJoinAction(event) {
     event.preventDefault(); // Prevent any default behavior
@@ -880,16 +1170,7 @@ function handleJoinAction(event) {
     }
 }
 
-// Add enter key functionality for input field
-gameCodeInput.addEventListener('keyup', (event) => {
-    if (event.key === 'Enter') {
-        const code = gameCodeInput.value.trim().toUpperCase();
-        if (code) {
-            console.log('Attempting to join game:', code);
-            socket.emit('joinGame', code);
-        }
-    }
-});
+
 // Game functions
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -1738,6 +2019,87 @@ function initGame() {
     
     // Run initial cleanup after a short delay
     setTimeout(cleanupDuplicateTiles, 500);
+}
+// New functions for emoji code handling
+function displayGameEmojis(emojis) {
+    gameCodeEmojis.innerHTML = '';
+    emojis.forEach(emoji => {
+        const emojiElement = document.createElement('div');
+        emojiElement.classList.add('emoji');
+        emojiElement.textContent = emoji;
+        
+        // Add a little bounce animation
+        emojiElement.animate([
+            { transform: 'translateY(0)' },
+            { transform: 'translateY(-10px)' },
+            { transform: 'translateY(0)' }
+        ], {
+            duration: 1000,
+            iterations: Infinity,
+            easing: 'ease-in-out',
+            delay: Math.random() * 500 // Stagger the animations
+        });
+        
+        gameCodeEmojis.appendChild(emojiElement);
+    });
+}
+
+function createEmojiGrid() {
+    emojiGrid.innerHTML = '';
+    
+    // Shuffle the emojis for a random order each time
+    const shuffledEmojis = [...emojis].sort(() => Math.random() - 0.5);
+    
+    shuffledEmojis.forEach(emoji => {
+        const button = document.createElement('div');
+        button.classList.add('emoji-button');
+        button.textContent = emoji;
+        button.addEventListener('click', () => {
+            handleEmojiSelection(emoji, button);
+        });
+        emojiGrid.appendChild(button);
+    });
+    
+    // Reset selection
+    selectedEmojis = [];
+    updateEmojiSelection();
+}
+
+function handleEmojiSelection(emoji, button) {
+    // Check if already selected
+    const index = selectedEmojis.indexOf(emoji);
+    
+    if (index > -1) {
+        // Already selected, remove it
+        selectedEmojis.splice(index, 1);
+        button.classList.remove('selected');
+    } else if (selectedEmojis.length < 3) {
+        // Not selected and room for more, add it
+        selectedEmojis.push(emoji);
+        button.classList.add('selected');
+    } else {
+        // Not selected but already have 3, replace the first one
+        const oldEmoji = selectedEmojis.shift();
+        const oldButton = Array.from(emojiGrid.querySelectorAll('.emoji-button'))
+            .find(btn => btn.textContent === oldEmoji);
+        if (oldButton) oldButton.classList.remove('selected');
+        
+        selectedEmojis.push(emoji);
+        button.classList.add('selected');
+    }
+    
+    updateEmojiSelection();
+}
+
+function updateEmojiSelection() {
+    // Update the slots to show current selection
+    emojiSlots.forEach((slot, index) => {
+        if (index < selectedEmojis.length) {
+            slot.textContent = selectedEmojis[index];
+        } else {
+            slot.textContent = '';
+        }
+    });
 }
 </script>
 </body>
