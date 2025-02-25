@@ -13,96 +13,97 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
-// Game state storage
-const games = new Map();
+// Game state storage - FIXED: Use one consistent data structure
+// Either use Map or object, not both
+const games = {};  // Changed to object for consistency
 const players = new Map();
 
 io.on('connection', (socket) => {
     console.log('Server: Player connected:', socket.id);
-
+    
     socket.on('createGame', () => {
-        const gameCode = generateGameCode();
-        console.log('Server: Creating game:', gameCode);
-        games.set(gameCode, { 
-            players: [socket.id], 
-            currentPlayer: socket.id,
-            status: 'waiting'
-        });
-        players.set(socket.id, gameCode);
-        socket.join(gameCode);
-        socket.emit('gameCreated', { 
-            gameId: gameCode, 
-            playerId: socket.id 
-        });
-        console.log('Server: Games currently active:', Array.from(games.keys()));
-    });
-
-    socket.on('joinGame', (gameCode) => {
-        console.log('Server: Join attempt for game:', gameCode);
-        const game = games.get(gameCode);
-        console.log('Server: Game found:', game);
+    const gameId = generateEmojiGameId();
+    console.log('Server: Creating game with code:', gameId);  // Debug output
+    
+    games[gameId] = {
+        players: [socket.id], 
+        currentPlayer: socket.id,
+        status: 'waiting'
+    };
+    
+    players.set(socket.id, gameId);
+    socket.join(gameId);
+    io.to(socket.id).emit('gameCreated', { gameId, playerId: socket.id });
+});
+    
+    socket.on('joinGame', (gameId) => {
+        console.log('Server: Join attempt for game:', gameId);  // FIXED: Changed gameCode to gameId
         
-        if (game && game.players.length < 2) {
-            game.players.push(socket.id);
-            game.status = 'ready';
-            socket.join(gameCode);
-            players.set(socket.id, gameCode);
+        // FIXED: Use consistent access method for games object
+        if (games[gameId] && games[gameId].players.length === 1) {
+            games[gameId].players.push(socket.id);
+            games[gameId].status = 'ready';
             
-            console.log('Server: Broadcasting game start to room:', gameCode);
-            io.in(gameCode).emit('gameStarted', {
-                gameId: gameCode,
-                players: game.players,
-                state: game
+            socket.join(gameId);  // FIXED: Changed gameCode to gameId
+            players.set(socket.id, gameId);  // FIXED: Changed gameCode to gameId
+            
+            console.log('Server: Broadcasting game start to room:', gameId);  // FIXED: Changed gameCode to gameId
+            io.in(gameId).emit('gameStarted', {  // FIXED: Changed gameCode to gameId
+                gameId: gameId,
+                players: games[gameId].players,  // FIXED: Access players from games object
+                state: games[gameId]  // FIXED: Pass the correct game object
             });
         } else {
-            socket.emit('error', game ? 'Game is full' : 'Game not found');
+            io.to(socket.id).emit('errorMessage', { message: 'Game not found or already full' });
         }
-    });
-
-    socket.on('makeMove', (data) => {
-    const gameCode = players.get(socket.id);
-    console.log('Server: Move received:', {
-        type: data.type,
-        from: socket.id,
-        gameCode: gameCode,
-        tile: data.tile,
-        position: data.position
     });
     
-    if (gameCode) {
-        const game = games.get(gameCode);
-        if (game) {
-            // Handle discard offer and choice specifically
-            if (data.type === 'discardOffer' || data.type === 'discardChoice') {
-                socket.to(gameCode).emit('gameMove', {
-                    type: data.type,
-                    playerId: socket.id,
-                    tile: data.tile,
-                    accepted: data.accepted,
-                    currentPlayer: data.currentPlayer,
-                    players: game.players
-                });
-            } else {
-                // Handle all other moves
-                io.to(gameCode).emit('gameMove', {
-                    ...data,
-                    playerId: socket.id,
-                    players: game.players
-                });
+    socket.on('makeMove', (data) => {
+        const gameId = players.get(socket.id);  // FIXED: Changed gameCode to gameId
+        console.log('Server: Move received:', {
+            type: data.type,
+            from: socket.id,
+            gameId: gameId,  // FIXED: Changed gameCode to gameId
+            tile: data.tile,
+            position: data.position
+        });
+        
+        if (gameId) {  // FIXED: Changed gameCode to gameId
+            // FIXED: Use consistent access method for games object
+            const game = games[gameId];
+            if (game) {
+                // Handle discard offer and choice specifically
+                if (data.type === 'discardOffer' || data.type === 'discardChoice') {
+                    socket.to(gameId).emit('gameMove', {  // FIXED: Changed gameCode to gameId
+                        type: data.type,
+                        playerId: socket.id,
+                        tile: data.tile,
+                        accepted: data.accepted,
+                        currentPlayer: data.currentPlayer,
+                        players: game.players
+                    });
+                } else {
+                    // Handle all other moves
+                    io.to(gameId).emit('gameMove', {  // FIXED: Changed gameCode to gameId
+                        ...data,
+                        playerId: socket.id,
+                        players: game.players
+                    });
+                }
             }
         }
-    }
-});
-
+    });
+    
     socket.on('disconnect', () => {
         console.log('Server: Player disconnected:', socket.id);
-        const gameCode = players.get(socket.id);
-        if (gameCode) {
-            const game = games.get(gameCode);
+        const gameId = players.get(socket.id);  // FIXED: Changed gameCode to gameId
+        if (gameId) {  // FIXED: Changed gameCode to gameId
+            // FIXED: Use consistent access method for games object
+            const game = games[gameId];
             if (game) {
-                socket.to(gameCode).emit('playerDisconnected', { playerId: socket.id });
+                socket.to(gameId).emit('playerDisconnected', { playerId: socket.id });  // FIXED: Changed gameCode to gameId
                 if (game.players.length <= 1) {
-                    games.delete(gameCode);
+                    delete games[gameId];  // FIXED: Changed to object deletion syntax
                 }
             }
             players.delete(socket.id);
@@ -110,8 +111,21 @@ io.on('connection', (socket) => {
     });
 });
 
-function generateGameCode() {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
+function generateEmojiGameId() {
+    // Create a 3-character code that will map to emojis
+    let result = '';
+    const characters = 'ABCDEFGHI'; // Maps to the 9 emoji positions
+    
+    for (let i = 0; i < 3; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    
+    // Make sure this game ID isn't already in use
+    if (games[result]) {
+        return generateEmojiGameId(); // Try again if ID exists
+    }
+    
+    return result;
 }
 
 const PORT = 3000;
