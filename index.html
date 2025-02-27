@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LMNO</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
+        /* === FONTS === */
         @import url("https://fonts.googleapis.com/css?family=Rubik:700&display=swap");
 
+        /* === BASE STYLES === */
         body {
             font-family: "arial", sans-serif;
             display: flex;
@@ -19,6 +21,7 @@
             padding: 20px;
         }
 
+        /* === SETUP OVERLAY === */
         #setup-overlay {
             position: fixed;
             top: 0;
@@ -33,59 +36,59 @@
         }
 
         #gameSetup {
-    padding: 20px;
-    text-align: center;
+            padding: 20px;
+            text-align: center;
         }
 
         .setup-button {
-    margin: 10px;
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #fff0f0;
-    color: #382b22;
-    border: 2px solid #b18597;
-    border-radius: 0.5em;
-    cursor: pointer;
-    transform-style: preserve-3d;
-    transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), background 150ms cubic-bezier(0, 0, 0.58, 1);
-    position: relative;
-}
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #fff0f0;
+            color: #382b22;
+            border: 2px solid #b18597;
+            border-radius: 0.5em;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), background 150ms cubic-bezier(0, 0, 0.58, 1);
+            position: relative;
+        }
 
-.setup-button::before {
-    position: absolute;
-    content: "";
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: #f9c4d2;
-    border-radius: inherit;
-    box-shadow: 0 0 0 2px #b18597, 0 0.25em 0 0 #ffe3e2;
-    transform: translate3d(0, 0.5em, -1em);
-    transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), box-shadow 150ms cubic-bezier(0, 0, 0.58, 1);
-}
+        .setup-button::before {
+            position: absolute;
+            content: "";
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f9c4d2;
+            border-radius: inherit;
+            box-shadow: 0 0 0 2px #b18597, 0 0.25em 0 0 #ffe3e2;
+            transform: translate3d(0, 0.5em, -1em);
+            transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), box-shadow 150ms cubic-bezier(0, 0, 0.58, 1);
+        }
 
-.setup-button:hover {
-    background: #ffe9e9;
-    transform: translate(0, 0.25em);
-}
+        .setup-button:hover {
+            background: #ffe9e9;
+            transform: translate(0, 0.25em);
+        }
 
-.setup-button:hover::before {
-    box-shadow: 0 0 0 2px #b18597, 0 0.325em 0 0 #ffe3e2;
-    transform: translate3d(0, 0.325em, -1em);
-}
+        .setup-button:hover::before {
+            box-shadow: 0 0 0 2px #b18597, 0 0.325em 0 0 #ffe3e2;
+            transform: translate3d(0, 0.325em, -1em);
+        }
 
-.setup-button:active {
-    background: #ffe9e9;
-    transform: translate(0em, 0.5em);
-}
+        .setup-button:active {
+            background: #ffe9e9;
+            transform: translate(0em, 0.5em);
+        }
 
-.setup-button:active::before {
-    box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2;
-    transform: translate3d(0, 0, -1em);
-}
+        .setup-button:active::before {
+            box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2;
+            transform: translate3d(0, 0, -1em);
+        }
 
         #gameCodeInput {
             padding: 8px;
@@ -95,48 +98,44 @@
             font-size: 16px;
         }
 
+        /* === GAME BOARD === */
         .game-board {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 30px;
-    padding: 20px;
-    z-index: 1;
-}
-
-.game-section {
-    width: 100%;
-    text-align: center;
-}
-
-.game-section h3 {
-    margin-bottom: 10px;
-    color: #2c3e50;
-}
-
-.tile-area {
-    min-height: 100px;  /* Add this */
-    background: #ffffff; /* Add this */
-}
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            padding: 20px;
+            z-index: 1;
+        }
 
         .game-section {
+            width: 100%;
+            text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 30px;
         }
 
+        .game-section h3 {
+            margin-bottom: 5px !important;
+            color: #2c3e50;
+        }
+
         .tile-area {
+            min-height: 100px;
+            background: #ffffff;
             display: grid;
             grid-template-columns: repeat(13, 1fr);
             gap: 8px;
             row-gap: 20px;
         }
 
+        /* === TILES === */
         .tile {
             width: 40px;
             height: 40px;
@@ -211,48 +210,66 @@
             background: #d2d2d2;
             box-shadow: 0 0 0 1.5px #b5b5b5, 0 0.350em 0 0 #e6e6e6;
         }
-         .tile.revealed.inactive {
-            background-color: #e0fff0;  /* Keep the green background */
-            border-color: #81b597;      /* Keep the green border */
-}
 
-         .tile.revealed.inactive::before {
-            background: #c4f9d2;        /* Keep the green shadow */
+        .tile.revealed.inactive {
+            background-color: #e0fff0;
+            border-color: #81b597;
+        }
+
+        .tile.revealed.inactive::before {
+            background: #c4f9d2;
             box-shadow: 0 0 0 1.5px #81b597, 0 0.325em 0 0 #e2ffe3;
-}
-@keyframes wiggle {
-    0% { transform: rotate(0deg); background-color: #e0fff0; }
-    25% { transform: rotate(-5deg); background-color: #ffe9e9; }
-    75% { transform: rotate(5deg); background-color: #ffe9e9; }
-    100% { transform: rotate(0deg); background-color: #ffe9e9; }
-}
+        }
+        
+        /* === ANIMATIONS === */
+        @keyframes wiggle {
+            0% { transform: rotate(0deg); background-color: #e0fff0; }
+            25% { transform: rotate(-5deg); background-color: #ffe9e9; }
+            75% { transform: rotate(5deg); background-color: #ffe9e9; }
+            100% { transform: rotate(0deg); background-color: #ffe9e9; }
+        }
 
-.tile.wiggle {
-    animation: wiggle 0.5s ease-in-out infinite;
-}
+        .tile.wiggle {
+            animation: wiggle 0.5s ease-in-out infinite;
+        }
 
-.tile.wiggle::before {
-    background: #c4f9d2; /* Start with green */
-    transition: background-color 0.5s ease;
-}
+        .tile.wiggle::before {
+            background: #c4f9d2;
+            transition: background-color 0.5s ease;
+        }
 
-.tile.wiggle.pink::before {
-    background: #f9c4d2; /* Transition to pink */
-}
-@keyframes redWiggle {
-    0% { transform: rotate(0deg); background-color: #ffe0e0; }
-    25% { transform: rotate(-5deg); background-color: #ffcaca; }
-    75% { transform: rotate(5deg); background-color: #ffb5b5; }
-    100% { transform: rotate(0deg); background-color: #ffe0e0; }
-}
+        .tile.wiggle.pink::before {
+            background: #f9c4d2;
+        }
+        
+        @keyframes redWiggle {
+            0% { transform: rotate(0deg); background-color: #ffe0e0; }
+            25% { transform: rotate(-5deg); background-color: #ffcaca; }
+            75% { transform: rotate(5deg); background-color: #ffb5b5; }
+            100% { transform: rotate(0deg); background-color: #ffe0e0; }
+        }
 
-.tile.redWiggle {
-    animation: redWiggle 0.5s ease-in-out infinite;
-}
+        .tile.redWiggle {
+            animation: redWiggle 0.5s ease-in-out infinite;
+        }
 
-.tile.redWiggle::before {
-    background: #ffcaca;
-}
+        .tile.redWiggle::before {
+            background: #ffcaca;
+        }
+
+        /* === DRAW PILE === */
+        .draw-pile {
+            display: grid;
+            grid-template-columns: repeat(13, 1fr);
+            grid-template-rows: repeat(3, minmax(30px, auto));
+            grid-auto-rows: 0;
+            gap: 8px;
+            row-gap: 15px;
+            max-width: 750px;
+            margin: 20px 0;
+            min-height: 120px;
+        }
+
         .draw-pile .tile {
             background-color: #fff0f0;
             width: 30px;
@@ -260,6 +277,7 @@
             font-size: 14px;
             border-color: #b18597;
             color: #382b22;
+            align-self: start;
         }
 
         .draw-pile .tile::before {
@@ -296,6 +314,7 @@
             box-shadow: 0 0 0 1.5px #b18597, 0 0.25em 0 0 #ffe3e2;
         }
 
+        /* === GAME FLOW UI === */
         .game-over {
             font-size: 24px;
             font-weight: bold;
@@ -304,34 +323,27 @@
         }
 
         #currentTile {
-    margin-top: 20px;
-    font-size: 20px;
-    font-weight: bold;
-    min-height: 24px;  /* Add this to reserve space */
-    display: block;    /* Add this */
-}
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            min-height: 24px;
+            display: block;
+        }
 
+        .game-section:nth-child(2) {
+            min-height: 160px;
+        }
 
-.draw-pile {
-    display: grid;
-    grid-template-columns: repeat(13, 1fr);
-    grid-template-rows: repeat(3, minmax(30px, auto)); /* Define 3 fixed rows */
-    grid-auto-rows: 0; /* Any additional rows take no space */
-    gap: 8px;
-    row-gap: 15px; /* Keep your original row gap */
-    max-width: 750px;
-    margin: 20px 0;
-    min-height: 120px;
-}
+        #currentTile, #discardOption {
+            visibility: hidden;
+            height: 0;
+            margin: 0;
+            padding: 0;
+        }
 
-.game-section:nth-child(2) {
-    min-height: 160px;
-}
-
-/* Make sure tiles align to the top within the draw pile */
-.draw-pile .tile {
-    align-self: start;
-}
+        .game-section:nth-child(3) {
+            margin-top: -0px;
+        }
 
         #discardOption {
             margin-top: 20px;
@@ -387,1982 +399,1682 @@
             box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2;
             transform: translate3d(0, 0, -1em);
         }
-.game-section h3 {
-        margin-bottom: 5px !important;  /* Reduce space between label and tiles */
-    }
-#currentTile, #discardOption {
-    visibility: hidden;
-    height: 0;
-    margin: 0;
-    padding: 0;
-}
 
-    /* Adjust overall game section spacing */
-    .game-section {
-        gap: 15px !important;  /* Reduce space between sections */
-    }
-.game-section:nth-child(3) {   /* This targets the third game section which has Player 2 */
-    margin-top: -0px;
+        /* === EMOJI STYLES === */
+        .emoji-code {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 10px;
+        }
 
-}
+        .emoji {
+            font-size: 32px;
+            padding: 10px;
+            cursor: default;
+            background: #fff0f0;
+            border-radius: 50%;
+            border: 2px solid #b18597;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            transition: transform 0.2s;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+        }
 
-/* Add new emoji selector styles */
-.emoji-code {
-    display: flex;
-    justify-content: center;
-    margin: 20px 0;
-    gap: 10px;
-}
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            column-gap: 15px;
+            row-gap: 25px;
+            margin: 20px 0;
+            padding: 10px;
+        }
 
-.emoji {
-    font-size: 32px;
-    padding: 10px;
-    cursor: default;
-    background: #fff0f0;
-    border-radius: 50%;
-    border: 2px solid #b18597;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    transition: transform 0.2s;
-    box-shadow: 0 3px 5px rgba(0,0,0,0.1);
-}
+        .emoji-button {
+            font-size: 32px;
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff0f0;
+            color: #382b22;
+            border: 2px solid #b18597;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            transform-style: preserve-3d;
+            transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), background 150ms cubic-bezier(0, 0, 0.58, 1);
+            position: relative;
+        }
 
-.emoji-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    column-gap: 15px;   /* Keep horizontal spacing reasonable */
-    row-gap: 25px;      /* Increase vertical spacing between rows */
-    margin: 20px 0;
-    padding: 10px;      /* Add some padding around the entire grid */
-}
+        .emoji-button::before {
+            position: absolute;
+            content: "";
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f9c4d2;
+            border-radius: inherit;
+            box-shadow: 0 0 0 2px #b18597, 0 0.25em 0 0 #ffe3e2;
+            transform: translate3d(0, 0.25em, -1em);
+            transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), box-shadow 150ms cubic-bezier(0, 0, 0.58, 1);
+        }
 
-.emoji-button {
-    font-size: 32px;
-    padding: 10px;
-    cursor: pointer;
-    background-color: #fff0f0;
-    color: #382b22;
-    border: 2px solid #b18597;
-    border-radius: 50%;
-    width: 35px;
-    height: 35px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    transform-style: preserve-3d;
-    transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), background 150ms cubic-bezier(0, 0, 0.58, 1);
-    position: relative;
-}
+        .emoji-button:hover {
+            background: #ffe9e9;
+            transform: translate(0, 0.25em);
+        }
 
-.emoji-button::before {
-    position: absolute;
-    content: "";
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: #f9c4d2;
-    border-radius: inherit;
-    box-shadow: 0 0 0 2px #b18597, 0 0.25em 0 0 #ffe3e2;
-    /* Reduce this value to bring the pink shadow closer to the button */
-    transform: translate3d(0, 0.25em, -1em); /* Changed from 0.5em to 0.25em */
-    transition: transform 150ms cubic-bezier(0, 0, 0.58, 1), box-shadow 150ms cubic-bezier(0, 0, 0.58, 1);
-}
+        .emoji-button:hover::before {
+            box-shadow: 0 0 0 2px #b18597, 0 0.25em 0 0 #ffe3e2;
+            transform: translate3d(0, 0.15em, -1em);
+        }
 
+        .emoji-button:active {
+            background: #ffe9e9;
+            transform: translate(0em, 0.5em);
+        }
 
-.emoji-button:hover {
-    background: #ffe9e9;
-    transform: translate(0, 0.25em);
-}
+        .emoji-button:active::before {
+            box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2;
+            transform: translate3d(0, 0, -1em);
+        }
 
-.emoji-button:hover::before {
-    box-shadow: 0 0 0 2px #b18597, 0 0.25em 0 0 #ffe3e2;
-    /* Reduce this value as well */
-    transform: translate3d(0, 0.15em, -1em); /* Changed from 0.325em to 0.15em */
-}
+        .emoji-button.selected {
+            background-color: #e0fff0;
+            border-color: b18597;
+        }
 
-.emoji-button:active {
-    background: #ffe9e9;
-    transform: translate(0em, 0.5em);
-}
+        .emoji-selection {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+            gap: 10px;
+            min-height: 70px;
+            width: 100%;
+        }
 
-.emoji-button:active::before {
-    box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2;
-    transform: translate3d(0, 0, -1em);
-}  transform: translate3d(0, 0, -1em);
-}
+        .emoji-slot {
+            width: 50px;
+            height: 50px;
+            border: 2px dashed #b18597;
+            border-radius: 50%;
+            background: rgba(255,240,240,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            flex: 0 0 auto;
+        }
 
-.emoji-button.selected {
-    background-color: #e0fff0;
-    border-color: #81b597;
-}
+        /* === MISCELLANEOUS UI === */
+        .game-title {
+            font-size: 42px;
+            color: #000000;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
 
-.emoji-button.selected {
-    background-color: #e0fff0;  /* Green background */
-    border-color: b18597;      /* Green border */
-}
+        .setup-message {
+            margin: 15px 0;
+            font-size: 18px;
+            color: #2c3e50;
+            text-align: center;
+        }
 
-.emoji-selection {
-    display: flex;
-    flex-direction: row; /* Explicitly set to row */
-    justify-content: center;
-    align-items: center;
-    margin: 10px 0;
-    gap: 10px;
-    min-height: 70px;
-    width: 100%; /* Ensure full width */
-}
+        .name-input {
+            padding: 12px;
+            margin: 20px auto;
+            display: block;
+            width: 80%;
+            max-width: 250px;
+            border: 2px solid #D3D3D3;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center;
+            background-color: #ffffff;
+        }
 
-/* Style for individual emoji slots */
-.emoji-slot {
-    width: 50px;
-    height: 50px;
-    border: 2px dashed #b18597;
-    border-radius: 50%;
-    background: rgba(255,240,240,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-    flex: 0 0 auto; /* Prevent shrinking or growing */
-}
+        .name-input:focus {
+            outline: none;
+            border-color: #b18597;
+        }
 
-/* Make the game title more playful */
-.game-title {
-    font-size: 42px;
-    color: #000000;
-    text-align: center;
-    margin-bottom: 25px;
-    font-weight: bold;
-}
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
 
-.setup-message {
-    margin: 15px 0;
-    font-size: 18px;
-    color: #2c3e50;
-    text-align: center;
-}
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
 
-@keyframes shake {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
-    100% { transform: translateX(0); }
-}
+        /* === RESPONSIVE STYLES === */
+        @media screen and (max-width: 480px) {
+            .game-board {
+                position: fixed;
+                width: 100%;
+                max-width: 100vw;
+                min-height: 100vh;
+                padding: 10px;
+                gap: 15px;
+                left: 50%;
+                transform: translateX(-50%);
+                top: 0;
+                background: white;
+            }
 
-.shake {
-    animation: shake 0.5s ease-in-out;
-}
+            .tile-area {
+                grid-template-columns: repeat(9, 1fr) !important;
+                gap: 6px !important;
+                row-gap: 12px !important;
+            }
 
+            .draw-pile {
+                grid-template-columns: repeat(8, 1fr);
+                gap: 6px;
+                row-gap: 12px;
+            }
 
-@media screen and (max-width: 480px) {
-    .game-board {
-        position: fixed;
-        width: 100%;
-        max-width: 100vw;
-        min-height: 100vh;  /* Add this to fill screen height */
-        padding: 10px;
-        gap: 15px;
-        left: 50%;
-        transform: translateX(-50%);
-        top: 0;
-        background: white;  /* Make sure background extends */
-    }
+            .tile-area .tile,
+            .draw-pile .tile {
+                width: 30px !important;
+                height: 30px !important;
+                font-size: 14px !important;
+            }
 
-    .tile-area {
-        grid-template-columns: repeat(9, 1fr) !important;
-        gap: 6px !important;     /* Increased from 4px */
-        row-gap: 12px !important;  /* Increased from 10px */
-    }
+            #player2Area {
+                display: none;
+            }
 
-    .draw-pile {
-        grid-template-columns: repeat(8, 1fr);
-        gap: 6px;              /* Increased from 4px */
-        row-gap: 12px;         /* Increased from 10px */
-    }
+            #player2Area.active {
+                display: grid;
+            }
 
-    .tile-area .tile,
-    .draw-pile .tile {
-        width: 30px !important;
-        height: 30px !important;
-        font-size: 14px !important;
-    }
+            #player1Area.inactive {
+                display: none;
+            }
 
-    /* Player switching styles */
-    #player2Area {
-        display: none;
-    }
+            .game-section:has(#player1Area.inactive) > h3,
+            .game-section:has(#player2Area:not(.active)) > h3 {
+                display: none;
+            }
 
-    #player2Area.active {
-        display: grid;
-    }
+            #currentTile {
+                min-height: 30px;
+                position: fixed;
+                bottom: 120px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: white;
+                padding: 10px;
+                width: 90%;
+                text-align: center;
+                z-index: 1000;
+            }
 
-    #player1Area.inactive {
-        display: none;
-    }
-
-    /* Hide inactive player labels */
-    .game-section:has(#player1Area.inactive) > h3,
-    .game-section:has(#player2Area:not(.active)) > h3 {
-        display: none;
-    }
-
-    /* Message visibility */
-    #currentTile {
-        min-height: 30px;
-        position: fixed;
-        bottom: 120px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: white;
-        padding: 10px;
-        width: 90%;
-        text-align: center;
-        z-index: 1000;
-    }
-
-    #discardOption {
-        min-height: 50px;
-        position: fixed;
-        bottom: 60px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: white;
-        padding: 10px;
-        width: 90%;
-        text-align: center;
-        z-index: 1000;
-    }
-}  }
-}
+            #discardOption {
+                min-height: 50px;
+                position: fixed;
+                bottom: 60px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: white;
+                padding: 10px;
+                width: 90%;
+                text-align: center;
+                z-index: 1000;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="setup-overlay">
-    <div id="gameSetup">
-        <div class="game-title">LMNO</div>
-        
-        <!-- Name Entry Screen (FIRST SCREEN) -->
-        <div id="nameEntryScreen">
-            <div class="setup-message">Enter your name:</div>
-            <input type="text" id="playerNameInput" placeholder="Your Name" maxlength="15" class="name-input">
-            <button id="submitNameButton" class="setup-button">Continue</button>
-        </div>
-        
-        <!-- Start Game Screen -->
-        <div id="startScreen" style="display: none;">
-            <button id="startButton" class="setup-button">Start New Game</button>
-            <button id="joinButton" class="setup-button">Join Game</button>
-        </div>
-        
-        <!-- Create Game Screen (shows emoji code) -->
-        <div id="createScreen" style="display: none;">
-            <div class="setup-message">Share these emojis with your friend:</div>
-            <div class="emoji-code" id="gameCodeEmojis"></div>
-            <div id="waitingMessage" class="setup-message">Waiting for other player...</div>
-        </div>
-        
-        <!-- Join Game Screen (emoji selection) -->
-        <div id="joinScreen" style="display: none;">
-            <div class="setup-message">Pick the 3 emojis to join:</div>
-            <div class="emoji-selection" id="emojiSelection">
-                <div class="emoji-slot" id="slot1"></div>
-                <div class="emoji-slot" id="slot2"></div>
-                <div class="emoji-slot" id="slot3"></div>
+        <div id="gameSetup">
+            <div class="game-title">LMNO</div>
+            
+            <!-- Name Entry Screen (FIRST SCREEN) -->
+            <div id="nameEntryScreen">
+                <div class="setup-message">Enter your name:</div>
+                <input type="text" id="playerNameInput" placeholder="Your Name" maxlength="15" class="name-input">
+                <button id="submitNameButton" class="setup-button">Continue</button>
             </div>
-            <div class="emoji-grid" id="emojiGrid"></div>
-            <button id="submitJoinButton" class="setup-button">Join Game</button>
-            <button id="backButton" class="setup-button">Back</button>
+            
+            <!-- Start Game Screen -->
+            <div id="startScreen" style="display: none;">
+                <button id="startButton" class="setup-button">Start New Game</button>
+                <button id="joinButton" class="setup-button">Join Game</button>
+            </div>
+            
+            <!-- Create Game Screen (shows emoji code) -->
+            <div id="createScreen" style="display: none;">
+                <div class="setup-message">Share these emojis with your friend:</div>
+                <div class="emoji-code" id="gameCodeEmojis"></div>
+                <div id="waitingMessage" class="setup-message">Waiting for other player...</div>
+            </div>
+            
+            <!-- Join Game Screen (emoji selection) -->
+            <div id="joinScreen" style="display: none;">
+                <div class="setup-message">Pick the 3 emojis to join:</div>
+                <div class="emoji-selection" id="emojiSelection">
+                    <div class="emoji-slot" id="slot1"></div>
+                    <div class="emoji-slot" id="slot2"></div>
+                    <div class="emoji-slot" id="slot3"></div>
+                </div>
+                <div class="emoji-grid" id="emojiGrid"></div>
+                <button id="submitJoinButton" class="setup-button">Join Game</button>
+                <button id="backButton" class="setup-button">Back</button>
+            </div>
         </div>
     </div>
-</div>
 
     <div class="game-board" id="gameBoard" style="display: none;">
-    <div class="game-section">
-        <h3>Player 1</h3>
-        <div class="tile-area" id="player1Area"></div>
+        <div class="game-section">
+            <h3>Player 1</h3>
+            <div class="tile-area" id="player1Area"></div>
+        </div>
+        <div class="game-section">
+            <div class="draw-pile" id="drawPile"></div>
+        </div>
+        <div class="game-section">
+            <div class="tile-area" id="player2Area"></div>
+            <h3>Player 2</h3>
+        </div>
+        <div id="currentTile"></div>
+        <div id="discardOption"></div>
     </div>
-    <div class="game-section">
-        <div class="draw-pile" id="drawPile"></div>
-    </div>
-    <div class="game-section">
-        <div class="tile-area" id="player2Area"></div>
-        <h3>Player 2</h3>
-    </div>
-    <div id="currentTile"></div>
-    <div id="discardOption"></div>
-</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
-<script>
-// Constants and game state variables
-const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const emojis = ['🦊', '🐢', '🐘', '🦁', '🐬', '🦄', '🐠', '🦋', '🐵'];
-let gameEmojis = []; // Will store the 3 emojis for the current game
-let selectedEmojis = []; // Will store the user's emoji selection
-let playerName = "Player 1";
-let opponentName = "Player 2";
-const socket = io('https://lmno-production.up.railway.app/');
-console.log('Attempting socket connection...');
-
-// Game state
-let gameId = null;
-let playerId = null;
-let isMyTurn = false;
-let currentPlayer = 1;
-let gameOver = false;
-let currentTile = null;
-let discardedLetters = [];  // Track letters that have been discarded
-let iAmPlayer1 = false;
-let players = {
-    first: null,  // Player 1's socket ID
-    second: null, // Player 2's socket ID
-    names: {      // Map of socket IDs to names
+    <script>
+        /* === CONSTANTS AND VARIABLES === */
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const emojis = ['🦊', '🐢', '🐘', '🦁', '🐬', '🦄', '🐠', '🦋', '🐵'];
+        let gameEmojis = [];
+        let selectedEmojis = [];
+        let playerName = "Player 1";
+        let opponentName = "Player 2";
+        const socket = io('https://lmno-production.up.railway.app/');
         
-    }
-};
-
-// DOM elements
-const setupOverlay = document.getElementById('setup-overlay');
-const startButton = document.getElementById('startButton');
-const joinButton = document.getElementById('joinButton');
-const gameCodeInput = document.getElementById('gameCodeInput');
-const playerInfo = document.getElementById('playerInfo');
-const waitingMessage = document.getElementById('waitingMessage');
-const gameBoard = document.querySelector('.game-board');
-const player1Area = document.getElementById('player1Area');
-const player2Area = document.getElementById('player2Area');
-const drawPile = document.getElementById('drawPile');
-const currentTileDisplay = document.getElementById('currentTile');
-const discardOption = document.getElementById('discardOption');
-const startScreen = document.getElementById('startScreen');
-const createScreen = document.getElementById('createScreen');
-const joinScreen = document.getElementById('joinScreen');
-const submitJoinButton = document.getElementById('submitJoinButton');
-const backButton = document.getElementById('backButton');
-const gameCodeEmojis = document.getElementById('gameCodeEmojis');
-const emojiGrid = document.getElementById('emojiGrid');
-const emojiSelection = document.getElementById('emojiSelection');
-const nameEntryScreen = document.getElementById('nameEntryScreen');
-const playerNameInput = document.getElementById('playerNameInput');
-const submitNameButton = document.getElementById('submitNameButton');
-const emojiSlots = [
-    document.getElementById('slot1'),
-    document.getElementById('slot2'),
-    document.getElementById('slot3')
-];
-
-let nameRetryCounts = 0;
-const nameRetryInterval = setInterval(() => {
-    // Only try 5 times
-    if (nameRetryCounts > 5 || !gameId) {
-        clearInterval(nameRetryInterval);
-        return;
-    }
-    
-    // If we're in a game and the other player doesn't have our name
-    if (gameId && playerId) {
-        console.log("Sending name again");
-        socket.emit('playerName', {
-            gameId: gameId,
-            playerId: socket.id,
-            name: playerName
-        });
-        nameRetryCounts++;
-    }
-}, 2000);
-
-// Add name entry styling
-const style = document.createElement('style');
-style.textContent = `
-.name-input {
-    padding: 12px;
-    margin: 20px auto;
-    display: block;
-    width: 80%;
-    max-width: 250px;
-    border: 2px solid #D3D3D3;
-    border-radius: 5px;
-    font-size: 16px;
-    text-align: center;
-    background-color: #ffffff;
-}
-
-.name-input:focus {
-    outline: none;
-    border-color: #b18597;
-`;
-document.head.appendChild(style);
-
-// Handle name submission
-submitNameButton.addEventListener('click', () => {
-    const name = playerNameInput.value.trim();
-    
-    if (name.length > 0) {
-        playerName = name;
-        console.log('Player name set to:', playerName);
+        let gameId = null;
+        let playerId = null;
+        let isMyTurn = false;
+        let currentPlayer = 1;
+        let gameOver = false;
+        let currentTile = null;
+        let discardedLetters = [];
+        let iAmPlayer1 = false;
+        let players = {
+            first: null,
+            second: null,
+            names: {}
+        };
+        const letterCounts = {};
         
-        // Move to the main menu
-        nameEntryScreen.style.display = 'none';
-        startScreen.style.display = 'block';
-    } else {
-        // Shake the input if empty
-        playerNameInput.classList.add('shake');
-        setTimeout(() => playerNameInput.classList.remove('shake'), 500);
-    }
-});
-
-// Allow Enter key to submit name
-playerNameInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        submitNameButton.click();
-    }
-});
-
-// Socket event handlers
-socket.on('connect', () => {
-    console.log('Socket Connected!');
-});
-
-socket.on('connect_error', (error) => {
-    console.log('Connection error:', error);
-});
-
-
-
-// Add handler for join failures (wrong emoji code)
-socket.on('joinFailed', () => {
-    console.log('Join failed - incorrect emoji code');
-    
-    // Apply shake animation to the emoji selection
-    emojiSelection.classList.add('shake');
-    
-    // Show error message
-    const setupMessage = document.querySelector('#joinScreen .setup-message');
-    setupMessage.textContent = 'Wrong emoji code! Try again';
-    setupMessage.style.color = '#e74c3c';
-    
-    // Reset the animations after they complete
-    setTimeout(() => {
-        emojiSelection.classList.remove('shake');
+        /* === DOM ELEMENT REFERENCES === */
+        const setupOverlay = document.getElementById('setup-overlay');
+        const startButton = document.getElementById('startButton');
+        const joinButton = document.getElementById('joinButton');
+        const waitingMessage = document.getElementById('waitingMessage');
+        const gameBoard = document.querySelector('.game-board');
+        const player1Area = document.getElementById('player1Area');
+        const player2Area = document.getElementById('player2Area');
+        const drawPile = document.getElementById('drawPile');
+        const currentTileDisplay = document.getElementById('currentTile');
+        const discardOption = document.getElementById('discardOption');
+        const startScreen = document.getElementById('startScreen');
+        const createScreen = document.getElementById('createScreen');
+        const joinScreen = document.getElementById('joinScreen');
+        const submitJoinButton = document.getElementById('submitJoinButton');
+        const backButton = document.getElementById('backButton');
+        const gameCodeEmojis = document.getElementById('gameCodeEmojis');
+        const emojiGrid = document.getElementById('emojiGrid');
+        const emojiSelection = document.getElementById('emojiSelection');
+        const nameEntryScreen = document.getElementById('nameEntryScreen');
+        const playerNameInput = document.getElementById('playerNameInput');
+        const submitNameButton = document.getElementById('submitNameButton');
+        const emojiSlots = [
+            document.getElementById('slot1'),
+            document.getElementById('slot2'),
+            document.getElementById('slot3')
+        ];
         
-        // Reset message after a short delay
-        setTimeout(() => {
-            setupMessage.textContent = 'Pick the 3 emojis to join:';
-            setupMessage.style.color = '#2c3e50';
-        }, 2000);
-    }, 500);
-});
-
-socket.on('syncRequest', (data) => {
-    if (data.playerId !== socket.id && gameId === data.gameId) {
-        // If I think it's my turn but other player also thinks it's their turn
-        if (isMyTurn && data.myTurn) {
-            console.log('Turn conflict detected, resolving...');
-            // Player 1 gets priority in conflicts
-            if (socket.id === players.second) {
-                isMyTurn = false;
-                console.log('Yielding turn to Player 1');
-            }
-        }
-        
-        // Make sure we agree on whose turn it is
-        if (currentPlayer !== data.myPlayer) {
-            console.log('Player number mismatch, syncing...');
-            if (socket.id === players.second) {
-                currentPlayer = data.myPlayer === 1 ? 2 : 1;
-            }
-        }
-        
-        updateTileColors();
-    }
-});
-
-socket.on('gameCreated', (data) => {
-    console.log('Game created with ID:', data.gameId);
-    gameId = data.gameId;
-    playerId = data.playerId;
-    
-    // Direct mapping from A-I to emoji index
-    const emojiMap = {
-        'A': 0, 'B': 1, 'C': 2, 
-        'D': 3, 'E': 4, 'F': 5,
-        'G': 6, 'H': 7, 'I': 8
-    };
-    
-    // Convert the gameId to emojis using direct mapping
-    const gameIdChars = gameId.split('');
-    gameEmojis = gameIdChars.map(char => {
-        const index = emojiMap[char];
-        console.log(`Converting ${char} to emoji index ${index}: ${emojis[index]}`);
-        return emojis[index];
-    });
-    
-    // Display the emojis
-    displayGameEmojis(gameEmojis);
-    
-    // Send player name to server
-    socket.emit('playerName', {
-        gameId: gameId,
-        name: playerName
-    });
-    
-    // Switch to create screen
-    startScreen.style.display = 'none';
-    createScreen.style.display = 'block';
-});
-
-socket.on('gameStarted', (data) => {
-    gameId = data.gameId;
-    playerId = socket.id;
-    players.first = data.players[0];
-    players.second = data.players[1];
-    setupOverlay.style.display = 'none';
-    gameBoard.style.display = 'flex';
-    isMyTurn = data.players[0] === socket.id;
-    currentPlayer = 1;
-    initGame();
-    updateTileColors();
-    
-    // Send my name to the other player using makeMove
-    setTimeout(() => {
-        socket.emit('makeMove', {
-            type: 'shareName',
-            gameId: gameId,
-            playerId: socket.id,
-            isPlayer1: iAmPlayer1,
-            name: playerName,
-            timestamp: Date.now()
-        });
-    }, 1000); // Wait 1 second to make sure game is fully set up
-setTimeout(updatePlayerLabelsBasedOnPosition, 500);
-});
-
-// Handle receiving opponent's name
-socket.on('playerName', (data) => {
-    if (data.playerId && data.playerId !== socket.id) {
-        console.log("Received opponent name:", data.name);
-        players.names[data.playerId] = data.name;
-        opponentName = data.name;
-        updatePlayerLabels();
-    }
-});
-
-socket.on('gameMove', (data) => {
-if (data.type === 'shareName' && data.playerId !== socket.id) {
-        console.log("Received name data:", data);
-        
-        const topLabel = document.querySelector('.game-section:nth-child(1) h3');
-        const bottomLabel = document.querySelector('.game-section:nth-child(3) h3');
-        
-        if (data.isPlayer1) {
-            // Received player 1's name, goes on top
-            topLabel.textContent = data.name;
-        } else {
-            // Received player 2's name, goes on bottom
-            bottomLabel.textContent = data.name;
-        }
-        
-        // Send my name back in case they missed it
-        socket.emit('makeMove', {
-            type: 'shareName',
-            gameId: gameId,
-            playerId: socket.id,
-            isPlayer1: iAmPlayer1,
-            name: playerName,
-            timestamp: Date.now()
-        });
-    }
-    console.log('Move received:', data);
-    if (data.type === 'discardOffer') {
-    if (data.playerId !== socket.id) {
-        const tiles = Array.from(drawPile.children);
-        
-        // Clear any existing text and animations
-        tiles.forEach(tile => {
-            if (!tile.classList.contains('wiggle')) {
-                tile.textContent = '';
-            }
-            tile.classList.remove('wiggle', 'pink', 'duplicate-offer');
-        });
-        
-        // IMPROVED TILE FINDING: Look for tile by letter
-        let matchingTile = tiles.find(tile => tile.dataset.letter === data.tile);
-        
-        // If no matching tile found, create one at the end of the draw pile
-        if (!matchingTile) {
-            console.log('No matching tile found for letter:', data.tile, 'creating one');
-            matchingTile = document.createElement('div');
-            matchingTile.classList.add('tile');
-            matchingTile.dataset.letter = data.tile;
-            matchingTile.addEventListener('click', selectDrawTile);
-            drawPile.appendChild(matchingTile);
-        }
-        
-        // Apply animation classes
-        matchingTile.classList.add('wiggle', 'duplicate-offer');
-        matchingTile.textContent = data.tile;
-        
-        // Hide text on all other matching tiles
-        tiles.forEach(tile => {
-            if (tile !== matchingTile && tile.dataset.letter === data.tile) {
-                tile.textContent = '';
-            }
-        });
-        
-        // Disable clicking on other tiles
-        tiles.forEach(tile => {
-            if (tile !== matchingTile) {
-                tile.style.pointerEvents = 'none';
-            }
-        });
-        
-        setTimeout(() => {
-            matchingTile.classList.add('pink');
-        }, 250);
-
-        matchingTile.addEventListener('click', () => {
-            // Re-enable clicking on all tiles after this one is played
-            tiles.forEach(tile => {
-                tile.style.pointerEvents = 'auto';
-            });
-            const duplicateTiles = drawPile.querySelectorAll('.duplicate-offer');
-            duplicateTiles.forEach(tile => tile.remove());
-        }, { once: true });
-        
-        isMyTurn = true;
-        currentPlayer = data.currentPlayer;
-        updateTileColors();
-    }
-}
-    if (data.type === 'gameOver') {
-    gameOver = true;
-    
-    if (data.winner === 'tie') {
-        // For a tie, show message in both player labels
-        const player1Label = document.querySelector('.game-section:nth-child(1) h3');
-        const player2Label = document.querySelector('.game-section:nth-child(3) h3');
-        
-        const p1Name = socket.id === players.first ? playerName : opponentName;
-        const p2Name = socket.id === players.second ? playerName : opponentName;
-        
-        player1Label.textContent = `${p1Name}: It's a Tie!`;
-        player2Label.textContent = `${p2Name}: It's a Tie!`;
-    } else {
-        // Update the labels based on who won
-        const winnerNum = parseInt(data.winner);
-        const player1Label = document.querySelector('.game-section:nth-child(1) h3');
-        const player2Label = document.querySelector('.game-section:nth-child(3) h3');
-        
-        const p1Name = socket.id === players.first ? playerName : opponentName;
-        const p2Name = socket.id === players.second ? playerName : opponentName;
-        
-        if (winnerNum === 1) {
-            const winnerName = socket.id === players.first ? playerName : opponentName;
-            player1Label.textContent = `${p1Name}: Winner!`;
-            player2Label.textContent = `${p2Name}: ${winnerName} Wins!`;
-        } else {
-            const winnerName = socket.id === players.second ? playerName : opponentName;
-            player1Label.textContent = `${p1Name}: ${winnerName} Wins!`;
-            player2Label.textContent = `${p2Name}: Winner!`;
-        }
-    }
-    
-    isMyTurn = false;
-    updateTileColors();
-    }
-    else if (data.playerId !== socket.id) {
-        console.log('Processing opponent move:', data.type);
-        
-        if (data.type === 'specialTile') {
-    if (data.action === 'skip') {
-    currentTileDisplay.textContent = "Opponent used Skip tile!";
-    
-    // Add message to receiving player's label
-    const nextPlayer = data.currentPlayer === 1 ? 2 : 1;
-    const playerLabel = document.querySelector(`.game-section:nth-child(${nextPlayer === 1 ? 1 : 3}) h3`);
-    const playerName = nextPlayer === 1 ? 
-        (socket.id === players.first ? playerName : opponentName) : 
-        (socket.id === players.second ? playerName : opponentName);
-    playerLabel.textContent = `${playerName}: Skipped!`;
-    
-    const tiles = Array.from(drawPile.children);
-    const skipTile = tiles[data.tilePosition];
-    if (skipTile) {
-        skipTile.classList.add('selected');
-        skipTile.textContent = '>>';
-        
-        setTimeout(() => {
-            skipTile.remove();
-            currentTileDisplay.textContent = '';
-            updatePlayerLabels();  // Reset label
-            currentTile = null;
-            isMyTurn = true;
-            currentPlayer = nextPlayer;
-            updateTileColors();
-        }, 3000);
-        }
-    } else if (data.action === 'reverse') {
-    currentTileDisplay.textContent = "Opponent used Reverse tile!";
-    
-    // For receiving player, use currentPlayer directly since it's already correct
-    const playerLabel = document.querySelector(`.game-section:nth-child(${currentPlayer === 1 ? 1 : 3}) h3`);
-    const playerName = currentPlayer === 1 ? 
-        (socket.id === players.first ? playerName : opponentName) : 
-        (socket.id === players.second ? playerName : opponentName);
-    playerLabel.textContent = `${playerName}: Reversed!`;
-    
-    const tiles = Array.from(drawPile.children);
-    const reverseTile = tiles[data.tilePosition];
-    if (reverseTile) {
-        reverseTile.classList.add('selected');
-        reverseTile.textContent = '@';
-        
-        setTimeout(() => {
-            reverseTile.remove();
-            currentTileDisplay.textContent = '';
-            updatePlayerLabels();  // Reset label
-            currentTile = null;
-            
-            // Ensure switch happens at same time
-            switchPiles();
-            isMyTurn = true;
-            currentPlayer = currentPlayer === 1 ? 2 : 1;
-            updateTileColors();
-        }, 3000);
-        }
-else if (data.type === 'cleanupTiles') {
-  if (data.playerId !== socket.id) {
-    console.log('Received cleanup request for letters:', data.removedLetters);
-    
-    data.removedLetters.forEach(letter => {
-      // Add to tracking array
-      if (!discardedLetters.includes(letter)) {
-        discardedLetters.push(letter);
-      }
-      
-      // Remove tiles
-      const tilesToRemove = Array.from(drawPile.children).filter(tile => 
-        tile.dataset.letter === letter
-      );
-      tilesToRemove.forEach(tile => tile.remove());
-    });
-  }
-}
-
-            } else if (data.action === 'bothHave') {
-    if (data.playerId !== socket.id) {
-        // Process SILENTLY - no messages
-        
-        // Clean up any selected tile
-        const selectedTile = drawPile.querySelector('.tile.selected');
-        if (selectedTile) selectedTile.remove();
-        
-        // Remove discarded letter tiles
-        if (data.discardedLetter) {
-            if (!discardedLetters.includes(data.discardedLetter)) {
-                discardedLetters.push(data.discardedLetter);
-            }
-            
-            const allSameTiles = Array.from(drawPile.children).filter(tile => 
-                tile.dataset.letter === data.discardedLetter
-            );
-            allSameTiles.forEach(tile => tile.remove());
-        }
-        
-        // Update game state silently
-        setTimeout(() => {
-            currentTile = null;
-            isMyTurn = true;
-            currentPlayer = data.currentPlayer === 1 ? 2 : 1;
-            updateTileColors();
-        }, 1000);
-    }
-}
-// Handle the new reserve tile event in socket handler
-// Add this to your socket.on('gameMove') handler:
-if (data.type === 'addReserveTile') {
-    if (data.playerId !== socket.id) {
-        // Add the reserve tile to my draw pile too
-        const tile = document.createElement('div');
-        tile.classList.add('tile');
-        tile.dataset.letter = data.letter;
-        tile.addEventListener('click', selectDrawTile);
-        drawPile.appendChild(tile);
-    }
-}
-else if (data.type === 'pileSwitch') {
-    if (data.playerId !== socket.id) {
-        console.log('Received pile switch sync');
-        
-        // Force synchronization of both player areas
-        const player1NewState = data.player2State; // Reversed on purpose
-        const player2NewState = data.player1State; // Reversed on purpose
-        
-        // Clear and rebuild player 1 area
-        player1Area.innerHTML = '';
-        player1NewState.forEach(tileData => {
-            const newTile = document.createElement('div');
-            newTile.classList.add('tile');
-            if (tileData.revealed) newTile.classList.add('revealed');
-            newTile.dataset.letter = tileData.letter;
-            if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
-            newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
-            newTile.addEventListener('click', placeTile);
-            player1Area.appendChild(newTile);
-        });
-        
-        // Clear and rebuild player 2 area
-        player2Area.innerHTML = '';
-        player2NewState.forEach(tileData => {
-            const newTile = document.createElement('div');
-            newTile.classList.add('tile');
-            if (tileData.revealed) newTile.classList.add('revealed');
-            newTile.dataset.letter = tileData.letter;
-            if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
-            newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
-            newTile.addEventListener('click', placeTile);
-            player2Area.appendChild(newTile);
-        });
-        
-        updateTileColors();
-    }
-}
-        } else if (data.type === 'selectTile') {
-    const tiles = Array.from(drawPile.children);
-    // Use the position from the data instead of finding first unselected tile
-    const tileToSelect = tiles[data.tilePosition];
-    if (tileToSelect) {
-        tiles.forEach(tile => {
-            tile.classList.remove('selected');
-            tile.textContent = '';
-        });
-        tileToSelect.classList.add('selected');
-        tileToSelect.textContent = data.tile;
-        currentTile = data.tile;
-        currentTileDisplay.textContent = ``;
-    }
-        } else if (data.type === 'placeTile') {
-            const playerArea = socket.id === players.first ? player2Area : player1Area;
-            const tile = playerArea.children[data.position];
-            if (tile) {
-                const replacedLetter = tile.dataset.letter;
-                
-                tile.dataset.letter = data.tile;
-                tile.textContent = data.tile;
-                tile.classList.add('revealed');
-                
-                const selectedTile = drawPile.querySelector('.tile.selected');
-                if (selectedTile) selectedTile.remove();
-
-                if (replacedLetter) {
-                    returnTileToDrawPile(replacedLetter);
-                }
-            }
-            isMyTurn = false;
-            updateTileColors();
-        }
-    }
-});
-
-// Button event listeners
-startButton.addEventListener('click', () => {
-    console.log('Start button clicked');
-    iAmPlayer1 = true; // Add this line to set as player 1
-    socket.emit('createGame');
-    startButton.disabled = true;
-    joinButton.disabled = true;
-});
-
-function updatePlayerLabelsBasedOnPosition() {
-    const topLabel = document.querySelector('.game-section:nth-child(1) h3');
-    const bottomLabel = document.querySelector('.game-section:nth-child(3) h3');
-    
-    if (iAmPlayer1) {
-        // I'm player 1, so my name goes on top
-        topLabel.textContent = playerName;
-    } else {
-        // I'm player 2, so my name goes on bottom
-        bottomLabel.textContent = playerName;
-    }
-    
-    // Share my name with opponent using makeMove
-    socket.emit('makeMove', {
-        type: 'shareName',
-        gameId: gameId,
-        playerId: socket.id,
-        isPlayer1: iAmPlayer1,
-        name: playerName,
-        timestamp: Date.now()
-    });
-}
-
-function handleJoinAction(event) {
-    event.preventDefault(); // Prevent any default behavior
-    if (gameCodeInput.style.display === 'none') {
-        gameCodeInput.style.display = 'block';
-        joinButton.textContent = 'Submit';
-    } else {
-        const code = gameCodeInput.value.trim().toUpperCase();
-        if (code) {
-            console.log('Attempting to join game:', code);
-            socket.emit('joinGame', code);
-        }
-    }
-}
-
-// Add both click and touch events for join button
-joinButton.addEventListener('click', () => {
-    startScreen.style.display = 'none';
-    joinScreen.style.display = 'block';
-    createEmojiGrid();
-});
-
-backButton.addEventListener('click', () => {
-    joinScreen.style.display = 'none';
-    startScreen.style.display = 'block';
-    // Reset selections
-    selectedEmojis = [];
-    updateEmojiSelection();
-});
-
-// Fix the submitJoinButton click handler:
-submitJoinButton.addEventListener('click', () => {
-    // Check if 3 emojis are selected
-    if (selectedEmojis.length === 3) {
-        // Set this player as player 2 (the joiner)
-        iAmPlayer1 = false;
-        
-        // Direct mapping from emoji index to character (unchanged from original)
-        const charMap = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
-        
-        // Convert emojis to a string code using consistent mapping (unchanged)
-        const code = selectedEmojis.map(emoji => {
-            const index = emojis.indexOf(emoji);
-            const char = charMap[index];
-            console.log(`Converting emoji ${emoji} (index ${index}) to char ${char}`);
-            return char;
-        }).join('');
-        
-        console.log('Attempting to join game with emoji code:', code);
-        socket.emit('joinGame', code); // Keep original format
-    } else {
-        // Visual feedback that we need 3 emojis
-        emojiSelection.classList.add('shake');
-        setTimeout(() => {
-            emojiSelection.classList.remove('shake');
-        }, 500);
-    }
-});
-
-// Function to update player labels with names
-function updatePlayerLabels() {
-    const player1Label = document.querySelector('.game-section:nth-child(1) h3');
-    const player2Label = document.querySelector('.game-section:nth-child(3) h3');
-    
-    // Get the actual names for each position
-    const player1Name = players.first && players.names[players.first] 
-        ? players.names[players.first] : "Player 1";
-    
-    const player2Name = players.second && players.names[players.second]
-        ? players.names[players.second] : "Player 2";
-    
-    console.log("Updating labels with:", {player1Name, player2Name});
-    
-    // Update the labels
-    player1Label.textContent = player1Name;
-    player2Label.textContent = player2Name;
-}
-
-// Game functions
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-function syncGameState() {
-    if (gameId && playerId) {
-        // Get count of remaining tiles
-        const remainingTiles = drawPile.children.length;
-        
-        socket.emit('syncRequest', {
-            gameId: gameId,
-            myTurn: isMyTurn,
-            myPlayer: currentPlayer,
-            remainingTiles: remainingTiles,
-            timestamp: Date.now()
-        });
-        
-        // Increase sync frequency when few tiles remain
-        if (remainingTiles < 10 && syncInterval._idleTimeout > 2000) {
-            clearInterval(syncInterval);
-            syncInterval = setInterval(syncGameState, 2000); // More frequent checks
-        }
-    }
-}
-    // Add this function to periodically check and sync draw pile state
-function syncDrawPile() {
-    if (gameId && drawPile.children.length < 10) {
-        // Only sync when few tiles remain
-        const tilePositions = Array.from(drawPile.children).map(tile => ({
-            letter: tile.dataset.letter,
-            position: Array.from(drawPile.children).indexOf(tile)
-        }));
-        
-        socket.emit('syncDrawPile', {
-            gameId: gameId,
-            tiles: tilePositions,
-            currentPlayer: currentPlayer,
-            isMyTurn: isMyTurn
-        });
-    }
-}
-
-// Run every 2 seconds when getting low on tiles
-const drawPileInterval = setInterval(syncDrawPile, 2000);
-
-// Add this handler to your socket.on section
-socket.on('syncDrawPile', (data) => {
-    if (data.gameId === gameId && data.playerId !== socket.id) {
-        // Make sure turns are in sync
-        if (currentPlayer !== data.currentPlayer) {
-            console.log('Syncing current player:', data.currentPlayer);
-            currentPlayer = data.currentPlayer;
-            isMyTurn = socket.id === (currentPlayer === 1 ? players.first : players.second);
-            updateTileColors();
-        }
-    }
-});
-
-// Start with normal interval
-let syncInterval = setInterval(syncGameState, 5000);
-function createTiles(container, count, isDrawPile = false) {
-    let letters = [];
-    if (isDrawPile) {
-        // Track special tile counts
-        let skipCount = 0, reverseCount = 0, wildCount = 0;
-        
-        const visibleLetters = alphabet.repeat(2).split('');
-        const specialTiles = Array(4).fill('>>').concat(Array(4).fill('@'), Array(4).fill('?'));
-        letters = shuffleArray([...visibleLetters, ...specialTiles]);
-        
-        // Ensure we don't exceed special tile limits
-        letters = letters.filter(letter => {
-            if (letter === '>>') return skipCount++ < 4;
-            if (letter === '@') return reverseCount++ < 4;
-            if (letter === '?') return wildCount++ < 4;
-            return true;
-        }).slice(0, count);
-        
-        window.reserveTiles = alphabet.split('');
-    } else {
-        // Player areas stay exactly the same
-        const alphabetTiles = alphabet.split('');
-        const specialTiles = Array(1).fill('>>').concat(Array(1).fill('@'), Array(1).fill('?'));
-        letters = shuffleArray([...alphabetTiles, ...specialTiles]).slice(0, count);
-    }
-    
-    for (let i = 0; i < letters.length; i++) {
-        const tile = document.createElement('div');
-        tile.classList.add('tile');
-        tile.dataset.letter = letters[i];
-        if (isDrawPile) {
-            tile.addEventListener('click', selectDrawTile);
-        } else {
-            tile.addEventListener('click', placeTile);
-        }
-        container.appendChild(tile);
-    }
-}
-
-// Add function to add reserve tiles when needed
-function addReserveTileIfNeeded() {
-    // Skip if no reserve or game over
-    if (!window.reserveTiles || window.reserveTiles.length === 0 || gameOver) return;
-    
-    // Calculate how many more tiles are needed
-    const p1Unrevealed = Array.from(player1Area.children).filter(t => !t.classList.contains('revealed')).length;
-    const p2Unrevealed = Array.from(player2Area.children).filter(t => !t.classList.contains('revealed')).length;
-    const maxUnrevealed = Math.max(p1Unrevealed, p2Unrevealed);
-    const drawPileCount = drawPile.children.length;
-    
-    // Check if we need to add a reserve tile
-    if (drawPileCount < maxUnrevealed) {
-        // Draw pile too low, add ONE reserve tile at a time (to keep it subtle)
-        if (window.reserveTiles.length > 0) {
-            // Get next reserve tile
-            const letter = window.reserveTiles.pop();
-            
-            // Skip if this letter is already discarded
-            if (discardedLetters.includes(letter)) {
-                // Try again with next tile
-                setTimeout(addReserveTileIfNeeded, 100);
+        /* === INITIALIZATION === */
+        let nameRetryCounts = 0;
+        const nameRetryInterval = setInterval(() => {
+            if (nameRetryCounts > 5 || !gameId) {
+                clearInterval(nameRetryInterval);
                 return;
             }
             
-            // Add one new tile to draw pile
-            const tile = document.createElement('div');
-            tile.classList.add('tile');
-            tile.dataset.letter = letter;
-            tile.addEventListener('click', selectDrawTile);
-            drawPile.appendChild(tile);
-            
-            // Sync with other player
-            socket.emit('makeMove', {
-                type: 'addReserveTile',
-                gameId: gameId,
-                playerId: socket.id,
-                letter: letter,
-                timestamp: Date.now()
-            });
-        }
-    }
-}
-
-// Add this with your other game state variables
-const letterCounts = {};
-
-
-function cleanupDuplicateTiles() {
-    if (!gameId || !playerId || gameOver) return;
-    
-    // Calculate minimum needed tiles
-    const p1Unrevealed = Array.from(player1Area.children).filter(t => !t.classList.contains('revealed')).length;
-    const p2Unrevealed = Array.from(player2Area.children).filter(t => !t.classList.contains('revealed')).length;
-    const maxUnrevealed = Math.max(p1Unrevealed, p2Unrevealed);
-    
-    // Check every letter
-    for (const letter of alphabet.split('')) {
-        // If both players have this letter
-        if (bothPlayersHaveTile(letter)) {
-            // Remove all instances of this letter from draw pile
-            const tilesToRemove = Array.from(drawPile.children).filter(tile => 
-                tile.dataset.letter === letter
-            );
-            
-            if (tilesToRemove.length > 0) {
-                // Track discarded letter
-                if (!discardedLetters.includes(letter)) {
-                    discardedLetters.push(letter);
-                }
-                
-                // Remove the tiles
-                tilesToRemove.forEach(tile => tile.remove());
-                
-                // Notify other player
-                socket.emit('makeMove', {
-                    type: 'cleanupTiles',
+            if (gameId && playerId) {
+                socket.emit('playerName', {
                     gameId: gameId,
                     playerId: socket.id,
-                    removedLetters: [letter],
+                    name: playerName
+                });
+                nameRetryCounts++;
+            }
+        }, 2000);
+        
+        let syncInterval = setInterval(syncGameState, 5000);
+        const drawPileInterval = setInterval(syncDrawPile, 2000);
+        
+        /* === SOCKET EVENT HANDLERS === */
+        socket.on('connect', () => {});
+        
+        socket.on('connect_error', (error) => {});
+        
+        socket.on('joinFailed', () => {
+            emojiSelection.classList.add('shake');
+            
+            const setupMessage = document.querySelector('#joinScreen .setup-message');
+            setupMessage.textContent = 'Wrong emoji code! Try again';
+            setupMessage.style.color = '#e74c3c';
+            
+            setTimeout(() => {
+                emojiSelection.classList.remove('shake');
+                
+                setTimeout(() => {
+                    setupMessage.textContent = 'Pick the 3 emojis to join:';
+                    setupMessage.style.color = '#2c3e50';
+                }, 2000);
+            }, 500);
+        });
+        
+        socket.on('syncRequest', (data) => {
+            if (data.playerId !== socket.id && gameId === data.gameId) {
+                if (isMyTurn && data.myTurn) {
+                    if (socket.id === players.second) {
+                        isMyTurn = false;
+                    }
+                }
+                
+                if (currentPlayer !== data.myPlayer) {
+                    if (socket.id === players.second) {
+                        currentPlayer = data.myPlayer === 1 ? 2 : 1;
+                    }
+                }
+                
+                updateTileColors();
+            }
+        });
+        
+        socket.on('gameCreated', (data) => {
+            gameId = data.gameId;
+            playerId = data.playerId;
+            
+            let codeLetters = [];
+            let usedChars = new Set();
+            
+            for (let i = 0; i < 3; i++) {
+                let char = data.gameId[i] || 'A';
+                
+                let charCode = char.charCodeAt(0);
+                if (charCode < 65 || charCode > 73) {
+                    char = 'A';
+                }
+                
+                if (usedChars.has(char)) {
+                    for (let j = 65; j <= 73; j++) {
+                        const newChar = String.fromCharCode(j);
+                        if (!usedChars.has(newChar)) {
+                            char = newChar;
+                            break;
+                        }
+                    }
+                }
+                
+                usedChars.add(char);
+                codeLetters.push(char);
+            }
+            
+            const emojiIndices = codeLetters.map(letter => letter.charCodeAt(0) - 65);
+            
+            gameEmojis = emojiIndices.map(index => emojis[index]);
+            
+            gameCodeEmojis.innerHTML = '';
+            const uniqueEmojis = [...new Set(gameEmojis)];
+            
+            while (uniqueEmojis.length < 3) {
+                const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                if (!uniqueEmojis.includes(randomEmoji)) {
+                    uniqueEmojis.push(randomEmoji);
+                }
+            }
+            
+            uniqueEmojis.slice(0, 3).forEach(emoji => {
+                const emojiElement = document.createElement('div');
+                emojiElement.classList.add('emoji');
+                emojiElement.textContent = emoji;
+                gameCodeEmojis.appendChild(emojiElement);
+            });
+            
+            gameEmojis = uniqueEmojis.slice(0, 3);
+            
+            socket.emit('playerName', {
+                gameId: gameId,
+                playerId: socket.id,
+                name: playerName
+            });
+            
+            startScreen.style.display = 'none';
+            createScreen.style.display = 'block';
+        });
+        
+        socket.on('disconnect', () => {
+            if (setupOverlay.style.display !== 'none') {
+                startButton.textContent = "Start New Game";
+                startButton.disabled = false;
+                joinButton.disabled = false;
+            }
+        });
+        
+        socket.on('reconnect', () => {
+            if (gameId) {
+                socket.emit('rejoinGame', {
+                    gameId: gameId,
+                    playerId: socket.id
+                });
+            }
+        });
+        
+        socket.on('gameStarted', (data) => {
+            gameId = data.gameId;
+            playerId = socket.id;
+            players.first = data.players[0];
+            players.second = data.players[1];
+            setupOverlay.style.display = 'none';
+            gameBoard.style.display = 'flex';
+            isMyTurn = data.players[0] === socket.id;
+            currentPlayer = 1;
+            initGame();
+            updateTileColors();
+            
+            setTimeout(() => {
+                socket.emit('makeMove', {
+                    type: 'shareName',
+                    gameId: gameId,
+                    playerId: socket.id,
+                    isPlayer1: iAmPlayer1,
+                    name: playerName,
+                    timestamp: Date.now()
+                });
+            }, 1000);
+            
+            setTimeout(updatePlayerLabelsBasedOnPosition, 500);
+        });
+        
+        socket.on('playerName', (data) => {
+            if (data.playerId && data.playerId !== socket.id) {
+                players.names[data.playerId] = data.name;
+                opponentName = data.name;
+                updatePlayerLabels();
+            }
+        });
+        
+        socket.on('gameMove', (data) => {
+            if (data.type === 'shareName' && data.playerId !== socket.id) {
+                const topLabel = document.querySelector('.game-section:nth-child(1) h3');
+                const bottomLabel = document.querySelector('.game-section:nth-child(3) h3');
+                
+                if (data.isPlayer1) {
+                    topLabel.textContent = data.name;
+                } else {
+                    bottomLabel.textContent = data.name;
+                }
+                
+                socket.emit('makeMove', {
+                    type: 'shareName',
+                    gameId: gameId,
+                    playerId: socket.id,
+                    isPlayer1: iAmPlayer1,
+                    name: playerName,
                     timestamp: Date.now()
                 });
             }
-        }
-    }
-    
-    // After cleanup, check if we need more tiles
-    if (drawPile.children.length < maxUnrevealed + 5) {
-        addReserveTileIfNeeded();
-    }
-}
+            
+            if (data.type === 'discardOffer') {
+                if (data.playerId !== socket.id) {
+                    const tiles = Array.from(drawPile.children);
+                    
+                    tiles.forEach(tile => {
+                        if (!tile.classList.contains('wiggle')) {
+                            tile.textContent = '';
+                        }
+                        tile.classList.remove('wiggle', 'pink', 'duplicate-offer');
+                    });
+                    
+                    let matchingTile = tiles.find(tile => tile.dataset.letter === data.tile);
+                    
+                    if (!matchingTile) {
+                        matchingTile = document.createElement('div');
+                        matchingTile.classList.add('tile');
+                        matchingTile.dataset.letter = data.tile;
+                        matchingTile.addEventListener('click', selectDrawTile);
+                        drawPile.appendChild(matchingTile);
+                    }
+                    
+                    matchingTile.classList.add('wiggle', 'duplicate-offer');
+                    matchingTile.textContent = data.tile;
+                    
+                    tiles.forEach(tile => {
+                        if (tile !== matchingTile && tile.dataset.letter === data.tile) {
+                            tile.textContent = '';
+                        }
+                    });
+                    
+                    tiles.forEach(tile => {
+                        if (tile !== matchingTile) {
+                            tile.style.pointerEvents = 'none';
+                        }
+                    });
+                    
+                    setTimeout(() => {
+                        matchingTile.classList.add('pink');
+                    }, 250);
 
-
-
-// Add a function to count all tiles in the game
-function countAllTiles() {
-    // Reset counts
-    Object.keys(letterCounts).forEach(key => {
-        letterCounts[key] = 0;
-    });
-    
-    // Count player 1 tiles
-    Array.from(player1Area.children).forEach(tile => {
-        const letter = tile.dataset.letter;
-        if (letter) letterCounts[letter] = (letterCounts[letter] || 0) + 1;
-    });
-    
-    // Count player 2 tiles
-    Array.from(player2Area.children).forEach(tile => {
-        const letter = tile.dataset.letter;
-        if (letter) letterCounts[letter] = (letterCounts[letter] || 0) + 1;
-    });
-    
-    // Count draw pile tiles
-    Array.from(drawPile.children).forEach(tile => {
-        const letter = tile.dataset.letter;
-        if (letter) letterCounts[letter] = (letterCounts[letter] || 0) + 1;
-    });
-    
-    // Log for debugging
-    console.log('Current letter counts:', {...letterCounts});
-}
-function playerHasLetter(player, letter) {
-    const area = player === 1 ? player1Area : player2Area;
-    return Array.from(area.children).some(tile => {
-        if (!tile.classList.contains('revealed')) return false;
-        
-        // If it's a wild tile, check if it was placed in a position 
-        // corresponding to this letter, not what letter it represents
-        if (tile.dataset.letter === '?') {
-            // Only count if the wild tile is actually representing this letter
-            const position = Array.from(area.children).indexOf(tile);
-            const actualLetter = alphabet[position];
-            return actualLetter === letter;
-        }
-        
-        // Regular tile check
-        return tile.dataset.letter === letter;
-    });
-}
-// Updated function that completely removes all "both have" messages
-function bothPlayersHaveTile(letter) {
-    // Skip special tiles
-    if (letter === '>>' || letter === '@' || letter === '?') {
-        return false;
-    }
-    
-    // Check if player 1 has the letter revealed
-    const p1Has = Array.from(player1Area.children).some(tile => {
-        if (!tile.classList.contains('revealed')) return false;
-        
-        // Direct match for regular tiles
-        if (tile.dataset.letter === letter) return true;
-        
-        // For wild tiles, check position
-        if (tile.dataset.letter === '?') {
-            const position = Array.from(player1Area.children).indexOf(tile);
-            if (position >= 0 && position < alphabet.length) {
-                return alphabet[position] === letter;
+                    matchingTile.addEventListener('click', () => {
+                        tiles.forEach(tile => {
+                            tile.style.pointerEvents = 'auto';
+                        });
+                        const duplicateTiles = drawPile.querySelectorAll('.duplicate-offer');
+                        duplicateTiles.forEach(tile => tile.remove());
+                    }, { once: true });
+                    
+                    isMyTurn = true;
+                    currentPlayer = data.currentPlayer;
+                    updateTileColors();
+                }
             }
-        }
-        return false;
-    });
-    
-    // Check if player 2 has the letter revealed
-    const p2Has = Array.from(player2Area.children).some(tile => {
-        if (!tile.classList.contains('revealed')) return false;
-        
-        // Direct match for regular tiles
-        if (tile.dataset.letter === letter) return true;
-        
-        // For wild tiles, check position
-        if (tile.dataset.letter === '?') {
-            const position = Array.from(player2Area.children).indexOf(tile);
-            if (position >= 0 && position < alphabet.length) {
-                return alphabet[position] === letter;
+            
+            if (data.type === 'gameOver') {
+                gameOver = true;
+                
+                const winnerNum = parseInt(data.winner);
+                const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+                const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+                
+                const p1Name = socket.id === players.first ? playerName : opponentName;
+                const p2Name = socket.id === players.second ? playerName : opponentName;
+                
+                if (winnerNum === 1) {
+                    const winnerName = socket.id === players.first ? playerName : opponentName;
+                    player1Label.textContent = `${p1Name}: Winner!`;
+                    player2Label.textContent = `${p2Name}: ${winnerName} Wins!`;
+                } else {
+                    const winnerName = socket.id === players.second ? playerName : opponentName;
+                    player1Label.textContent = `${p1Name}: ${winnerName} Wins!`;
+                    player2Label.textContent = `${p2Name}: Winner!`;
+                }
+                
+                isMyTurn = false;
+                updateTileColors();
+            } else if (data.playerId !== socket.id) {
+                if (data.type === 'specialTile') {
+                    if (data.action === 'skip') {
+                        currentTileDisplay.textContent = "Opponent used Skip tile!";
+                        
+                        const playerLabel = document.querySelector(`.game-section:nth-child(${currentPlayer === 1 ? 1 : 3}) h3`);
+                        playerLabel.textContent = `${opponentName}: Skipped!`;
+                        
+                        const tiles = Array.from(drawPile.children);
+                        const reverseTile = tiles[data.tilePosition];
+                        if (reverseTile) {
+                            reverseTile.classList.add('selected');
+                            reverseTile.textContent = '>>';
+                            
+                            setTimeout(() => {
+                                reverseTile.remove();
+                                currentTileDisplay.textContent = '';
+                                currentTile = null;
+                                switchPiles();
+                                isMyTurn = true;
+                                currentPlayer = currentPlayer === 1 ? 2 : 1;
+                                updateTileColors();
+                            }, 3000);
+                        }
+
+                        setTimeout(() => {
+                            if (playerLabel.textContent.includes('Skipped')) {
+                                const labelParts = playerLabel.textContent.split(':');
+                                if (labelParts.length > 0) {
+                                    playerLabel.textContent = labelParts[0].trim();
+                                }
+                            }
+                        }, 5000);
+
+                    } else if (data.action === 'reverse') {
+                        currentTileDisplay.textContent = "Opponent used Reverse tile!";
+                        
+                        const playerLabel = document.querySelector(`.game-section:nth-child(${currentPlayer === 1 ? 1 : 3}) h3`);
+                        playerLabel.textContent = `${opponentName}: Reversed!`;
+                        
+                        const tiles = Array.from(drawPile.children);
+                        const reverseTile = tiles[data.tilePosition];
+                        if (reverseTile) {
+                            reverseTile.classList.add('selected');
+                            reverseTile.textContent = '@';
+                            
+                            setTimeout(() => {
+                                reverseTile.remove();
+                                currentTileDisplay.textContent = '';
+                                currentTile = null;
+                                switchPiles();
+                                isMyTurn = true;
+                                currentPlayer = currentPlayer === 1 ? 2 : 1;
+                                updateTileColors();
+                            }, 3000);
+                        }
+                    } else if (data.action === 'bothHave') {
+                        if (data.playerId !== socket.id) {
+                            const selectedTile = drawPile.querySelector('.tile.selected');
+                            if (selectedTile) selectedTile.remove();
+                            
+                            if (data.discardedLetter) {
+                                if (!discardedLetters.includes(data.discardedLetter)) {
+                                    discardedLetters.push(data.discardedLetter);
+                                }
+                                
+                                const allSameTiles = Array.from(drawPile.children).filter(tile => 
+                                    tile.dataset.letter === data.discardedLetter
+                                );
+                                allSameTiles.forEach(tile => tile.remove());
+                            }
+                            
+                            setTimeout(() => {
+                                currentTile = null;
+                                isMyTurn = true;
+                                currentPlayer = data.currentPlayer === 1 ? 2 : 1;
+                                updateTileColors();
+                            }, 1000);
+                        }
+                    }
+                } else if (data.type === 'cleanupTiles') {
+                    if (data.playerId !== socket.id) {
+                        data.removedLetters.forEach(letter => {
+                            if (!discardedLetters.includes(letter)) {
+                                discardedLetters.push(letter);
+                            }
+                            
+                            const tilesToRemove = Array.from(drawPile.children).filter(tile => 
+                                tile.dataset.letter === letter
+                            );
+                            tilesToRemove.forEach(tile => tile.remove());
+                        });
+                    }
+                } else if (data.type === 'addReserveTile') {
+                    if (data.playerId !== socket.id) {
+                        const tile = document.createElement('div');
+                        tile.classList.add('tile');
+                        tile.dataset.letter = data.letter;
+                        tile.addEventListener('click', selectDrawTile);
+                        drawPile.appendChild(tile);
+                    }
+                } else if (data.type === 'pileSwitch') {
+                    if (data.playerId !== socket.id) {
+                        const player1NewState = data.player2State;
+                        const player2NewState = data.player1State;
+                        
+                        player1Area.innerHTML = '';
+                        player1NewState.forEach(tileData => {
+                            const newTile = document.createElement('div');
+                            newTile.classList.add('tile');
+                            if (tileData.revealed) newTile.classList.add('revealed');
+                            newTile.dataset.letter = tileData.letter;
+                            if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
+                            newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
+                            newTile.addEventListener('click', placeTile);
+                            player1Area.appendChild(newTile);
+                        });
+                        
+                        player2Area.innerHTML = '';
+                        player2NewState.forEach(tileData => {
+                            const newTile = document.createElement('div');
+                            newTile.classList.add('tile');
+                            if (tileData.revealed) newTile.classList.add('revealed');
+                            newTile.dataset.letter = tileData.letter;
+                            if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
+                            newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
+                            newTile.addEventListener('click', placeTile);
+                            player2Area.appendChild(newTile);
+                        });
+                        
+                        updateTileColors();
+                    }
+                } else if (data.type === 'selectTile') {
+                    const tiles = Array.from(drawPile.children);
+                    const tileToSelect = tiles[data.tilePosition];
+                    if (tileToSelect) {
+                        tiles.forEach(tile => {
+                            tile.classList.remove('selected');
+                            if (tile === tileToSelect) {
+                                tile.textContent = data.tile;
+                            } else {
+                                tile.textContent = '';
+                            }
+                        });
+                        tileToSelect.classList.add('selected');
+                        tileToSelect.textContent = data.tile;
+                        currentTile = data.tile;
+                        currentTileDisplay.textContent = ``;
+                    }
+                } else if (data.type === 'placeTile') {
+                    const playerArea = socket.id === players.first ? player2Area : player1Area;
+                    const tile = playerArea.children[data.position];
+                    if (tile) {
+                        const replacedLetter = tile.dataset.letter;
+                        
+                        tile.dataset.letter = data.tile;
+                        tile.textContent = data.tile;
+                        tile.classList.add('revealed');
+                        
+                        const selectedTile = drawPile.querySelector('.tile.selected');
+                        if (selectedTile) selectedTile.remove();
+
+                        if (replacedLetter) {
+                            returnTileToDrawPile(replacedLetter);
+                        }
+                    }
+                    isMyTurn = false;
+                    updateTileColors();
+                }
             }
-        }
-        return false;
-    });
-    
-    // Return result without any console logs or messages
-    return p1Has && p2Has;
-}
-
-// Function to clear any "both have" messages that might appear
-function clearBothHaveMessages() {
-    // Clear currentTileDisplay if it has "both have" message
-    if (currentTileDisplay && 
-        currentTileDisplay.textContent && 
-        currentTileDisplay.textContent.toLowerCase().includes('both')) {
-        currentTileDisplay.textContent = '';
-    }
-    
-    // Clear player labels if they have "both have" messages
-    const allLabels = document.querySelectorAll('.game-section h3');
-    allLabels.forEach(label => {
-        if (label.textContent && 
-            label.textContent.toLowerCase().includes('both have')) {
-            // Keep just the player part
-            const playerPart = label.textContent.split(':')[0].trim();
-            if (playerPart) {
-                label.textContent = playerPart;
-            }
-        }
-    });
-}
-
-// Run this frequently
-setInterval(clearBothHaveMessages, 100);
-
-
-
-function removeTileFromDrawPile(letter) {
-    const tilesToRemove = Array.from(drawPile.children).filter(tile => 
-        tile.dataset.letter === letter
-    );
-    tilesToRemove.forEach(tile => tile.remove());
-}
-
-function handleSkipTile(selectedTile) {
-    currentTileDisplay.textContent = "Skip tile!";
-    
-    // Add message to player label
-    const activePlayer = currentPlayer;  // Store current player before it changes
-    const playerLabel = document.querySelector(`.game-section:nth-child(${activePlayer === 1 ? 1 : 3}) h3`);
-    const name = activePlayer === 1 ? 
-        (socket.id === players.first ? playerName : opponentName) : 
-        (socket.id === players.second ? playerName : opponentName);
-    playerLabel.textContent = `${name}: Skip!`;
-    
-    selectedTile.classList.add('selected');
-    selectedTile.textContent = '>>';
-    
-    const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
-    const nextPlayer = currentPlayer === 1 ? 2 : 1;
-    
-    sendMove({
-    type: 'specialTile',
-    tile: '>>',
-    action: 'skip',
-    tilePosition: tilePosition
-});
-    
-    setTimeout(() => {
-        selectedTile.remove();
-        currentTileDisplay.textContent = '';
-        updatePlayerLabels();  // Reset label
-        currentTile = null;
-        isMyTurn = false;
-        currentPlayer = nextPlayer;
-        updateTileColors();
-    }, 3000);
-}
-
-function handleReverseTile(selectedTile) {
-    currentTileDisplay.textContent = "Reverse tile!";
-    
-    // Add message to player label
-    const activePlayer = currentPlayer;  // Store current player before it changes
-    const playerLabel = document.querySelector(`.game-section:nth-child(${activePlayer === 1 ? 1 : 3}) h3`);
-    const name = activePlayer === 1 ? 
-        (socket.id === players.first ? playerName : opponentName) : 
-        (socket.id === players.second ? playerName : opponentName);
-    playerLabel.textContent = `${name}: Reverse!`;
-    
-    selectedTile.classList.add('selected');
-    selectedTile.textContent = '@';
-    
-    const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
-    
-    socket.emit('makeMove', {
-        type: 'specialTile',
-        tile: '@',
-        action: 'reverse',
-        tilePosition: tilePosition,
-        currentPlayer: currentPlayer,  // Track current player
-        gameId: gameId,
-        playerId: socket.id
-    });
-    
-    setTimeout(() => {
-        selectedTile.remove();
-        currentTileDisplay.textContent = '';
-        updatePlayerLabels();  // Reset label using stored player
-        currentTile = null;
-        
-        switchPiles();
-        isMyTurn = false;
-        currentPlayer = currentPlayer === 1 ? 2 : 1;
-        updateTileColors();
-    }, 3000);
-}
-
-function selectDrawTile(event) {
-    if (!isMyTurn || gameOver || currentTile) {
-        console.log('Cannot select tile - blocked by:', {
-            turnBlocked: !isMyTurn,
-            gameOverBlocked: gameOver,
-            currentTileBlocked: currentTile
-        });
-        return;
-    }
-    
-    const selectedTile = event.target;
-    const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
-    currentTile = selectedTile.dataset.letter;
-    console.log('Selected tile:', currentTile);
-
-    // Handle special tiles first
-    if (currentTile === '>>') {
-        handleSkipTile(selectedTile);
-        return;
-    }
-    if (currentTile === '@') {
-        handleReverseTile(selectedTile);
-        return;
-    }
-
-    // Normal tile selection logic
-    drawPile.querySelectorAll('.tile').forEach(tile => {
-        tile.classList.remove('selected');
-        if (tile === selectedTile) {
-            tile.textContent = currentTile;
-        } else {
-            tile.textContent = '';
-        }
-    });
-    
-    selectedTile.classList.add('selected');
-    selectedTile.textContent = currentTile;
-    currentTileDisplay.textContent = '';
-    
-    socket.emit('makeMove', {
-        type: 'selectTile',
-        tile: currentTile,
-        tilePosition: tilePosition,
-        gameId: gameId,
-        playerId: socket.id
-    });
-    
-    // Check for duplicate in player's own board
-if (currentTile !== '?' && playerHasLetter(currentPlayer, currentTile)) {
-    // First check if both players have this tile
-    if (bothPlayersHaveTile(currentTile)) {
-        // Silently clean up the tile without animation
-        selectedTile.remove();
-        if (!discardedLetters.includes(currentTile)) {
-            discardedLetters.push(currentTile);
-        }
-        // Let player select another tile
-        currentTile = null;
-        return;
-    }
-    
-    // Only do wiggle animation if not both have
-    selectedTile.classList.add('redWiggle', 'duplicate-offer');
-        
-        socket.emit('makeMove', {
-            type: 'discardOffer',
-            gameId: gameId,
-            tile: currentTile,
-            currentPlayer: currentPlayer === 1 ? 2 : 1,
-            playerId: socket.id,
-            tilePosition: tilePosition
         });
         
-        setTimeout(() => {
-            const duplicateTile = drawPile.querySelector('.duplicate-offer');
-            if (duplicateTile) {
-                duplicateTile.remove();
+        socket.on('syncDrawPile', (data) => {
+            if (data.gameId === gameId && data.playerId !== socket.id) {
+                if (currentPlayer !== data.currentPlayer) {
+                    currentPlayer = data.currentPlayer;
+                    isMyTurn = socket.id === (currentPlayer === 1 ? players.first : players.second);
+                    updateTileColors();
+                }
             }
+        });
+        
+        /* === EVENT LISTENERS === */
+        startButton.addEventListener('click', () => {
+            iAmPlayer1 = true;
+            
+            startButton.textContent = "Creating game...";
+            startButton.disabled = true;
+            joinButton.disabled = true;
+            
+            const timeout = setTimeout(() => {
+                startButton.textContent = "Start New Game";
+                startButton.disabled = false;
+                joinButton.disabled = false;
+            }, 5000);
+            
+            window.createGameTimeout = timeout;
+            
+            if (socket.connected) {
+                socket.emit('createGame');
+            } else {
+                socket.connect();
+                setTimeout(() => {
+                    if (socket.connected) {
+                        socket.emit('createGame');
+                    } else {
+                        startButton.textContent = "Start New Game";
+                        startButton.disabled = false;
+                        joinButton.disabled = false;
+                        clearTimeout(timeout);
+                    }
+                }, 1000);
+            }
+        });
+        
+        joinButton.addEventListener('click', () => {
+            startScreen.style.display = 'none';
+            joinScreen.style.display = 'block';
+            createEmojiGrid();
+        });
+        
+        backButton.addEventListener('click', () => {
+            joinScreen.style.display = 'none';
+            startScreen.style.display = 'block';
+            selectedEmojis = [];
+            updateEmojiSelection();
+        });
+        
+        submitJoinButton.addEventListener('click', () => {
+            if (selectedEmojis.length === 3) {
+                iAmPlayer1 = false;
+                
+                const emojiIndices = selectedEmojis.map(emoji => emojis.indexOf(emoji));
+                
+                const codeLetters = emojiIndices.map(index => {
+                    if (index < 0) {
+                        return 'A';
+                    }
+                    return String.fromCharCode(65 + index);
+                });
+                
+                const code = codeLetters.join('');
+                
+                socket.emit('joinGame', code);
+            } else {
+                emojiSelection.classList.add('shake');
+                setTimeout(() => {
+                    emojiSelection.classList.remove('shake');
+                }, 500);
+            }
+        });
+        
+        submitNameButton.addEventListener('click', () => {
+            const name = playerNameInput.value.trim();
+            
+            if (name.length > 0) {
+                playerName = name;
+                
+                nameEntryScreen.style.display = 'none';
+                startScreen.style.display = 'block';
+            } else {
+                playerNameInput.classList.add('shake');
+                setTimeout(() => playerNameInput.classList.remove('shake'), 500);
+            }
+        });
+        
+        playerNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitNameButton.click();
+            }
+        });
+        
+        /* === GAME FUNCTIONS === */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        function syncGameState() {
+            if (gameId && playerId) {
+                const remainingTiles = drawPile.children.length;
+                
+                socket.emit('syncRequest', {
+                    gameId: gameId,
+                    myTurn: isMyTurn,
+                    myPlayer: currentPlayer,
+                    remainingTiles: remainingTiles,
+                    timestamp: Date.now()
+                });
+                
+                if (remainingTiles < 10 && syncInterval._idleTimeout > 2000) {
+                    clearInterval(syncInterval);
+                    syncInterval = setInterval(syncGameState, 2000);
+                }
+            }
+        }
+        
+        function syncDrawPile() {
+            if (gameId && drawPile.children.length < 10) {
+                const tilePositions = Array.from(drawPile.children).map(tile => ({
+                    letter: tile.dataset.letter,
+                    position: Array.from(drawPile.children).indexOf(tile)
+                }));
+                
+                socket.emit('syncDrawPile', {
+                    gameId: gameId,
+                    tiles: tilePositions,
+                    currentPlayer: currentPlayer,
+                    isMyTurn: isMyTurn
+                });
+            }
+        }
+        
+        function createTiles(container, count, isDrawPile = false) {
+            let letters = [];
+            if (isDrawPile) {
+                let skipCount = 0, reverseCount = 0, wildCount = 0;
+                
+                const visibleLetters = alphabet.repeat(2).split('');
+                const specialTiles = Array(4).fill('>>').concat(Array(4).fill('@'), Array(4).fill('?'));
+                letters = shuffleArray([...visibleLetters, ...specialTiles]);
+                
+                letters = letters.filter(letter => {
+                    if (letter === '>>') return skipCount++ < 4;
+                    if (letter === '@') return reverseCount++ < 4;
+                    if (letter === '?') return wildCount++ < 4;
+                    return true;
+                }).slice(0, count);
+                
+                window.reserveTiles = alphabet.split('');
+            } else {
+                const alphabetTiles = alphabet.split('');
+                const specialTiles = Array(1).fill('>>').concat(Array(1).fill('@'), Array(1).fill('?'));
+                letters = shuffleArray([...alphabetTiles, ...specialTiles]).slice(0, count);
+            }
+            
+            for (let i = 0; i < letters.length; i++) {
+                const tile = document.createElement('div');
+                tile.classList.add('tile');
+                tile.dataset.letter = letters[i];
+                if (isDrawPile) {
+                    tile.addEventListener('click', selectDrawTile);
+                } else {
+                    tile.addEventListener('click', placeTile);
+                }
+                container.appendChild(tile);
+            }
+        }
+        
+        function addReserveTileIfNeeded() {
+            if (!window.reserveTiles || window.reserveTiles.length === 0 || gameOver) return;
+            
+            const p1Unrevealed = Array.from(player1Area.children).filter(t => !t.classList.contains('revealed')).length;
+            const p2Unrevealed = Array.from(player2Area.children).filter(t => !t.classList.contains('revealed')).length;
+            const maxUnrevealed = Math.max(p1Unrevealed, p2Unrevealed);
+            const drawPileCount = drawPile.children.length;
+            
+            if (drawPileCount < maxUnrevealed) {
+                if (window.reserveTiles.length > 0) {
+                    const letter = window.reserveTiles.pop();
+                    
+                    if (discardedLetters.includes(letter)) {
+                        setTimeout(addReserveTileIfNeeded, 100);
+                        return;
+                    }
+                    
+                    const tile = document.createElement('div');
+                    tile.classList.add('tile');
+                    tile.dataset.letter = letter;
+                    tile.addEventListener('click', selectDrawTile);
+                    drawPile.appendChild(tile);
+                    
+                    socket.emit('makeMove', {
+                        type: 'addReserveTile',
+                        gameId: gameId,
+                        playerId: socket.id,
+                        letter: letter,
+                        timestamp: Date.now()
+                    });
+                }
+            }
+        }
+        
+        function cleanupDuplicateTiles() {
+            if (!gameId || !playerId || gameOver) return;
+            
+            const p1Unrevealed = Array.from(player1Area.children).filter(t => !t.classList.contains('revealed')).length;
+            const p2Unrevealed = Array.from(player2Area.children).filter(t => !t.classList.contains('revealed')).length;
+            const maxUnrevealed = Math.max(p1Unrevealed, p2Unrevealed);
+            
+            for (const letter of alphabet.split('')) {
+                if (bothPlayersHaveTile(letter)) {
+                    const tilesToRemove = Array.from(drawPile.children).filter(tile => 
+                        tile.dataset.letter === letter
+                    );
+                    
+                    if (tilesToRemove.length > 0) {
+                        if (!discardedLetters.includes(letter)) {
+                            discardedLetters.push(letter);
+                        }
+                        
+                        tilesToRemove.forEach(tile => tile.remove());
+                        
+                        socket.emit('makeMove', {
+                            type: 'cleanupTiles',
+                            gameId: gameId,
+                            playerId: socket.id,
+                            removedLetters: [letter],
+                            timestamp: Date.now()
+                        });
+                    }
+                }
+            }
+            
+            if (drawPile.children.length < maxUnrevealed + 5) {
+                addReserveTileIfNeeded();
+            }
+        }
+        
+        function countAllTiles() {
+            Object.keys(letterCounts).forEach(key => {
+                letterCounts[key] = 0;
+            });
+            
+            Array.from(player1Area.children).forEach(tile => {
+                const letter = tile.dataset.letter;
+                if (letter) letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+            });
+            
+            Array.from(player2Area.children).forEach(tile => {
+                const letter = tile.dataset.letter;
+                if (letter) letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+            });
+            
+            Array.from(drawPile.children).forEach(tile => {
+                const letter = tile.dataset.letter;
+                if (letter) letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+            });
+        }
+        
+        function playerHasLetter(player, letter) {
+            const area = player === 1 ? player1Area : player2Area;
+            return Array.from(area.children).some(tile => {
+                if (!tile.classList.contains('revealed')) return false;
+                
+                if (tile.dataset.letter === '?') {
+                    const position = Array.from(area.children).indexOf(tile);
+                    const actualLetter = alphabet[position];
+                    return actualLetter === letter;
+                }
+                
+                return tile.dataset.letter === letter;
+            });
+        }
+        
+        function bothPlayersHaveTile(letter) {
+            if (letter === '>>' || letter === '@' || letter === '?') {
+                return false;
+            }
+            
+            const p1Has = Array.from(player1Area.children).some(tile => {
+                if (!tile.classList.contains('revealed')) return false;
+                
+                if (tile.dataset.letter === letter) return true;
+                
+                if (tile.dataset.letter === '?') {
+                    const position = Array.from(player1Area.children).indexOf(tile);
+                    if (position >= 0 && position < alphabet.length) {
+                        return alphabet[position] === letter;
+                    }
+                }
+                return false;
+            });
+            
+            const p2Has = Array.from(player2Area.children).some(tile => {
+                if (!tile.classList.contains('revealed')) return false;
+                
+                if (tile.dataset.letter === letter) return true;
+                
+                if (tile.dataset.letter === '?') {
+                    const position = Array.from(player2Area.children).indexOf(tile);
+                    if (position >= 0 && position < alphabet.length) {
+                        return alphabet[position] === letter;
+                    }
+                }
+                return false;
+            });
+            
+            return p1Has && p2Has;
+        }
+        
+        function clearBothHaveMessages() {
+            if (currentTileDisplay && 
+                currentTileDisplay.textContent && 
+                currentTileDisplay.textContent.toLowerCase().includes('both')) {
+                currentTileDisplay.textContent = '';
+            }
+            
+            const allLabels = document.querySelectorAll('.game-section h3');
+            allLabels.forEach(label => {
+                if (label.textContent && 
+                    label.textContent.toLowerCase().includes('both have')) {
+                    const playerPart = label.textContent.split(':')[0].trim();
+                    if (playerPart) {
+                        label.textContent = playerPart;
+                    }
+                }
+            });
+        }
+        
+        setInterval(clearBothHaveMessages, 100);
+        
+        function returnTileToDrawPile(letter, faceUp = false) {
+            countAllTiles();
+            
+            if (letterCounts[letter] >= 4) {
+                return;
+            }
+            
+            const newTile = document.createElement('div');
+            newTile.classList.add('tile');
+            newTile.dataset.letter = letter;
+            newTile.addEventListener('click', selectDrawTile);
+            
+            if (faceUp) {
+                newTile.classList.add('face-up');
+                newTile.textContent = letter;
+            }
+
+            drawPile.appendChild(newTile);
+            
+            letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+        }
+        
+        function handleSkipTile(selectedTile) {
+            currentTileDisplay.textContent = "Skip tile!";
+            
+            selectedTile.classList.add('selected');
+            selectedTile.textContent = '>>';
+            
+            const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
+            const nextPlayer = currentPlayer === 1 ? 2 : 1;
+            
+            socket.emit('makeMove', {
+                type: 'specialTile',
+                tile: '>>',
+                action: 'skip',
+                tilePosition: tilePosition,
+                currentPlayer: currentPlayer,
+                nextPlayer: nextPlayer,
+                gameId: gameId,
+                playerId: socket.id
+            });
+            
+            setTimeout(() => {
+                if (selectedTile.parentNode === drawPile) {
+                    selectedTile.remove();
+                }
+                
+                currentTileDisplay.textContent = '';
+                currentTile = null;
+                isMyTurn = false;
+                currentPlayer = nextPlayer;
+                updateTileColors();
+            }, 3000);
+        }
+        
+        function handleReverseTile(selectedTile) {
+            currentTileDisplay.textContent = "Reverse tile!";
+            
+            selectedTile.classList.add('selected');
+            selectedTile.textContent = '@';
+            
+            const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
+            const nextPlayer = currentPlayer === 1 ? 2 : 1;
+            
+            socket.emit('makeMove', {
+                type: 'specialTile',
+                tile: '@',
+                action: 'reverse',
+                tilePosition: tilePosition,
+                currentPlayer: currentPlayer,
+                nextPlayer: nextPlayer,
+                gameId: gameId,
+                playerId: socket.id
+            });
+            
+            setTimeout(() => {
+                if (selectedTile.parentNode === drawPile) {
+                    selectedTile.remove();
+                }
+                
+                currentTileDisplay.textContent = '';
+                currentTile = null;
+                isMyTurn = false;
+                currentPlayer = nextPlayer;
+                updateTileColors();
+            }, 3000);
+        }
+        
+        function selectDrawTile(event) {
+            const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+            const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+            
+            if (player1Label.textContent.includes('Skip') || player1Label.textContent.includes('Reverse')) {
+                const labelParts = player1Label.textContent.split(':');
+                if (labelParts.length > 0) {
+                    player1Label.textContent = labelParts[0].trim();
+                }
+            }
+            
+            if (player2Label.textContent.includes('Skip') || player2Label.textContent.includes('Reverse')) {
+                const labelParts = player2Label.textContent.split(':');
+                if (labelParts.length > 0) {
+                    player2Label.textContent = labelParts[0].trim();
+                }
+            }
+            
+            if (!isMyTurn || gameOver || currentTile) {
+                return;
+            }
+            
+            const selectedTile = event.target;
+            const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
+            currentTile = selectedTile.dataset.letter;
+
+            if (currentTile === '>>') {
+                handleSkipTile(selectedTile);
+                return;
+            }
+            
+            if (currentTile === '@') {
+                handleReverseTile(selectedTile);
+                return;
+            }
+
+            drawPile.querySelectorAll('.tile').forEach(tile => {
+                tile.classList.remove('selected');
+                if (tile === selectedTile) {
+                    tile.textContent = currentTile;
+                } else {
+                    tile.textContent = '';
+                }
+            });
+            
+            selectedTile.classList.add('selected');
+            selectedTile.textContent = currentTile;
+            currentTileDisplay.textContent = '';
+            
+            socket.emit('makeMove', {
+                type: 'selectTile',
+                tile: currentTile,
+                tilePosition: tilePosition,
+                gameId: gameId,
+                playerId: socket.id
+            });
+            
+            if (currentTile !== '?' && playerHasLetter(currentPlayer, currentTile)) {
+                if (bothPlayersHaveTile(currentTile)) {
+                    selectedTile.remove();
+                    if (!discardedLetters.includes(currentTile)) {
+                        discardedLetters.push(currentTile);
+                    }
+                    currentTile = null;
+                    return;
+                }
+                
+                selectedTile.classList.add('redWiggle', 'duplicate-offer');
+                
+                socket.emit('makeMove', {
+                    type: 'discardOffer',
+                    gameId: gameId,
+                    tile: currentTile,
+                    currentPlayer: currentPlayer === 1 ? 2 : 1,
+                    playerId: socket.id,
+                    tilePosition: tilePosition
+                });
+                
+                setTimeout(() => {
+                    const duplicateTile = drawPile.querySelector('.duplicate-offer');
+                    if (duplicateTile) {
+                        duplicateTile.remove();
+                    }
+                    currentTile = null;
+                    isMyTurn = false;
+                    currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    updateTileColors();
+                }, 3000);
+                
+                return;
+            }
+        }
+        
+        function placeTile(event) {
+            if (!isMyTurn || gameOver || !currentTile) return;
+            const currentPlayerArea = currentPlayer === 1 ? player1Area : player2Area;
+            if (event.target.parentNode !== currentPlayerArea) return;
+            const position = Array.from(currentPlayerArea.children).indexOf(event.target);
+            if (currentTile !== '?' && alphabet[position] !== currentTile && currentTile !== '>>' && currentTile !== '@') return;
+            if (event.target.classList.contains('revealed')) return;
+
+            const replacedLetter = event.target.dataset.letter;
+
+            const animatedTile = drawPile.querySelector('.wiggle');
+            if (animatedTile) {
+                animatedTile.remove();
+            }
+            
+            socket.emit('makeMove', {
+                type: 'placeTile',
+                tile: currentTile,
+                position: position,
+                gameId: gameId,
+                replacedTile: replacedLetter
+            });
+
+            event.target.dataset.letter = currentTile;
+            event.target.textContent = currentTile;
+            event.target.classList.add('revealed');
+
+            event.target.animate([
+                { transform: 'scale(1)' },
+                { transform: 'scale(1.2)' },
+                { transform: 'scale(1)' }
+            ], {
+                duration: 300,
+                easing: 'ease-out'
+            });
+
+            const selectedTile = drawPile.querySelector('.tile.selected');
+            if (selectedTile) selectedTile.remove();
+            
+            if (replacedLetter) {
+                returnTileToDrawPile(replacedLetter);
+            }
+
             currentTile = null;
-            isMyTurn = false;
-            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            currentTileDisplay.textContent = '';
+            
+            cleanupDuplicateTiles();
+            
             updateTileColors();
-        }, 3000);
-        
-        return;
-    }
-}
-function offerDiscardToOtherPlayer(selectedTile) {
-    // First set my tiles to inactive
-    isMyTurn = false;
-    currentPlayer = currentPlayer === 1 ? 2 : 1;
-    updateTileColors();
-    
-    socket.emit('makeMove', {
-        type: 'discardOffer',
-        gameId: gameId,
-        tile: currentTile,
-        currentPlayer: currentPlayer,
-        playerId: socket.id
-    });
-    
-    discardOption.innerHTML = 'Waiting for other player\'s decision...';
-}
-
-
-function returnTileToDrawPile(letter, faceUp = false) {
-    // Count tiles first
-    countAllTiles();
-    
-    // Check if we already have 4 of this letter
-    if (letterCounts[letter] >= 4) {
-        console.log(`Already have ${letterCounts[letter]} of letter ${letter}, not adding more`);
-        return;
-    }
-    
-    const newTile = document.createElement('div');
-    newTile.classList.add('tile');
-    newTile.dataset.letter = letter;
-    newTile.addEventListener('click', selectDrawTile);
-    
-    if (faceUp) {
-        newTile.classList.add('face-up');
-        newTile.textContent = letter;
-    }
-
-    drawPile.appendChild(newTile);
-    
-    // Update count
-    letterCounts[letter] = (letterCounts[letter] || 0) + 1;
-}
-
-function placeTile(event) {
-    console.log('Attempting to place tile - isMyTurn:', isMyTurn);
-    if (!isMyTurn || gameOver || !currentTile) return;
-    const currentPlayerArea = currentPlayer === 1 ? player1Area : player2Area;
-    if (event.target.parentNode !== currentPlayerArea) return;
-    const position = Array.from(currentPlayerArea.children).indexOf(event.target);
-    if (currentTile !== '?' && alphabet[position] !== currentTile && currentTile !== '>>' && currentTile !== '@') return;
-    if (event.target.classList.contains('revealed')) return;
-
-    const replacedLetter = event.target.dataset.letter;
-
-    // Find and remove the animated tile from draw pile
-    const animatedTile = drawPile.querySelector('.wiggle');
-    if (animatedTile) {
-        animatedTile.remove();
-    }
-    
-    socket.emit('makeMove', {
-        type: 'placeTile',
-        tile: currentTile,
-        position: position,
-        gameId: gameId,
-        replacedTile: replacedLetter
-    });
-
-    // Place the new tile
-event.target.dataset.letter = currentTile;
-event.target.textContent = currentTile;
-event.target.classList.add('revealed');
-
-// Add a brief "pop" animation to the placed tile
-event.target.animate([
-    { transform: 'scale(1)' },
-    { transform: 'scale(1.2)' },
-    { transform: 'scale(1)' }
-], {
-    duration: 300,
-    easing: 'ease-out'
-});
-
-// Remove selected tile from draw pile
-const selectedTile = drawPile.querySelector('.tile.selected');
-if (selectedTile) selectedTile.remove();
-    // Return replaced tiles to draw pile
-    if (replacedLetter) {
-        returnTileToDrawPile(replacedLetter);
-    }
-
-    currentTile = null;
-    currentTileDisplay.textContent = '';
-    
-    // IMMEDIATELY run cleanup to remove any now-shared letters
-    cleanupDuplicateTiles();
-    
-    updateTileColors();
-    checkGameEnd(currentPlayerArea);
-}
-
-function sendMove(moveData) {
-  // Ensure these properties are included in every move
-  const baseData = {
-    gameId: gameId,
-    playerId: socket.id,
-    currentPlayer: currentPlayer,
-    nextPlayer: currentPlayer === 1 ? 2 : 1,  // Always calculate next player
-    timestamp: Date.now()
-  };
-  
-  // Merge with specific move data
-  socket.emit('makeMove', {...baseData, ...moveData});
-}
-
-
-
-function handleSkipMove(data) {
-    currentTileDisplay.textContent = "Opponent used Skip tile!";
-    const tiles = Array.from(drawPile.children);
-    const skipTile = tiles.find(tile => tile.dataset.letter === '>>');
-    if (skipTile) {
-        skipTile.remove();
-    }
-    
-    setTimeout(() => {
-        currentTileDisplay.textContent = '';
-        currentTile = null;
-        isMyTurn = true;
-        currentPlayer = currentPlayer === 1 ? 2 : 1;
-        updateTileColors();
-    }, 3000);
-}
-
-function handleReverseMove(data) {
-    currentTileDisplay.textContent = "Opponent used Reverse tile!";
-    const tiles = Array.from(drawPile.children);
-    const reverseTile = tiles.find(tile => tile.dataset.letter === '@');
-    if (reverseTile) {
-        reverseTile.remove();
-    }
-    
-    setTimeout(() => {
-        switchPiles();
-        currentTileDisplay.textContent = '';
-        currentTile = null;
-        isMyTurn = true;
-        currentPlayer = currentPlayer === 1 ? 2 : 1;
-        updateTileColors();
-    }, 3000);
-}
-
-function switchPiles() {
-    // Store current state before clearing
-    const player1Tiles = Array.from(player1Area.children).map(tile => ({
-        letter: tile.dataset.letter,
-        revealed: tile.classList.contains('revealed'),
-        wildValue: tile.dataset.wildValue || null
-    }));
-    
-    const player2Tiles = Array.from(player2Area.children).map(tile => ({
-        letter: tile.dataset.letter,
-        revealed: tile.classList.contains('revealed'),
-        wildValue: tile.dataset.wildValue || null
-    }));
-
-    // Clear both areas
-    player1Area.innerHTML = '';
-    player2Area.innerHTML = '';
-
-    // Rebuild areas with stored state
-    player2Tiles.forEach(tileData => {
-        const newTile = document.createElement('div');
-        newTile.classList.add('tile');
-        if (tileData.revealed) newTile.classList.add('revealed');
-        newTile.dataset.letter = tileData.letter;
-        if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
-        newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
-        newTile.addEventListener('click', placeTile);
-        player1Area.appendChild(newTile);
-    });
-    
-    player1Tiles.forEach(tileData => {
-        const newTile = document.createElement('div');
-        newTile.classList.add('tile');
-        if (tileData.revealed) newTile.classList.add('revealed');
-        newTile.dataset.letter = tileData.letter;
-        if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
-        newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
-        newTile.addEventListener('click', placeTile);
-        player2Area.appendChild(newTile);
-    });
-
-    // Send a specific sync event after pile switch
-    sendMove({
-        type: 'pileSwitch',
-        player1State: player1Tiles,
-        player2State: player2Tiles
-    });
-
-    updateTileColors(); // Add this call
-}
-function checkGameEnd(playerArea) {
-    // Check if all tiles in player area are revealed
-    if (Array.from(playerArea.children).every(tile => tile.classList.contains('revealed'))) {
-        gameOver = true;
-        
-        // Find player number based on area
-        const winningPlayer = playerArea === player1Area ? 1 : 2;
-        
-        // Update both player labels with real names
-        const player1Label = document.querySelector('.game-section:nth-child(1) h3');
-        const player2Label = document.querySelector('.game-section:nth-child(3) h3');
-        
-        const p1Name = socket.id === players.first ? playerName : opponentName;
-        const p2Name = socket.id === players.second ? playerName : opponentName;
-        
-        if (winningPlayer === 1) {
-            player1Label.textContent = `${p1Name}: Winner!`;
-            player2Label.textContent = `${p2Name}: ${p1Name} Wins!`;
-        } else {
-            player1Label.textContent = `${p1Name}: ${p2Name} Wins!`;
-            player2Label.textContent = `${p2Name}: Winner!`;
+            checkGameEnd(currentPlayerArea);
         }
         
-        // Send game over to other player
-        socket.emit('makeMove', {
-            type: 'gameOver',
-            gameId: gameId,
-            winner: winningPlayer,
-            timestamp: Date.now()
-        });
-        
-        isMyTurn = false;
-        updateTileColors();
-        return true;
-    }
-    
-    // Check for tie (no more moves possible)
-    if (drawPile.children.length === 0) {
-        gameOver = true;
-        
-        // Update both player labels for tie
-        const player1Label = document.querySelector('.game-section:nth-child(1) h3');
-        const player2Label = document.querySelector('.game-section:nth-child(3) h3');
-        
-        const p1Name = socket.id === players.first ? playerName : opponentName;
-        const p2Name = socket.id === players.second ? playerName : opponentName;
-        
-        player1Label.textContent = `${p1Name}: It's a Tie!`;
-        player2Label.textContent = `${p2Name}: It's a Tie!`;
-        
-        socket.emit('makeMove', {
-            type: 'gameOver',
-            gameId: gameId,
-            winner: 'tie',
-            timestamp: Date.now()
-        });
-        
-        isMyTurn = false;
-        updateTileColors();
-        return true;
-    }
-    
-    return false;
-    }
-
-function checkWinCondition(area) {
-    return Array.from(area.children).every(tile => 
-        tile.classList.contains('revealed')
-    );
-}
-
-function canMakeMove() {
-    return drawPile.children.length > 0;
-}
-
-function updateTileColors() {
-    // Get ALL tiles, not just unrevealed ones
-    const player1Tiles = player1Area.querySelectorAll('.tile');
-    const player2Tiles = player2Area.querySelectorAll('.tile');
-    
-    if (currentPlayer === 1) {
-        if (socket.id === players.first) {
-            // First player's browser
-            player1Tiles.forEach(tile => {
-                tile.classList.remove('inactive');
-                // Only show text content if revealed
-                if (!tile.classList.contains('revealed')) {
-                    tile.textContent = '';
-                }
-            });
-            player2Tiles.forEach(tile => {
-                tile.classList.add('inactive');
-                // Only show text content if revealed
-                if (!tile.classList.contains('revealed')) {
-                    tile.textContent = '';
-                }
-            });
-            player1Area.classList.remove('inactive');
-            player2Area.classList.remove('active');
-        } else {
-            // Second player's browser
-            player1Tiles.forEach(tile => {
-                tile.classList.remove('inactive');
-                if (!tile.classList.contains('revealed')) {
-                    tile.textContent = '';
-                }
-            });
-            player2Tiles.forEach(tile => {
-                tile.classList.add('inactive');
-                if (!tile.classList.contains('revealed')) {
-                    tile.textContent = '';
-                }
-            });
-            player1Area.classList.remove('inactive');
-            player2Area.classList.remove('active');
+        function sendMove(moveData) {
+            const baseData = {
+                gameId: gameId,
+                playerId: socket.id,
+                currentPlayer: currentPlayer,
+                nextPlayer: currentPlayer === 1 ? 2 : 1,
+                timestamp: Date.now()
+            };
+            
+            socket.emit('makeMove', {...baseData, ...moveData});
         }
-    } else {
-        if (socket.id === players.second) {
-            // Second player's browser
-            player2Tiles.forEach(tile => {
-                tile.classList.remove('inactive');
-                if (!tile.classList.contains('revealed')) {
-                    tile.textContent = '';
-                }
+        
+        function switchPiles() {
+            const player1Tiles = Array.from(player1Area.children).map(tile => ({
+                letter: tile.dataset.letter,
+                revealed: tile.classList.contains('revealed'),
+                wildValue: tile.dataset.wildValue || null
+            }));
+            
+            const player2Tiles = Array.from(player2Area.children).map(tile => ({
+                letter: tile.dataset.letter,
+                revealed: tile.classList.contains('revealed'),
+                wildValue: tile.dataset.wildValue || null
+            }));
+
+            player1Area.innerHTML = '';
+            player2Area.innerHTML = '';
+
+            player2Tiles.forEach(tileData => {
+                const newTile = document.createElement('div');
+                newTile.classList.add('tile');
+                if (tileData.revealed) newTile.classList.add('revealed');
+                newTile.dataset.letter = tileData.letter;
+                if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
+                newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
+                newTile.addEventListener('click', placeTile);
+                player1Area.appendChild(newTile);
             });
-            player1Tiles.forEach(tile => {
-                tile.classList.add('inactive');
-                if (!tile.classList.contains('revealed')) {
-                    tile.textContent = '';
-                }
+            
+            player1Tiles.forEach(tileData => {
+                const newTile = document.createElement('div');
+                newTile.classList.add('tile');
+                if (tileData.revealed) newTile.classList.add('revealed');
+                newTile.dataset.letter = tileData.letter;
+                if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
+                newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
+                newTile.addEventListener('click', placeTile);
+                player2Area.appendChild(newTile);
             });
-            player2Area.classList.add('active');
-            player1Area.classList.add('inactive');
-        } else {
-            // First player's browser
-            player2Tiles.forEach(tile => {
-                tile.classList.remove('inactive');
-                if (!tile.classList.contains('revealed')) {
-                    tile.textContent = '';
-                }
+
+            sendMove({
+                type: 'pileSwitch',
+                player1State: player1Tiles,
+                player2State: player2Tiles
             });
-            player1Tiles.forEach(tile => {
-                tile.classList.add('inactive');
-                if (!tile.classList.contains('revealed')) {
-                    tile.textContent = '';
-                }
-            });
-            player2Area.classList.add('active');
-            player1Area.classList.add('inactive');
+
+            updateTileColors();
         }
-    }
-}
-function switchPlayer() {
-    isMyTurn = !isMyTurn;
-    currentPlayer = currentPlayer === 1 ? 2 : 1;
-    updateTileColors();
-}
-
-function initGame() {
-    setupOverlay.style.display = 'none';
-    document.getElementById('gameBoard').style.display = 'flex';
-    
-    player1Area.innerHTML = '';
-    player2Area.innerHTML = '';
-    drawPile.innerHTML = '';
-    
-    createTiles(player1Area, 26);
-    createTiles(player2Area, 26);
-    createTiles(drawPile, 38, true);
-    
-    // Set your own name in the correct position
-    const topLabel = document.querySelector('.game-section:nth-child(1) h3');
-    const bottomLabel = document.querySelector('.game-section:nth-child(3) h3');
-    
-    if (iAmPlayer1) {
-        topLabel.textContent = playerName;
-    } else {
-        bottomLabel.textContent = playerName;
-    }
-    
-    updateTileColors();
-    setTimeout(cleanupDuplicateTiles, 500);
-}
-
-// New functions for emoji code handling
-function displayGameEmojis(emojis) {
-    gameCodeEmojis.innerHTML = '';
-    emojis.forEach(emoji => {
-        const emojiElement = document.createElement('div');
-        emojiElement.classList.add('emoji');
-        emojiElement.textContent = emoji;
         
-        // Add a little bounce animation
-        emojiElement.animate([
-            { transform: 'translateY(0)' },
-            { transform: 'translateY(-10px)' },
-            { transform: 'translateY(0)' }
-        ], {
-            duration: 1000,
-            iterations: Infinity,
-            easing: 'ease-in-out',
-            delay: Math.random() * 500 // Stagger the animations
-        });
-        
-        gameCodeEmojis.appendChild(emojiElement);
-    });
-}
-
-function createEmojiGrid() {
-    emojiGrid.innerHTML = '';
-    
-    // Shuffle the emojis for a random order each time
-    const shuffledEmojis = [...emojis].sort(() => Math.random() - 0.5);
-    
-    shuffledEmojis.forEach(emoji => {
-        const button = document.createElement('div');
-        button.classList.add('emoji-button');
-        button.textContent = emoji;
-        button.addEventListener('click', () => {
-            handleEmojiSelection(emoji, button);
-        });
-        emojiGrid.appendChild(button);
-    });
-    
-    // Reset selection
-    selectedEmojis = [];
-    updateEmojiSelection();
-}
-
-function handleEmojiSelection(emoji, button) {
-    // Check if already selected
-    const index = selectedEmojis.indexOf(emoji);
-    
-    if (index > -1) {
-        // Already selected, remove it
-        selectedEmojis.splice(index, 1);
-        button.classList.remove('selected');
-    } else if (selectedEmojis.length < 3) {
-        // Not selected and room for more, add it
-        selectedEmojis.push(emoji);
-        button.classList.add('selected');
-    } else {
-        // Not selected but already have 3, replace the first one
-        const oldEmoji = selectedEmojis.shift();
-        const oldButton = Array.from(emojiGrid.querySelectorAll('.emoji-button'))
-            .find(btn => btn.textContent === oldEmoji);
-        if (oldButton) oldButton.classList.remove('selected');
-        
-        selectedEmojis.push(emoji);
-        button.classList.add('selected');
-    }
-    
-    updateEmojiSelection();
-}
-function fixPlayerLabels() {
-    console.log("Fixing player labels");
-    
-    // 1. Get the label elements
-    const player1Label = document.querySelector('.game-section:nth-child(1) h3');
-    const player2Label = document.querySelector('.game-section:nth-child(3) h3');
-    
-    // 2. Get this browser's player position (1 or 2)
-    const myPosition = socket.id === players.first ? 1 : 2;
-    
-    // 3. Update labels based on position
-    if (myPosition === 1) {
-        // I'm player 1
-        player1Label.textContent = playerName;
-        socket.emit('sendName', {
-            gameId: gameId,
-            position: 1,
-            name: playerName
-        });
-    } else {
-        // I'm player 2
-        player2Label.textContent = playerName;
-        socket.emit('sendName', {
-            gameId: gameId,
-            position: 2,
-            name: playerName
-        });
-    }
-}
-
-function updateEmojiSelection() {
-    // Update the slots to show current selection
-    emojiSlots.forEach((slot, index) => {
-        if (index < selectedEmojis.length) {
-            slot.textContent = selectedEmojis[index];
-        } else {
-            slot.textContent = '';
+        function checkGameEnd(playerArea) {
+            if (Array.from(playerArea.children).every(tile => tile.classList.contains('revealed'))) {
+                gameOver = true;
+                
+                const winningPlayer = playerArea === player1Area ? 1 : 2;
+                
+                const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+                const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+                
+                const p1Name = socket.id === players.first ? playerName : opponentName;
+                const p2Name = socket.id === players.second ? playerName : opponentName;
+                
+                if (winningPlayer === 1) {
+                    player1Label.textContent = `${p1Name}: Winner!`;
+                    player2Label.textContent = `${p2Name}: ${p1Name} Wins!`;
+                } else {
+                    player1Label.textContent = `${p1Name}: ${p2Name} Wins!`;
+                    player2Label.textContent = `${p2Name}: Winner!`;
+                }
+                
+                socket.emit('makeMove', {
+                    type: 'gameOver',
+                    gameId: gameId,
+                    winner: winningPlayer,
+                    timestamp: Date.now()
+                });
+                
+                isMyTurn = false;
+                updateTileColors();
+                return true;
+            }
+            
+            return false;
         }
-    });
-}
-</script>
+        
+        function updateTileColors() {
+            const player1Tiles = player1Area.querySelectorAll('.tile');
+            const player2Tiles = player2Area.querySelectorAll('.tile');
+            
+            if (currentPlayer === 1) {
+                if (socket.id === players.first) {
+                    player1Tiles.forEach(tile => {
+                        tile.classList.remove('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player2Tiles.forEach(tile => {
+                        tile.classList.add('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player1Area.classList.remove('inactive');
+                    player2Area.classList.remove('active');
+                } else {
+                    player1Tiles.forEach(tile => {
+                        tile.classList.remove('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player2Tiles.forEach(tile => {
+                        tile.classList.add('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player1Area.classList.remove('inactive');
+                    player2Area.classList.remove('active');
+                }
+            } else {
+                if (socket.id === players.second) {
+                    player2Tiles.forEach(tile => {
+                        tile.classList.remove('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player1Tiles.forEach(tile => {
+                        tile.classList.add('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player2Area.classList.add('active');
+                    player1Area.classList.add('inactive');
+                } else {
+                    player2Tiles.forEach(tile => {
+                        tile.classList.remove('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player1Tiles.forEach(tile => {
+                        tile.classList.add('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player2Area.classList.add('active');
+                    player1Area.classList.add('inactive');
+                }
+            }
+        }
+        
+        function initGame() {
+            setupOverlay.style.display = 'none';
+            document.getElementById('gameBoard').style.display = 'flex';
+            
+            player1Area.innerHTML = '';
+            player2Area.innerHTML = '';
+            drawPile.innerHTML = '';
+            
+            createTiles(player1Area, 26);
+            createTiles(player2Area, 26);
+            createTiles(drawPile, 38, true);
+            
+            const topLabel = document.querySelector('.game-section:nth-child(1) h3');
+            const bottomLabel = document.querySelector('.game-section:nth-child(3) h3');
+            
+            if (iAmPlayer1) {
+                topLabel.textContent = playerName;
+            } else {
+                bottomLabel.textContent = playerName;
+            }
+            
+            updateTileColors();
+            setTimeout(cleanupDuplicateTiles, 500);
+        }
+        
+        /* === UI HELPER FUNCTIONS === */
+        function updatePlayerLabelsBasedOnPosition() {
+            const topLabel = document.querySelector('.game-section:nth-child(1) h3');
+            const bottomLabel = document.querySelector('.game-section:nth-child(3) h3');
+            
+            if (iAmPlayer1) {
+                topLabel.textContent = playerName;
+            } else {
+                bottomLabel.textContent = playerName;
+            }
+            
+            socket.emit('makeMove', {
+                type: 'shareName',
+                gameId: gameId,
+                playerId: socket.id,
+                isPlayer1: iAmPlayer1,
+                name: playerName,
+                timestamp: Date.now()
+            });
+        }
+        
+        function updatePlayerLabels() {
+            const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+            const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+            
+            const player1Name = players.first && players.names[players.first] 
+                ? players.names[players.first] : "Player 1";
+            
+            const player2Name = players.second && players.names[players.second]
+                ? players.names[players.second] : "Player 2";
+            
+            player1Label.textContent = player1Name;
+            player2Label.textContent = player2Name;
+        }
+        
+        function handleEmojiSelection(emoji, button) {
+            const index = selectedEmojis.indexOf(emoji);
+            
+            if (index > -1) {
+                selectedEmojis.splice(index, 1);
+                button.classList.remove('selected');
+            } else if (selectedEmojis.length < 3) {
+                selectedEmojis.push(emoji);
+                button.classList.add('selected');
+                
+                button.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(1.2)' },
+                    { transform: 'scale(1)' }
+                ], {
+                    duration: 300,
+                    easing: 'ease-out'
+                });
+            } else {
+                const oldEmoji = selectedEmojis.pop();
+                const oldButton = Array.from(emojiGrid.querySelectorAll('.emoji-button'))
+                    .find(btn => btn.textContent === oldEmoji);
+                if (oldButton) oldButton.classList.remove('selected');
+                
+                selectedEmojis.push(emoji);
+                button.classList.add('selected');
+                
+                button.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(1.2)' },
+                    { transform: 'scale(1)' }
+                ], {
+                    duration: 300,
+                    easing: 'ease-out'
+                });
+            }
+            
+            updateEmojiSelection();
+        }
+        
+        function createEmojiGrid() {
+            emojiGrid.innerHTML = '';
+            
+            const uniqueEmojis = [...new Set(emojis)];
+            const shuffledEmojis = [...uniqueEmojis].sort(() => Math.random() - 0.5);
+            
+            shuffledEmojis.forEach(emoji => {
+                const button = document.createElement('div');
+                button.classList.add('emoji-button');
+                button.textContent = emoji;
+                button.addEventListener('click', () => {
+                    handleEmojiSelection(emoji, button);
+                });
+                emojiGrid.appendChild(button);
+            });
+            
+            selectedEmojis = [];
+            updateEmojiSelection();
+        }
+        
+        function updateEmojiSelection() {
+            emojiSlots.forEach((slot, index) => {
+                if (index < selectedEmojis.length) {
+                    slot.textContent = selectedEmojis[index];
+                } else {
+                    slot.textContent = '';
+                }
+            });
+        }
+        
+        setTimeout(fixCreateScreenVisibility, 500);
+        
+        function fixCreateScreenVisibility() {
+            if (gameId && iAmPlayer1 && setupOverlay.style.display !== 'none') {
+                startScreen.style.display = 'none';
+                createScreen.style.display = 'block';
+            }
+        }
+    </script>
 </body>
 </html>
