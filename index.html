@@ -1012,12 +1012,33 @@
                     }, 250);
 
                     matchingTile.addEventListener('click', () => {
-                        tiles.forEach(tile => {
-                            tile.style.pointerEvents = 'auto';
-                        });
-                        const duplicateTiles = drawPile.querySelectorAll('.duplicate-offer');
-                        duplicateTiles.forEach(tile => tile.remove());
-                    }, { once: true });
+    // Enable pointer events on other tiles
+    tiles.forEach(tile => {
+        tile.style.pointerEvents = 'auto';
+    });
+    
+    // Set this as the current selected tile
+    currentTile = matchingTile.dataset.letter;
+    
+    // Remove wiggle and add selected class
+    matchingTile.classList.remove('wiggle', 'pink');
+    matchingTile.classList.add('selected');
+    
+    // Remove any other duplicate offers except this one
+    const duplicateTiles = drawPile.querySelectorAll('.duplicate-offer');
+    duplicateTiles.forEach(tile => {
+        if (tile !== matchingTile) {
+            tile.remove();
+        }
+    });
+    
+    // Clear duplicate-offer class from the selected tile
+    // but keep it in the draw pile until placed
+    matchingTile.classList.remove('duplicate-offer');
+    
+    // Update colors to show it's this player's turn
+    updateTileColors();
+}, { once: true });
                     
                     isMyTurn = true;
                     currentPlayer = data.currentPlayer;
@@ -1087,16 +1108,18 @@ if (data.type === 'specialTile' && data.playerId !== socket.id) {
         let skipTile = tiles[data.tilePosition];
         
         if (!skipTile) {
-            skipTile = tiles.find(tile => tile.dataset.letter === '>>');
+            skipTile = tiles.find(tile => tile.dataset.letter === '🐸');
         }
         
         if (!skipTile) {
             skipTile = document.createElement('div');
             skipTile.classList.add('tile', 'temporary');
-            skipTile.dataset.letter = '>>';
-            skipTile.textContent = '>>';
+            skipTile.dataset.letter = '🐸';
+            skipTile.textContent = '🐸';
             drawPile.appendChild(skipTile);
-        }
+        } else {
+                skipTile.textContent = '🐸';  // Use frog emoji
+            }
         
         skipTile.classList.add('selected');
         currentTileDisplay.textContent = "Opponent used Skip tile!";
@@ -1159,16 +1182,18 @@ if (data.type === 'specialTile' && data.playerId !== socket.id) {
         let reverseTile = tiles[data.tilePosition];
         
         if (!reverseTile) {
-            reverseTile = tiles.find(tile => tile.dataset.letter === '@');
+            reverseTile = tiles.find(tile => tile.dataset.letter === '🐙');
         }
         
         if (!reverseTile) {
             reverseTile = document.createElement('div');
             reverseTile.classList.add('tile', 'temporary');
-            reverseTile.dataset.letter = '@';
-            reverseTile.textContent = '@';
-            drawPile.appendChild(reverseTile);
-        }
+            reverseTile.dataset.letter = '🐙';
+            reverseTile.textContent = '🐙';
+            drawPile.appendChild(reverseTile);} 
+        else {
+                reverseTile.textContent = '🐙';  // Use octopus emoji
+            }
         
         reverseTile.classList.add('selected');
         currentTileDisplay.textContent = "Opponent used Reverse tile!";
@@ -1305,7 +1330,7 @@ if (data.type === 'specialTile' && data.playerId !== socket.id) {
 
                         if (replacedLetter) {
                             // Don't return special tiles to the draw pile
-                            if (replacedLetter !== '>>' && replacedLetter !== '@' && replacedLetter !== '?') {
+                            if (replacedLetter !== '🐸' && replacedLetter !== '🐙' && replacedLetter !== '?') {
                                 returnTileToDrawPile(replacedLetter);
                             }
                         }
@@ -1466,12 +1491,12 @@ if (data.type === 'specialTile' && data.playerId !== socket.id) {
                 let skipCount = 0, reverseCount = 0, wildCount = 0;
                 
                 const visibleLetters = alphabet.repeat(2).split('');
-                const specialTiles = Array(4).fill('>>').concat(Array(4).fill('@'), Array(4).fill('?'));
+                const specialTiles = Array(4).fill('🐸').concat(Array(4).fill('🐙'), Array(4).fill('?'));
                 letters = shuffleArray([...visibleLetters, ...specialTiles]);
                 
                 letters = letters.filter(letter => {
-                    if (letter === '>>') return skipCount++ < 4;
-                    if (letter === '@') return reverseCount++ < 4;
+                    if (letter === '🐸') return skipCount++ < 4;
+                    if (letter === '🐙') return reverseCount++ < 4;
                     if (letter === '?') return wildCount++ < 4;
                     return true;
                 }).slice(0, count);
@@ -1479,7 +1504,7 @@ if (data.type === 'specialTile' && data.playerId !== socket.id) {
                 window.reserveTiles = alphabet.split('');
             } else {
                 const alphabetTiles = alphabet.split('');
-                const specialTiles = Array(1).fill('>>').concat(Array(1).fill('@'), Array(1).fill('?'));
+                const specialTiles = Array(1).fill('🐸').concat(Array(1).fill('🐙'), Array(1).fill('?'));
                 letters = shuffleArray([...alphabetTiles, ...specialTiles]).slice(0, count);
             }
             
@@ -1605,7 +1630,7 @@ if (data.type === 'specialTile' && data.playerId !== socket.id) {
         }
         
         function bothPlayersHaveTile(letter) {
-            if (letter === '>>' || letter === '@' || letter === '?') {
+            if (letter === '🐸' || letter === '🐙' || letter === '?') {
                 return false;
             }
             
@@ -1663,7 +1688,7 @@ if (data.type === 'specialTile' && data.playerId !== socket.id) {
         
         function returnTileToDrawPile(letter, faceUp = false) {
             // Don't return special tiles to the draw pile
-            if (letter === '>>' || letter === '@' || letter === '?') {
+            if (letter === '🐸' || letter === '🐙' || letter === '?') {
                 return;
             }
             
@@ -1706,7 +1731,7 @@ if (data.type === 'specialTile' && data.playerId !== socket.id) {
     currentTileDisplay.textContent = "Skip tile!";
     
     selectedTile.classList.add('selected');
-    selectedTile.textContent = '>>';
+    selectedTile.textContent = '🐸';
     
     const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
     const nextPlayer = currentPlayer === 1 ? 2 : 1;
@@ -1723,7 +1748,7 @@ if (data.type === 'specialTile' && data.playerId !== socket.id) {
     
     socket.emit('makeMove', {
         type: 'specialTile',
-        tile: '>>',
+        tile: '🐸',
         action: 'skip',
         tilePosition: tilePosition,
         currentPlayer: currentPlayer,
@@ -1767,7 +1792,7 @@ setTimeout(() => {
     currentTileDisplay.textContent = "Reverse tile!";
     
     selectedTile.classList.add('selected');
-    selectedTile.textContent = '@';
+    selectedTile.textContent = '🐙';
     
     const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
     const nextPlayer = currentPlayer === 1 ? 2 : 1;
@@ -1784,7 +1809,7 @@ setTimeout(() => {
     
     socket.emit('makeMove', {
         type: 'specialTile',
-        tile: '@',
+        tile: '🐙',
         action: 'reverse',
         tilePosition: tilePosition,
         currentPlayer: currentPlayer,
@@ -1841,12 +1866,12 @@ setTimeout(() => {
             const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
             currentTile = selectedTile.dataset.letter;
 
-            if (currentTile === '>>') {
+            if (currentTile === '🐸') {
                 handleSkipTile(selectedTile);
                 return;
             }
             
-            if (currentTile === '@') {
+            if (currentTile === '🐙') {
                 handleReverseTile(selectedTile);
                 return;
             }
@@ -1913,7 +1938,7 @@ setTimeout(() => {
             const currentPlayerArea = currentPlayer === 1 ? player1Area : player2Area;
             if (event.target.parentNode !== currentPlayerArea) return;
             const position = Array.from(currentPlayerArea.children).indexOf(event.target);
-            if (currentTile !== '?' && alphabet[position] !== currentTile && currentTile !== '>>' && currentTile !== '@') return;
+            if (currentTile !== '?' && alphabet[position] !== currentTile && currentTile !== '🐸' && currentTile !== '🐙') return;
             if (event.target.classList.contains('revealed')) return;
 
             const replacedLetter = event.target.dataset.letter;
@@ -1949,7 +1974,7 @@ setTimeout(() => {
             
             if (replacedLetter) {
                 // Don't return special tiles to the draw pile
-                if (replacedLetter !== '>>' && replacedLetter !== '@' && replacedLetter !== '?') {
+                if (replacedLetter !== '🐸' && replacedLetter !== '🐙' && replacedLetter !== '?') {
                     returnTileToDrawPile(replacedLetter);
                 }
             }
