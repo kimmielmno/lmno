@@ -1048,75 +1048,155 @@
                 isMyTurn = false;
                 updateTileColors();
             } else if (data.playerId !== socket.id) {
-                if (data.type === 'specialTile') {
-                    if (data.action === 'skip') {
-                        currentTileDisplay.textContent = "Opponent used Skip tile!";
-                        
-                        const nextPlayer = data.currentPlayer === 1 ? 2 : 1;
-                        const playerLabel = document.querySelector(`.game-section:nth-child(${data.currentPlayer === 1 ? 1 : 3}) h3`);
-                        
-                        const activePlayerName = data.activePlayerName || opponentName;
-                        playerLabel.textContent = `${activePlayerName}: Skipped!`;
-                        
-                        const tiles = Array.from(drawPile.children);
-                        let skipTile = tiles[data.tilePosition];
-                        
-                        if (!skipTile) {
-                            skipTile = tiles.find(tile => tile.dataset.letter === '>>');
-                        }
-                        
-                        if (!skipTile) {
-                            skipTile = document.createElement('div');
-                            skipTile.classList.add('tile', 'temporary');
-                            skipTile.dataset.letter = '>>';
-                            skipTile.textContent = '>>';
-                            drawPile.appendChild(skipTile);
-                        }
-                        
-                        skipTile.classList.add('selected');
-                        skipTile.textContent = '>>';
-                        setTimeout(() => {
-                            if (skipTile.parentNode === drawPile) {
-                                skipTile.remove();
-                            }
-                            
-                            currentTileDisplay.textContent = '';
-                            currentTile = null;
-                            isMyTurn = true;
-                            currentPlayer = nextPlayer;
-                            updateTileColors();
-                        }, 3000);
-
-                        setTimeout(() => {
-                            if (playerLabel.textContent.includes('Skipped')) {
-                                const labelParts = playerLabel.textContent.split(':');
-                                if (labelParts.length > 0) {
-                                    playerLabel.textContent = labelParts[0].trim();
-                                }
-                            }
-                        }, 5000);
-                    } else if (data.action === 'reverse') {
-                        currentTileDisplay.textContent = "Opponent used Reverse tile!";
-                        
-                        const playerLabel = document.querySelector(`.game-section:nth-child(${currentPlayer === 1 ? 1 : 3}) h3`);
-                        playerLabel.textContent = `${opponentName}: Reversed!`;
-                        
-                        const tiles = Array.from(drawPile.children);
-                        const reverseTile = tiles[data.tilePosition];
-                        if (reverseTile) {
-                            reverseTile.classList.add('selected');
-                            reverseTile.textContent = '@';
-                            
-                            setTimeout(() => {
-                                reverseTile.remove();
-                                currentTileDisplay.textContent = '';
-                                currentTile = null;
-                                switchPiles();
-                                isMyTurn = true;
-                                currentPlayer = currentPlayer === 1 ? 2 : 1;
-                                updateTileColors();
-                            }, 3000);
-                        }
+                // Handle special tiles separately to ensure proper display of messages
+if (data.type === 'specialTile' && data.playerId !== socket.id) {
+    console.log("Special tile action from opponent:", data.action);
+    
+    if (data.action === 'skip') {
+        // Handle skip from opponent
+        const nextPlayer = data.currentPlayer === 1 ? 2 : 1;
+        
+        // Get player labels
+        const currentPlayerLabel = document.querySelector(`.game-section:nth-child(${data.currentPlayer === 1 ? 1 : 3}) h3`);
+        const nextPlayerLabel = document.querySelector(`.game-section:nth-child(${nextPlayer === 1 ? 1 : 3}) h3`);
+        
+        // Get names 
+        const activePlayerName = data.activePlayerName || (
+            data.currentPlayer === 1 ? 
+            (socket.id === players.first ? playerName : opponentName) :
+            (socket.id === players.second ? playerName : opponentName)
+        );
+        
+        // Set messages
+        currentPlayerLabel.textContent = `${activePlayerName}: Skipped!`;
+        
+        // If it's my turn next, show "Your Turn!"
+        if (socket.id === (nextPlayer === 1 ? players.first : players.second)) {
+            nextPlayerLabel.textContent = `${playerName}: Player Skipped, Your Turn!`;
+        } else {
+            const nextPlayerName = data.nextPlayerName || (
+                nextPlayer === 1 ? 
+                (socket.id === players.first ? playerName : opponentName) :
+                (socket.id === players.second ? playerName : opponentName)
+            );
+            nextPlayerLabel.textContent = `${nextPlayerName}: Player Skipped, Your Turn!`;
+        }
+        
+        // Handle the skip tile visually
+        const tiles = Array.from(drawPile.children);
+        let skipTile = tiles[data.tilePosition];
+        
+        if (!skipTile) {
+            skipTile = tiles.find(tile => tile.dataset.letter === '>>');
+        }
+        
+        if (!skipTile) {
+            skipTile = document.createElement('div');
+            skipTile.classList.add('tile', 'temporary');
+            skipTile.dataset.letter = '>>';
+            skipTile.textContent = '>>';
+            drawPile.appendChild(skipTile);
+        }
+        
+        skipTile.classList.add('selected');
+        currentTileDisplay.textContent = "Opponent used Skip tile!";
+        
+        // After a delay, update the game state
+        setTimeout(() => {
+            if (skipTile.parentNode === drawPile) {
+                skipTile.remove();
+            }
+            
+            currentTileDisplay.textContent = '';
+            currentTile = null;
+            isMyTurn = socket.id === (nextPlayer === 1 ? players.first : players.second);
+            currentPlayer = nextPlayer;
+            updateTileColors();
+        }, 3000);
+        
+        // Clear messages after a while
+        setTimeout(() => {
+            if (currentPlayerLabel.textContent.includes('Skipped')) {
+                currentPlayerLabel.textContent = currentPlayerLabel.textContent.split(':')[0].trim();
+            }
+            if (nextPlayerLabel.textContent.includes('Player Skipped, Your Turn')) {
+                nextPlayerLabel.textContent = nextPlayerLabel.textContent.split(':')[0].trim();
+            }
+        }, 8000);
+    }
+    else if (data.action === 'reverse') {
+        // Handle reverse from opponent
+        const nextPlayer = data.currentPlayer === 1 ? 2 : 1;
+        
+        // Get player labels
+        const currentPlayerLabel = document.querySelector(`.game-section:nth-child(${data.currentPlayer === 1 ? 1 : 3}) h3`);
+        const nextPlayerLabel = document.querySelector(`.game-section:nth-child(${nextPlayer === 1 ? 1 : 3}) h3`);
+        
+        // Get names 
+        const activePlayerName = data.activePlayerName || (
+            data.currentPlayer === 1 ? 
+            (socket.id === players.first ? playerName : opponentName) :
+            (socket.id === players.second ? playerName : opponentName)
+        );
+        
+        // Set messages
+        currentPlayerLabel.textContent = `${activePlayerName}: Reversed Tiles!`;
+        
+        // If it's my turn next, show "Your Turn!"
+        if (socket.id === (nextPlayer === 1 ? players.first : players.second)) {
+            nextPlayerLabel.textContent = `${playerName}: Tiles Reversed, Your Turn!`;
+        } else {
+            const nextPlayerName = data.nextPlayerName || (
+                nextPlayer === 1 ? 
+                (socket.id === players.first ? playerName : opponentName) :
+                (socket.id === players.second ? playerName : opponentName)
+            );
+            nextPlayerLabel.textContent = `${nextPlayerName}: Tiles Reversed, Your Turn!`;
+        }
+        
+        // Handle the reverse tile visually
+        const tiles = Array.from(drawPile.children);
+        let reverseTile = tiles[data.tilePosition];
+        
+        if (!reverseTile) {
+            reverseTile = tiles.find(tile => tile.dataset.letter === '@');
+        }
+        
+        if (!reverseTile) {
+            reverseTile = document.createElement('div');
+            reverseTile.classList.add('tile', 'temporary');
+            reverseTile.dataset.letter = '@';
+            reverseTile.textContent = '@';
+            drawPile.appendChild(reverseTile);
+        }
+        
+        reverseTile.classList.add('selected');
+        currentTileDisplay.textContent = "Opponent used Reverse tile!";
+        
+        // After a delay, update the game state
+        setTimeout(() => {
+            if (reverseTile.parentNode === drawPile) {
+                reverseTile.remove();
+            }
+            
+            currentTileDisplay.textContent = '';
+            currentTile = null;
+            switchPiles();
+            isMyTurn = socket.id === (nextPlayer === 1 ? players.first : players.second);
+            currentPlayer = nextPlayer;
+            updateTileColors();
+        }, 3000);
+        
+        // Clear messages after a while
+        setTimeout(() => {
+            if (currentPlayerLabel.textContent.includes('Reversed')) {
+                currentPlayerLabel.textContent = currentPlayerLabel.textContent.split(':')[0].trim();
+            }
+            if (nextPlayerLabel.textContent.includes('Tiles Reversed, Your Turn')) {
+                nextPlayerLabel.textContent = nextPlayerLabel.textContent.split(':')[0].trim();
+            }
+        }, 8000);
+    
                     } else if (data.action === 'bothHave') {
                         if (data.playerId !== socket.id) {
                             const selectedTile = drawPile.querySelector('.tile.selected');
@@ -1617,88 +1697,141 @@
         }
         
         function handleSkipTile(selectedTile) {
-            currentTileDisplay.textContent = "Skip tile!";
-            
-            selectedTile.classList.add('selected');
-            selectedTile.textContent = '>>';
-            
-            const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
-            const nextPlayer = currentPlayer === 1 ? 2 : 1;
-            
-            socket.emit('makeMove', {
-                type: 'specialTile',
-                tile: '>>',
-                action: 'skip',
-                tilePosition: tilePosition,
-                currentPlayer: currentPlayer,
-                nextPlayer: nextPlayer,
-                gameId: gameId,
-                playerId: socket.id
-            });
-            
-            setTimeout(() => {
-                if (selectedTile.parentNode === drawPile) {
-                    selectedTile.remove();
-                }
-                
-                currentTileDisplay.textContent = '';
-                currentTile = null;
-                isMyTurn = false;
-                currentPlayer = nextPlayer;
-                updateTileColors();
-            }, 3000);
+    // Clear any existing messages
+    document.querySelector('.game-section:nth-child(1) h3').textContent = 
+        document.querySelector('.game-section:nth-child(1) h3').textContent.split(':')[0];
+    document.querySelector('.game-section:nth-child(3) h3').textContent = 
+        document.querySelector('.game-section:nth-child(3) h3').textContent.split(':')[0];
+    
+    currentTileDisplay.textContent = "Skip tile!";
+    
+    selectedTile.classList.add('selected');
+    selectedTile.textContent = '>>';
+    
+    const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
+    const nextPlayer = currentPlayer === 1 ? 2 : 1;
+    
+    // Update player labels with skip messages
+    const currentPlayerLabel = document.querySelector(`.game-section:nth-child(${currentPlayer === 1 ? 1 : 3}) h3`);
+    const nextPlayerLabel = document.querySelector(`.game-section:nth-child(${nextPlayer === 1 ? 1 : 3}) h3`);
+    
+    const currentPlayerName = currentPlayerLabel.textContent.split(':')[0].trim();
+    const nextPlayerName = nextPlayerLabel.textContent.split(':')[0].trim();
+    
+    currentPlayerLabel.textContent = `${currentPlayerName}: Skipped!`;
+    nextPlayerLabel.textContent = `${nextPlayerName}: Player Skipped, Your Turn!`;
+    
+    socket.emit('makeMove', {
+        type: 'specialTile',
+        tile: '>>',
+        action: 'skip',
+        tilePosition: tilePosition,
+        currentPlayer: currentPlayer,
+        nextPlayer: nextPlayer,
+        gameId: gameId,
+        playerId: socket.id,
+        activePlayerName: currentPlayerName,
+        nextPlayerName: nextPlayerName
+    });
+    
+    setTimeout(() => {
+        if (selectedTile.parentNode === drawPile) {
+            selectedTile.remove();
         }
+        
+        currentTileDisplay.textContent = '';
+        currentTile = null;
+        isMyTurn = false;
+        currentPlayer = nextPlayer;
+        updateTileColors();
+    }, 3000);
+
+// Clear our own messages after a delay
+setTimeout(() => {
+    if (currentPlayerLabel.textContent.includes('Skipped')) {
+        currentPlayerLabel.textContent = currentPlayerLabel.textContent.split(':')[0].trim();
+    }
+    if (nextPlayerLabel.textContent.includes('Player Skippec, Your Turn')) {
+        nextPlayerLabel.textContent = nextPlayerLabel.textContent.split(':')[0].trim();
+    }
+}, 8000);
+}
         
         function handleReverseTile(selectedTile) {
-            currentTileDisplay.textContent = "Reverse tile!";
-            
-            selectedTile.classList.add('selected');
-            selectedTile.textContent = '@';
-            
-            const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
-            const nextPlayer = currentPlayer === 1 ? 2 : 1;
-            
-            socket.emit('makeMove', {
-                type: 'specialTile',
-                tile: '@',
-                action: 'reverse',
-                tilePosition: tilePosition,
-                currentPlayer: currentPlayer,
-                nextPlayer: nextPlayer,
-                gameId: gameId,
-                playerId: socket.id
-            });
-            
-            setTimeout(() => {
-                if (selectedTile.parentNode === drawPile) {
-                    selectedTile.remove();
-                }
-                
-                currentTileDisplay.textContent = '';
-                currentTile = null;
-                isMyTurn = false;
-                currentPlayer = nextPlayer;
-                updateTileColors();
-            }, 3000);
+    // Clear any existing messages
+    document.querySelector('.game-section:nth-child(1) h3').textContent = 
+        document.querySelector('.game-section:nth-child(1) h3').textContent.split(':')[0];
+    document.querySelector('.game-section:nth-child(3) h3').textContent = 
+        document.querySelector('.game-section:nth-child(3) h3').textContent.split(':')[0];
+        
+    currentTileDisplay.textContent = "Reverse tile!";
+    
+    selectedTile.classList.add('selected');
+    selectedTile.textContent = '@';
+    
+    const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
+    const nextPlayer = currentPlayer === 1 ? 2 : 1;
+    
+    // Update player labels with reverse messages
+    const currentPlayerLabel = document.querySelector(`.game-section:nth-child(${currentPlayer === 1 ? 1 : 3}) h3`);
+    const nextPlayerLabel = document.querySelector(`.game-section:nth-child(${nextPlayer === 1 ? 1 : 3}) h3`);
+    
+    const currentPlayerName = currentPlayerLabel.textContent.split(':')[0].trim();
+    const nextPlayerName = nextPlayerLabel.textContent.split(':')[0].trim();
+    
+    currentPlayerLabel.textContent = `${currentPlayerName}: Reversed Tiles!`;
+    nextPlayerLabel.textContent = `${nextPlayerName}: Tiles Reversed, Your Turn!`;
+    
+    socket.emit('makeMove', {
+        type: 'specialTile',
+        tile: '@',
+        action: 'reverse',
+        tilePosition: tilePosition,
+        currentPlayer: currentPlayer,
+        nextPlayer: nextPlayer,
+        gameId: gameId,
+        playerId: socket.id,
+        activePlayerName: currentPlayerName,
+        nextPlayerName: nextPlayerName
+    });
+    
+    setTimeout(() => {
+        if (selectedTile.parentNode === drawPile) {
+            selectedTile.remove();
         }
         
+        currentTileDisplay.textContent = '';
+        currentTile = null;
+        isMyTurn = false;
+        currentPlayer = nextPlayer;
+        updateTileColors();
+    }, 3000);
+
+// Clear our own messages after a delay
+setTimeout(() => {
+    if (currentPlayerLabel.textContent.includes('Reversed')) {
+        currentPlayerLabel.textContent = currentPlayerLabel.textContent.split(':')[0].trim();
+    }
+    if (nextPlayerLabel.textContent.includes('Tiles Reversed, Your Turn')) {
+        nextPlayerLabel.textContent = nextPlayerLabel.textContent.split(':')[0].trim();
+    }
+}, 8000);
+}
+        
         function selectDrawTile(event) {
-            const player1Label = document.querySelector('.game-section:nth-child(1) h3');
-            const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+    // Clear any status messages when a new tile is selected
+    const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+    const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+    
+    // Clear any existing messages
+    if (player1Label.textContent.includes(':')) {
+        player1Label.textContent = player1Label.textContent.split(':')[0].trim();
+    }
+    
+    if (player2Label.textContent.includes(':')) {
+        player2Label.textContent = player2Label.textContent.split(':')[0].trim();
+    }
             
-            if (player1Label.textContent.includes('Skip') || player1Label.textContent.includes('Reverse')) {
-                const labelParts = player1Label.textContent.split(':');
-                if (labelParts.length > 0) {
-                    player1Label.textContent = labelParts[0].trim();
-                }
-            }
-            
-            if (player2Label.textContent.includes('Skip') || player2Label.textContent.includes('Reverse')) {
-                const labelParts = player2Label.textContent.split(':');
-                if (labelParts.length > 0) {
-                    player2Label.textContent = labelParts[0].trim();
-                }
-            }
             
             if (!isMyTurn || gameOver || currentTile) {
                 return;
