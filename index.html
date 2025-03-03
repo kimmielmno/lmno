@@ -1047,27 +1047,49 @@
             }
             
             if (data.type === 'gameOver') {
-                gameOver = true;
-                
-                const winnerNum = parseInt(data.winner);
-                const player1Label = document.querySelector('.game-section:nth-child(1) h3');
-                const player2Label = document.querySelector('.game-section:nth-child(3) h3');
-                
-                const p1Name = socket.id === players.first ? playerName : opponentName;
-                const p2Name = socket.id === players.second ? playerName : opponentName;
-                
-                if (winnerNum === 1) {
-                    const winnerName = socket.id === players.first ? playerName : opponentName;
-                    player1Label.textContent = `${p1Name}: Winner!`;
-                    player2Label.textContent = `${p2Name}: ${winnerName} Wins!`;
-                } else {
-                    const winnerName = socket.id === players.second ? playerName : opponentName;
-                    player1Label.textContent = `${p1Name}: ${winnerName} Wins!`;
-                    player2Label.textContent = `${p2Name}: Winner!`;
-                }
-                
-                isMyTurn = false;
-                updateTileColors();
+    gameOver = true;
+    
+    const winnerNum = parseInt(data.winner);
+    const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+    const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+    
+    // Use the winnerName from the message if provided
+    let winnerName;
+    if (data.winnerName) {
+        winnerName = data.winnerName;  // Use the name directly from the message
+    } else {
+        const p1Name = socket.id === players.first ? playerName : opponentName;
+        const p2Name = socket.id === players.second ? playerName : opponentName;
+        winnerName = winnerNum === 1 ? p1Name : p2Name;
+    }
+    
+    // Check if I am the winner
+    const iAmWinner = (winnerNum === 1 && socket.id === players.first) || 
+                    (winnerNum === 2 && socket.id === players.second);
+    
+    // Show the appropriate screen with the correct winner name
+    if (iAmWinner) {
+        showSimpleWinnerAnimation(winnerName);
+    } else {
+        showSimpleLoserScreen(winnerName);
+    }
+    
+    // Use the winner name for labels too
+    const p1Name = socket.id === players.first ? playerName : opponentName;
+    const p2Name = socket.id === players.second ? playerName : opponentName;
+    
+    if (winnerNum === 1) {
+        player1Label.textContent = `${p1Name}: Winner!`;
+        player2Label.textContent = `${p2Name}: ${winnerName} Wins!`;
+    } else {
+        player1Label.textContent = `${p1Name}: ${winnerName} Wins!`;
+        player2Label.textContent = `${p2Name}: Winner!`;
+    }
+    
+    isMyTurn = false;
+    updateTileColors();
+
+
             } else if (data.playerId !== socket.id) {
                 // Handle special tiles separately to ensure proper display of messages
 if (data.type === 'specialTile' && data.playerId !== socket.id) {
@@ -2048,39 +2070,54 @@ setTimeout(() => {
         }
         
         function checkGameEnd(playerArea) {
-            if (Array.from(playerArea.children).every(tile => tile.classList.contains('revealed'))) {
-                gameOver = true;
-                
-                const winningPlayer = playerArea === player1Area ? 1 : 2;
-                
-                const player1Label = document.querySelector('.game-section:nth-child(1) h3');
-                const player2Label = document.querySelector('.game-section:nth-child(3) h3');
-                
-                const p1Name = socket.id === players.first ? playerName : opponentName;
-                const p2Name = socket.id === players.second ? playerName : opponentName;
-                
-                if (winningPlayer === 1) {
-                    player1Label.textContent = `${p1Name}: Winner!`;
-                    player2Label.textContent = `${p2Name}: ${p1Name} Wins!`;
-                } else {
-                    player1Label.textContent = `${p1Name}: ${p2Name} Wins!`;
-                    player2Label.textContent = `${p2Name}: Winner!`;
-                }
-                
-                socket.emit('makeMove', {
-                    type: 'gameOver',
-                    gameId: gameId,
-                    winner: winningPlayer,
-                    timestamp: Date.now()
-                });
-                
-                isMyTurn = false;
-                updateTileColors();
-                return true;
-            }
-            
-            return false;
+    if (Array.from(playerArea.children).every(tile => tile.classList.contains('revealed'))) {
+        gameOver = true;
+        
+        const winningPlayer = playerArea === player1Area ? 1 : 2;
+        
+        const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+        const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+        
+        const p1Name = socket.id === players.first ? playerName : opponentName;
+        const p2Name = socket.id === players.second ? playerName : opponentName;
+        
+        // Get the winning player's name
+        const winnerName = winningPlayer === 1 ? p1Name : p2Name;
+        
+        // Determine if the current client is the winner
+        const iAmWinner = (winningPlayer === 1 && socket.id === players.first) || 
+                          (winningPlayer === 2 && socket.id === players.second);
+        
+        // Show appropriate screen based on whether this client won or lost
+        if (iAmWinner) {
+            showSimpleWinnerAnimation(winnerName);
+        } else {
+            showSimpleLoserScreen(winnerName);
         }
+        
+        if (winningPlayer === 1) {
+            player1Label.textContent = `${p1Name}: Winner!`;
+            player2Label.textContent = `${p2Name}: ${p1Name} Wins!`;
+        } else {
+            player1Label.textContent = `${p1Name}: ${p2Name} Wins!`;
+            player2Label.textContent = `${p2Name}: Winner!`;
+        }
+        
+        socket.emit('makeMove', {
+    type: 'gameOver',
+    gameId: gameId,
+    winner: winningPlayer,
+    winnerName: winnerName,  // Add this line to share the winner's name
+    timestamp: Date.now()
+});
+        
+        isMyTurn = false;
+        updateTileColors();
+        return true;
+    }
+    
+    return false;
+}
         
         function updateTileColors() {
             const player1Tiles = player1Area.querySelectorAll('.tile');
@@ -2291,6 +2328,188 @@ setTimeout(() => {
                 createScreen.style.display = 'block';
             }
         }
+        
+        // Add this function to your script section, before checkGameEnd is defined
+function showSimpleWinnerAnimation(winnerName) {
+    // Create overlay container
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #ffffff; /* Solid white background */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    `;
+    
+    // Create and start confetti canvas - Put it INSIDE the overlay
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    `;
+    overlay.appendChild(canvas); // Add canvas to overlay so it's visible
+    
+    // Add winner text - Now on top of the canvas
+    const winnerText = document.createElement('div');
+    winnerText.textContent = `${winnerName} Won!`;
+    winnerText.style.cssText = `
+        font-size: 48px;
+        font-weight: bold;
+        color: #000000; 
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        animation: pulse 1.5s infinite;
+        z-index: 2001; /* Make sure text is above canvas */
+    `;
+    
+    // Add animation style
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Add a close button with the game's button style
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Play Again';
+    closeButton.className = 'setup-button'; // Use the game's button class
+    closeButton.style.zIndex = "2001"; // Ensure button is above canvas
+    
+    closeButton.addEventListener('click', () => {
+        overlay.remove();
+        // Reset game state here if needed
+        window.location.reload();
+    });
+    
+    overlay.appendChild(winnerText);
+    overlay.appendChild(closeButton);
+    document.body.appendChild(overlay);
+    
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // Confetti particles
+    const particles = [];
+    const particleCount = 200;
+    // Bright colors
+    const colors = ['#FF0000', '#FF00FF', '#0000FF', '#00FFFF', '#00FF00', 
+                   '#FFFF00', '#FFA500', '#FF4500', '#8A2BE2', '#FF1493'];
+    
+    // Create particles
+    for (let i = 0; i < particleCount; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            width: Math.random() * 8 + 4,  // Smaller width
+            height: Math.random() * 4 + 4, // Smaller height
+            color: colors[Math.floor(Math.random() * colors.length)],
+            speed: 2 + Math.random() * 3,  // Slightly slower than the last version
+            drift: Math.random() * 0.8 - 0.4,  // Keep the same drift
+            rotation: Math.random() * Math.PI * 2,
+            rotationSpeed: Math.random() * 0.005  // Keep rotation gentle
+        });
+    }
+    
+    // Animation function with smoother motion
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        particles.forEach((p, i) => {
+            // Update position
+            p.y += p.speed;
+            p.x += p.drift;
+            p.rotation += p.rotationSpeed;
+            
+            // Reset if off screen
+            if (p.y > canvas.height) {
+                particles[i] = {
+                    x: Math.random() * canvas.width,
+                    y: -20,
+                    width: Math.random() * 8 + 4,
+                    height: Math.random() * 4 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speed: 2 + Math.random() * 3,  // Same moderate speed
+                    drift: Math.random() * 0.8 - 0.4,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: Math.random() * 0.005
+                };
+            }
+            
+            // Draw a small rectangle
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rotation);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.width/2, -p.height/2, p.width, p.height);
+            ctx.restore();
+        });
+        
+        requestAnimationFrame(draw);
+    }
+    
+    draw();
+}
+// Also add the loser screen function
+function showSimpleLoserScreen(winnerName) {
+    // Create the main overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    `;
+    document.body.appendChild(overlay);
+    
+    // Add winner announcement
+    const winnerText = document.createElement('div');
+    winnerText.textContent = `${winnerName} Won!`;
+    winnerText.style.cssText = `
+        font-size: 48px;
+        font-weight: bold;
+        color: #000000;
+        margin-bottom: 20px;
+        z-index: 2001;
+        position: relative;
+    `;
+    overlay.appendChild(winnerText);
+    
+    // Add play again button
+    const playAgainBtn = document.createElement('button');
+    playAgainBtn.textContent = 'Play Again';
+    playAgainBtn.className = 'setup-button';
+    playAgainBtn.style.cssText = `
+        z-index: 2001;
+        position: relative;
+    `;
+    playAgainBtn.addEventListener('click', () => {
+        overlay.remove();
+        window.location.reload();
+    });
+    overlay.appendChild(playAgainBtn);
+}
     </script>
 </body>
 </html>
