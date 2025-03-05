@@ -58,41 +58,49 @@ io.on('connection', (socket) => {
         }
     });
     
-    socket.on('makeMove', (data) => {
-        const gameId = players.get(socket.id);  // FIXED: Changed gameCode to gameId
-        console.log('Server: Move received:', {
-            type: data.type,
-            from: socket.id,
-            gameId: gameId,  // FIXED: Changed gameCode to gameId
-            tile: data.tile,
-            position: data.position
-        });
-        
-        if (gameId) {  // FIXED: Changed gameCode to gameId
-            // FIXED: Use consistent access method for games object
-            const game = games[gameId];
-            if (game) {
-                // Handle discard offer and choice specifically
-                if (data.type === 'discardOffer' || data.type === 'discardChoice') {
-                    socket.to(gameId).emit('gameMove', {  // FIXED: Changed gameCode to gameId
-                        type: data.type,
-                        playerId: socket.id,
-                        tile: data.tile,
-                        accepted: data.accepted,
-                        currentPlayer: data.currentPlayer,
-                        players: game.players
-                    });
-                } else {
-                    // Handle all other moves
-                    io.to(gameId).emit('gameMove', {  // FIXED: Changed gameCode to gameId
-                        ...data,
-                        playerId: socket.id,
-                        players: game.players
-                    });
-                }
+    // In your server.js file, update the makeMove handler to properly handle special events
+socket.on('makeMove', (data) => {
+    const gameId = players.get(socket.id);
+    console.log('Server: Move received:', {
+        type: data.type,
+        action: data.action, // Log the action for special tiles
+        from: socket.id,
+        gameId: gameId,
+        tile: data.tile,
+        position: data.position
+    });
+    
+    if (gameId) {
+        const game = games[gameId];
+        if (game) {
+            // Special handling for specific event types that should
+            // only be sent to other players, not back to sender
+            if (data.type === 'discardOffer' || 
+                data.type === 'discardChoice' || 
+                data.type === 'potionRevealTile' ||
+                (data.type === 'specialTile' && 
+                 (data.action === 'potionBubbles' || 
+                  data.action === 'skip' || 
+                  data.action === 'reverse'))) {
+                
+                console.log('Server: Sending special event to other players:', data.type, data.action);
+                
+                socket.to(gameId).emit('gameMove', {
+                    ...data,
+                    playerId: socket.id,
+                    players: game.players
+                });
+            } else {
+                // All other moves go to everyone (including sender)
+                io.to(gameId).emit('gameMove', {
+                    ...data,
+                    playerId: socket.id,
+                    players: game.players
+                });
             }
         }
-    });
+    }
+});
     
     socket.on('disconnect', () => {
         console.log('Server: Player disconnected:', socket.id);
