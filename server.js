@@ -120,17 +120,22 @@ socket.on('makeMove', (data) => {
 });
 
 function generateEmojiGameId() {
-    // Create a 3-character code that will map to emojis
+    // Create a 3-character code with NO DUPLICATES
     let result = '';
-    const characters = 'ABCDEFGHI'; // Maps to the 9 emoji positions
+    const characters = 'ABCDEFGHI';
+    const usedChars = new Set();
     
-    for (let i = 0; i < 3; i++) {
-        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    while (result.length < 3) {
+        const char = characters.charAt(Math.floor(Math.random() * characters.length));
+        if (!usedChars.has(char)) {
+            usedChars.add(char);
+            result += char;
+        }
     }
     
     // Make sure this game ID isn't already in use
     if (games[result]) {
-        return generateEmojiGameId(); // Try again if ID exists
+        return generateEmojiGameId();
     }
     
     return result;
