@@ -527,6 +527,65 @@
             font-weight: bold;
         }
 
+   @keyframes waveL {
+    0%, 100% { transform: rotate(-5deg) translateY(-2px); }
+    50% { transform: rotate(-8deg) translateY(-12px); }
+}
+
+@keyframes waveM {
+    0%, 100% { transform: rotate(3deg) translateY(5px); }
+    50% { transform: rotate(6deg) translateY(-7px); }
+}
+
+@keyframes waveN {
+    0%, 100% { transform: rotate(-2deg) translateY(-4px); }
+    50% { transform: rotate(-5deg) translateY(-14px); }
+}
+
+@keyframes waveO {
+    0%, 100% { transform: rotate(4deg) translateY(3px); }
+    50% { transform: rotate(7deg) translateY(-9px); }
+}
+
+/* Slower animations */
+.tile-l {
+    animation: waveL 1.2s ease-in-out infinite;
+    z-index: 2;
+}
+
+.tile-m {
+    animation: waveM 1.2s ease-in-out infinite 0.25s;
+    z-index: 1;
+}
+
+.tile-n {
+    animation: waveN 1.2s ease-in-out infinite 0.5s;
+    z-index: 3;
+}
+
+.tile-o {
+    animation: waveO 1.2s ease-in-out infinite 0.75s;
+    z-index: 2;
+}
+    
+    .title-tile {
+        width: 60px;
+        height: 60px;
+        background-color: #e6f2ff;
+        color: #2c3e50;
+        font-size: 36px;
+        font-weight: bold;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 8px;
+        border: 2px solid #4a90e2;
+        border-radius: 6px;
+        box-shadow: 0 6px 0 0 #b3d4fc, 0 8px 10px rgba(0,0,0,0.2);
+        position: relative;
+        transform-style: preserve-3d;
+    }
+    
         .setup-message {
             margin: 15px 0;
             font-size: 18px;
@@ -646,91 +705,19 @@
 <body>
     <div id="setup-overlay">
         <div id="gameSetup">
-            <div class="game-title-container" style="margin: 30px auto 40px auto; text-align: center; perspective: 500px;">
+            <div class="game-title-container" style="margin: 30px auto 60px auto; text-align: center; perspective: 500px;">
     <div class="title-tiles" style="display: inline-flex; position: relative;">
         <!-- L Tile -->
-        <div class="title-tile" style="
-            width: 55px;
-            height: 55px;
-            background-color: #e6f2ff;
-            color: #2c3e50;
-            font-size: 32px;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 8px;
-            border: 2px solid #4a90e2;
-            border-radius: 6px;
-            box-shadow: 0 6px 0 0 #b3d4fc, 0 8px 10px rgba(0,0,0,0.0);
-            transform: rotate(-5deg) translateY(-2px);
-            position: relative;
-            z-index: 2;
-            transform-style: preserve-3d;
-        ">L</div>
+        <div class="title-tile tile-l">L</div>
         
         <!-- M Tile -->
-        <div class="title-tile" style="
-            width: 55px;
-            height: 55px;
-            background-color: #e6f2ff;
-            color: #2c3e50;
-            font-size: 32px;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 8px;
-            border: 2px solid #4a90e2;
-            border-radius: 6px;
-            box-shadow: 0 6px 0 0 #b3d4fc, 0 8px 10px rgba(0,0,0,0.0);
-            transform: rotate(3deg) translateY(5px);
-            position: relative;
-            z-index: 1;
-            transform-style: preserve-3d;
-        ">M</div>
+        <div class="title-tile tile-m">M</div>
         
         <!-- N Tile -->
-        <div class="title-tile" style="
-            width: 55px;
-            height: 55px;
-            background-color: #e6f2ff;
-            color: #2c3e50;
-            font-size: 32px;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 8px;
-            border: 2px solid #4a90e2;
-            border-radius: 6px;
-            box-shadow: 0 6px 0 0 #b3d4fc, 0 8px 10px rgba(0,0,0,0.0);
-            transform: rotate(-2deg) translateY(-4px);
-            position: relative;
-            z-index: 3;
-            transform-style: preserve-3d;
-        ">N</div>
+        <div class="title-tile tile-n">N</div>
         
         <!-- O Tile -->
-        <div class="title-tile" style="
-            width: 55px;
-            height: 55px;
-            background-color: #e6f2ff;
-            color: #2c3e50;
-            font-size: 32px;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 8px;
-            border: 2px solid #4a90e2;
-            border-radius: 6px;
-            box-shadow: 0 6px 0 0 #b3d4fc, 0 8px 10px rgba(0,0,0,0.0);
-            transform: rotate(4deg) translateY(3px);
-            position: relative;
-            z-index: 2;
-            transform-style: preserve-3d;
-        ">O</div>
+        <div class="title-tile tile-o">O</div>
     </div>
 </div>
             
