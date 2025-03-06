@@ -739,7 +739,7 @@
             
             <!-- Name Entry Screen (FIRST SCREEN) -->
             <div id="nameEntryScreen">
-    <div class="instructions-container" style="text-align: center; margin-bottom: 40px; font-size: 16px; color: #2c3e50; max-width: 600px; margin-left: auto; margin-right: auto;">
+    <div class="instructions-container" style="text-align: center; margin-bottom: 40px; font-size: 16px; color: #000000; max-width: 600px; margin-left: auto; margin-right: auto;">
         <div style="background-color: #fff0f0; border-radius: 10px; padding: 30px; margin: 30px 0; border: 2px dashed #b18597;">
             <h3 style="margin-top: 0; color: #000000;">How to Play:</h3>
             
@@ -2961,191 +2961,229 @@ function handlePotionBubbles(selectedTile) {
 }
 
 // Add this helper function for the bubble animation
+// Bubble animation function - smaller version
 function createBubbleAnimation(tile) {
-    const tileRect = tile.getBoundingClientRect();
-    
-    // Create animation container
-    const animContainer = document.createElement('div');
-    animContainer.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 9999;
-    `;
-    document.body.appendChild(animContainer);
-    
-    // Bubble colors - more saturated colors
-    const bubbleColors = [
-        '#FF3A7A', '#38A0FF', '#38FFB0', '#FFD700', 
-        '#B53AFF', '#FF8C38', '#38FF38'
-    ];
-    
-    // Create bubbles
-    for (let i = 0; i < 15; i++) {
-        const bubble = document.createElement('div');
-        const size = 6 + Math.random() * 12;
-        const color = bubbleColors[Math.floor(Math.random() * bubbleColors.length)];
-        
-        // Position around the tile
-        const offset = 20;
-        const x = tileRect.left + Math.random() * (tileRect.width + offset*2) - offset;
-        const y = tileRect.top + Math.random() * (tileRect.height + offset*2) - offset;
-        
-        bubble.style.cssText = `
-            position: absolute;
-            width: ${size}px;
-            height: ${size}px;
-            background-color: ${color};
-            border-radius: 50%;
-            left: ${x}px;
-            top: ${y}px;
-            opacity: 0;
-            box-shadow: 0 0 3px ${color};
-        `;
-        animContainer.appendChild(bubble);
-        
-        // Simple fade in/out animation
-        bubble.animate([
-            { opacity: 0, transform: 'scale(0.3)' },
-            { opacity: 0.9, transform: 'scale(1.1)' },
-            { opacity: 0, transform: 'scale(0.3)' }
-        ], {
-            duration: 800 + Math.random() * 600,
-            delay: Math.random() * 500,
-            easing: 'ease-in-out'
-        });
-    }
-    
-    // Add a flash effect at the end
-    setTimeout(() => {
-        const flash = document.createElement('div');
-        flash.style.cssText = `
-            position: absolute;
-            width: ${tileRect.width * 1.5}px;
-            height: ${tileRect.height * 1.5}px;
-            background: radial-gradient(circle, white, rgba(255,255,255,0) 70%);
-            border-radius: 50%;
-            left: ${tileRect.left + tileRect.width/2 - tileRect.width * 0.75}px;
-            top: ${tileRect.top + tileRect.height/2 - tileRect.height * 0.75}px;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 10000;
-        `;
-        animContainer.appendChild(flash);
-        
-        flash.animate([
-            { opacity: 0 },
-            { opacity: 0.9 },
-            { opacity: 0 }
-        ], {
-            duration: 500,
-            easing: 'ease-out'
-        });
-    }, 800);
-    
-    // Clean up after animation
-    setTimeout(() => {
-        animContainer.remove();
-    }, 1500);
-}
-
-function showPotionAnimationForOpponent(tile) {
-    const tileRect = tile.getBoundingClientRect();
-    
-    // Create animation container
-    const animContainer = document.createElement('div');
-    animContainer.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 9999;
-    `;
-    document.body.appendChild(animContainer);
-    
-    // Bubble colors - more saturated colors
-    const bubbleColors = [
-        '#FF3A7A', '#38A0FF', '#38FFB0', '#FFD700', 
-        '#B53AFF', '#FF8C38', '#38FF38'
-    ];
-    
-    // Create more bubble particles
-    for (let i = 0; i < 18; i++) {
-        const bubble = document.createElement('div');
-        const size = 6 + Math.random() * 14; // Slightly larger
-        const color = bubbleColors[Math.floor(Math.random() * bubbleColors.length)];
-        
-        // Position randomly within/around the tile
-        const offset = 25; // How far bubbles can go outside the tile
-        const x = tileRect.left + Math.random() * (tileRect.width + offset*2) - offset;
-        const y = tileRect.top + Math.random() * (tileRect.height + offset*2) - offset;
-        
-        bubble.style.cssText = `
-            position: absolute;
-            width: ${size}px;
-            height: ${size}px;
-            background-color: ${color};
-            border-radius: 50%;
-            left: ${x}px;
-            top: ${y}px;
-            opacity: 0;
-            box-shadow: 0 0 5px ${color}; // Add glow
-        `;
-        animContainer.appendChild(bubble);
-        
-        // Animate bubble
-        const duration = 700 + Math.random() * 800;
-        const delay = Math.random() * 600;
-        
-        setTimeout(() => {
-            bubble.animate([
-                { opacity: 0, transform: 'scale(0.3)' },
-                { opacity: 0.9, transform: 'scale(1.1)' },
-                { opacity: 0, transform: 'scale(0.3)' }
+            const tileRect = tile.getBoundingClientRect();
+            
+            // Create animation container
+            const animContainer = document.createElement('div');
+            animContainer.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 9999;
+            `;
+            document.body.appendChild(animContainer);
+            
+            // Brighter bubble colors with higher saturation
+            const bubbleColors = [
+                '#FF007A', '#00A0FF', '#00FF84', '#FFD700', 
+                '#B300FF', '#FF8C00', '#00FF00', '#FF00FF'
+            ];
+            
+            // Create fewer bubbles with very tight spread
+            for (let i = 0; i < 15; i++) {  // Reduced from 20 to 15
+                const bubble = document.createElement('div');
+                const size = 4 + Math.random() * 10;  // Smaller bubbles (was 6-20)
+                const color = bubbleColors[Math.floor(Math.random() * bubbleColors.length)];
+                
+                // Position bubbles in a very tight area around the tile
+                const offset = 15;  // Even smaller spread (was 20)
+                const x = tileRect.left + Math.random() * (tileRect.width + offset) - offset/2;
+                const y = tileRect.top + Math.random() * (tileRect.height + offset) - offset/2;
+                
+                bubble.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    background-color: ${color};
+                    border-radius: 50%;
+                    left: ${x}px;
+                    top: ${y}px;
+                    opacity: 0;
+                    box-shadow: none;  // No glow effect
+                `;
+                animContainer.appendChild(bubble);
+                
+                // Animation with smaller scale and faster timing
+                bubble.animate([
+                    { opacity: 0, transform: 'scale(0.2)' },
+                    { opacity: 0.9, transform: 'scale(1)' },  // Even smaller maximum size
+                    { opacity: 0, transform: 'scale(0.2)' }
+                ], {
+                    duration: 600 + Math.random() * 500,  // Faster animation
+                    delay: Math.random() * 400,  // Less delay variation
+                    easing: 'ease-in-out'
+                });
+            }
+            
+            // Tile glow effect - even smaller
+            const glow = document.createElement('div');
+            glow.style.cssText = `
+                position: absolute;
+                width: ${tileRect.width}px;  // Same size as tile (was 1.2x)
+                height: ${tileRect.height}px;
+                background: radial-gradient(circle, rgba(255,255,255,0.7), rgba(255,255,255,0) 70%);
+                border-radius: 50%;
+                left: ${tileRect.left + tileRect.width/2 - tileRect.width/2}px;
+                top: ${tileRect.top + tileRect.height/2 - tileRect.height/2}px;
+                opacity: 0;
+                pointer-events: none;
+                z-index: 10000;
+                box-shadow: 0 0 10px 3px rgba(255,255,255,0.4);  // Smaller shadow
+            `;
+            animContainer.appendChild(glow);
+            
+            // Animate the glow - faster
+            glow.animate([
+                { opacity: 0, transform: 'scale(0.7)' },
+                { opacity: 0.9, transform: 'scale(1)' },
+                { opacity: 0, transform: 'scale(0.7)' }
             ], {
-                duration: duration,
+                duration: 600,  // Faster
+                easing: 'ease-out'
+            });
+            
+            // Add fewer sparkle effects
+            for (let i = 0; i < 4; i++) {  // Even fewer sparkles (was 6)
+                createSparkle(animContainer, tileRect);
+            }
+            
+            // Add a final flash effect - much smaller
+            setTimeout(() => {
+                const flash = document.createElement('div');
+                flash.style.cssText = `
+                    position: absolute;
+                    width: ${tileRect.width * 1.4}px;  // Much smaller (was 1.8x)
+                    height: ${tileRect.height * 1.4}px;
+                    background: radial-gradient(circle, white, rgba(255,255,255,0) 70%);
+                    border-radius: 50%;
+                    left: ${tileRect.left + tileRect.width/2 - tileRect.width * 0.7}px;
+                    top: ${tileRect.top + tileRect.height/2 - tileRect.height * 0.7}px;
+                    opacity: 0;
+                    pointer-events: none;
+                    z-index: 10000;
+                `;
+                animContainer.appendChild(flash);
+                
+                flash.animate([
+                    { opacity: 0 },
+                    { opacity: 0.7 },  // Less intense
+                    { opacity: 0 }
+                ], {
+                    duration: 500,  // Faster
+                    easing: 'ease-out'
+                });
+            }, 500);  // Less delay
+            
+            // Clean up after animation - faster
+            setTimeout(() => {
+                animContainer.remove();
+            }, 1500);  // Even shorter cleanup time
+        }
+
+        // Helper function to create sparkles - smaller and closer
+        function createSparkle(container, tileRect) {
+            const sparkle = document.createElement('div');
+            
+            // Random position with tighter spread
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 8 + Math.random() * 15;  // Even smaller distance from center (was 10-35)
+            const centerX = tileRect.left + tileRect.width/2;
+            const centerY = tileRect.top + tileRect.height/2;
+            
+            const x = centerX + Math.cos(angle) * distance;
+            const y = centerY + Math.sin(angle) * distance;
+            
+            // Random size and rotation - smaller
+            const size = 2 + Math.random() * 5;  // Smaller size (was 3-10)
+            const rotation = Math.random() * 180;
+            
+            sparkle.style.cssText = `
+                position: absolute;
+                width: ${size}px;
+                height: ${size}px;
+                background-color: white;
+                left: ${x}px;
+                top: ${y}px;
+                opacity: 0;
+                transform: rotate(${rotation}deg);
+                clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            `;
+            
+            container.appendChild(sparkle);
+            
+            // Animate the sparkle - faster and smaller
+            sparkle.animate([
+                { opacity: 0, transform: `rotate(${rotation}deg) scale(0)` },
+                { opacity: 1, transform: `rotate(${rotation + 180}deg) scale(1)` },  // Smaller scale
+                { opacity: 0, transform: `rotate(${rotation + 360}deg) scale(0)` }
+            ], {
+                duration: 500 + Math.random() * 300,  // Faster
+                delay: Math.random() * 300,  // Less delay
                 easing: 'ease-in-out'
             });
-        }, delay);
-    }
-    
-    // Add a flash effect
-    setTimeout(() => {
-        const flash = document.createElement('div');
-        flash.style.cssText = `
-            position: absolute;
-            width: ${tileRect.width * 1.5}px;
-            height: ${tileRect.height * 1.5}px;
-            background: radial-gradient(circle, white, rgba(255,255,255,0) 70%);
-            border-radius: 50%;
-            left: ${tileRect.left + tileRect.width/2 - tileRect.width * 0.75}px;
-            top: ${tileRect.top + tileRect.height/2 - tileRect.height * 0.75}px;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 10000;
-        `;
-        animContainer.appendChild(flash);
+        }
         
-        flash.animate([
-            { opacity: 0 },
-            { opacity: 0.9 },
-            { opacity: 0 }
-        ], {
-            duration: 500,
-            easing: 'ease-out'
+        // Get elements
+        const animateTileBtn = document.getElementById('animateTileBtn');
+        const revealTileBtn = document.getElementById('revealTileBtn');
+        const animateAllBtn = document.getElementById('animateAllBtn');
+        const magicTile = document.querySelector('.magic-tile');
+        const tiles = document.querySelectorAll('.tile');
+        
+        // Add event listeners
+        animateTileBtn.addEventListener('click', () => {
+            createBubbleAnimation(magicTile);
         });
-    }, 600);
-    
-    // Clean up after animation
-    setTimeout(() => {
-        animContainer.remove();
-    }, 2000);
-}
+        
+        revealTileBtn.addEventListener('click', () => {
+            // Animate the magic tile
+            createBubbleAnimation(magicTile);
+            
+            // After animation, reveal a random tile
+            setTimeout(() => {
+                const regularTiles = Array.from(tiles).filter(t => !t.classList.contains('revealed') && !t.classList.contains('magic-tile'));
+                if (regularTiles.length > 0) {
+                    const randomTile = regularTiles[Math.floor(Math.random() * regularTiles.length)];
+                    createBubbleAnimation(randomTile);
+                    
+                    // Make sure the reveal happens after the animation
+                    setTimeout(() => {
+                        randomTile.classList.add('revealed');
+                    }, 600);  // Faster reveal
+                }
+            }, 700);  // Less delay between animations
+        });
+        
+        animateAllBtn.addEventListener('click', () => {
+            // Animate all regular tiles one by one
+            const regularTiles = Array.from(tiles).filter(t => !t.classList.contains('magic-tile'));
+            regularTiles.forEach((tile, index) => {
+                setTimeout(() => {
+                    createBubbleAnimation(tile);
+                    setTimeout(() => tile.classList.add('revealed'), 600);  // Faster reveal
+                }, index * 500);  // Less delay between tiles
+            });
+        });
+        
+        // Click on magic tile to test animation
+        magicTile.addEventListener('click', () => {
+            createBubbleAnimation(magicTile);
+        });
+        
+        // Click on other tiles to test animation and reveal
+        Array.from(tiles).filter(t => !t.classList.contains('magic-tile')).forEach(tile => {
+            tile.addEventListener('click', () => {
+                if (!tile.classList.contains('revealed')) {
+                    createBubbleAnimation(tile);
+                    setTimeout(() => tile.classList.add('revealed'), 600);  // Faster reveal
+                }
+            });
+        });
 
 // Initialize the potion emoji for proper display
 window.addEventListener('DOMContentLoaded', () => {
