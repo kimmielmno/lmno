@@ -650,10 +650,41 @@
             
             <!-- Name Entry Screen (FIRST SCREEN) -->
             <div id="nameEntryScreen">
-                <div class="setup-message">Enter your name:</div>
-                <input type="text" id="playerNameInput" placeholder="Your Name" maxlength="15" class="name-input">
-                <button id="submitNameButton" class="setup-button">Continue</button>
+    <div class="instructions-container" style="text-align: center; margin-bottom: 40px; font-size: 16px; color: #2c3e50; max-width: 600px; margin-left: auto; margin-right: auto;">
+        <div style="background-color: #fff0f0; border-radius: 10px; padding: 15px; margin: 15px 0; border: 2px dashed #b18597;">
+            <h3 style="margin-top: 0; color: #000000;">How to Play:</h3>
+            
+            <div style="text-align: left; margin-bottom: 15px;">
+                <p><strong>Setup:</strong> Each player gets a board with the hidden alphabet (A-Z).</p>
+                
+                <p><strong>Taking Turns:</strong></p>
+                <ol style="padding-left: 20px;">
+                    <li>Player who starts a new game goes first</li>
+                    <li>When it's your turn, pick a tile from the draw pile</li>
+                    <li>Place the tile on the matching letter spot on your board</li>
+                    <li>If you already have that letter, it's offered to your friend to play</li>
+                </ol>
+                
+                <p><strong>Special Tiles:</strong></p>
+                <ul style="padding-left: 20px;">
+                    <li><span style="font-size: 20px;">🐸</span> <strong>(Skip)</strong> Skip your turn and your friend goes next</li>
+                    <li><span style="font-size: 20px;">🐙</span> <strong>(Reverse)</strong> Swaps your board with your friend's board</li>
+                    <li><span style="font-size: 20px;">⭐</span> <strong>(Wild)</strong> Can be used on any letter spot</li>
+                    <li><span style="font-size: 20px;">🍄</span> <strong>(Magic)</strong> Reveals 3 random letters on your board</li>
+                </ul>
+                
+                <p><strong>Winning:</strong> The first player to reveal all the letters on their board wins!</p>
             </div>
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 40px;">
+        <input type="text" id="playerNameInput" placeholder="Your Name" maxlength="15" class="name-input">
+        <div style="margin-top: 20px;">
+            <button id="submitNameButton" class="setup-button">Continue</button>
+        </div>
+    </div>
+</div>
             
             <!-- Start Game Screen -->
             <div id="startScreen" style="display: none;">
@@ -1469,7 +1500,7 @@ if (data.type === 'syncRevealedTile' && data.playerId !== socket.id) {
 
             if (replacedLetter) {
                 // Don't return special tiles to the draw pile
-                if (replacedLetter !== '🐸' && replacedLetter !== '🐙' && replacedLetter !== '?' && replacedLetter !== '🍄') {
+                if (replacedLetter !== '🐸' && replacedLetter !== '🐙' && replacedLetter !== '⭐' && replacedLetter !== '🍄') {
                     returnTileToDrawPile(replacedLetter);
                 }
             }
@@ -1630,13 +1661,13 @@ if (data.type === 'syncRevealedTile' && data.playerId !== socket.id) {
         
         const visibleLetters = alphabet.repeat(2).split('');
         // Create an array without the potion tile first
-        const specialTiles = Array(4).fill('🐸').concat(Array(4).fill('🐙'), Array(4).fill('?'));
+        const specialTiles = Array(4).fill('🐸').concat(Array(4).fill('🐙'), Array(4).fill('⭐'));
         letters = shuffleArray([...visibleLetters, ...specialTiles]);
         
         letters = letters.filter(letter => {
             if (letter === '🐸') return skipCount++ < 4;
             if (letter === '🐙') return reverseCount++ < 4;
-            if (letter === '?') return wildCount++ < 4;
+            if (letter === '⭐') return wildCount++ < 4;
             return true;
         }).slice(0, count);
         
@@ -1644,7 +1675,7 @@ if (data.type === 'syncRevealedTile' && data.playerId !== socket.id) {
         window.reserveTiles = alphabet.split('');
     } else {
         const alphabetTiles = alphabet.split('');
-        const specialTiles = Array(1).fill('🐸').concat(Array(1).fill('🐙'), Array(1).fill('?'));
+        const specialTiles = Array(1).fill('🐸').concat(Array(1).fill('🐙'), Array(1).fill('⭐'));
         letters = shuffleArray([...alphabetTiles, ...specialTiles]).slice(0, count);
     }
     
@@ -1782,7 +1813,7 @@ if (data.type === 'syncRevealedTile' && data.playerId !== socket.id) {
             return Array.from(area.children).some(tile => {
                 if (!tile.classList.contains('revealed')) return false;
                 
-                if (tile.dataset.letter === '?') {
+                if (tile.dataset.letter === '⭐') {
                     const position = Array.from(area.children).indexOf(tile);
                     const actualLetter = alphabet[position];
                     return actualLetter === letter;
@@ -1793,7 +1824,7 @@ if (data.type === 'syncRevealedTile' && data.playerId !== socket.id) {
         }
         
         function bothPlayersHaveTile(letter) {
-            if (letter === '🐸' || letter === '🐙' || letter === '?') {
+            if (letter === '🐸' || letter === '🐙' || letter === '⭐') {
                 return false;
             }
             
@@ -1802,7 +1833,7 @@ if (data.type === 'syncRevealedTile' && data.playerId !== socket.id) {
                 
                 if (tile.dataset.letter === letter) return true;
                 
-                if (tile.dataset.letter === '?') {
+                if (tile.dataset.letter === '⭐') {
                     const position = Array.from(player1Area.children).indexOf(tile);
                     if (position >= 0 && position < alphabet.length) {
                         return alphabet[position] === letter;
@@ -1816,7 +1847,7 @@ if (data.type === 'syncRevealedTile' && data.playerId !== socket.id) {
                 
                 if (tile.dataset.letter === letter) return true;
                 
-                if (tile.dataset.letter === '?') {
+                if (tile.dataset.letter === '⭐') {
                     const position = Array.from(player2Area.children).indexOf(tile);
                     if (position >= 0 && position < alphabet.length) {
                         return alphabet[position] === letter;
@@ -1851,7 +1882,7 @@ if (data.type === 'syncRevealedTile' && data.playerId !== socket.id) {
         
         function returnTileToDrawPile(letter, faceUp = false) {
     // Don't return special tiles to the draw pile
-    if (letter === '🐸' || letter === '🐙' || letter === '?' || letter === '🍄') {
+    if (letter === '🐸' || letter === '🐙' || letter === '⭐' || letter === '🍄') {
         return;
     }
             
@@ -2067,7 +2098,7 @@ setTimeout(() => {
                 playerId: socket.id
             });
             
-            if (currentTile !== '?' && playerHasLetter(currentPlayer, currentTile)) {
+            if (currentTile !== '⭐' && playerHasLetter(currentPlayer, currentTile)) {
                 if (bothPlayersHaveTile(currentTile)) {
                     selectedTile.remove();
                     if (!discardedLetters.includes(currentTile)) {
@@ -2108,7 +2139,7 @@ setTimeout(() => {
             const currentPlayerArea = currentPlayer === 1 ? player1Area : player2Area;
             if (event.target.parentNode !== currentPlayerArea) return;
             const position = Array.from(currentPlayerArea.children).indexOf(event.target);
-            if (currentTile !== '?' && alphabet[position] !== currentTile && currentTile !== '🐸' && currentTile !== '🐙') return;
+            if (currentTile !== '⭐' && alphabet[position] !== currentTile && currentTile !== '🐸' && currentTile !== '🐙') return;
             if (event.target.classList.contains('revealed')) return;
 
             const replacedLetter = event.target.dataset.letter;
@@ -2144,7 +2175,7 @@ setTimeout(() => {
             
             if (replacedLetter) {
                 // Don't return special tiles to the draw pile
-                if (replacedLetter !== '🐸' && replacedLetter !== '🐙' && replacedLetter !== '?') {
+                if (replacedLetter !== '🐸' && replacedLetter !== '🐙' && replacedLetter !== '⭐') {
                     returnTileToDrawPile(replacedLetter);
                 }
             }
