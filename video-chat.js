@@ -1,4 +1,4 @@
-// Video Chat Component with iPad Support and Audio Fixes
+// Video Chat Component with iPad Support
 const VideoChat = {
     // Variables
     localStream: null,
@@ -184,13 +184,6 @@ const VideoChat = {
             font-size: 11px;
         `;
         
-        // Create an audio element for iOS compatibility
-        const audioElement = document.createElement('audio');
-        audioElement.id = 'remote-audio';
-        audioElement.autoplay = true;
-        audioElement.playsInline = true;
-        audioElement.style.display = 'none';
-        
         // Create video controls (initially hidden)
         const videoControls = document.createElement('div');
         videoControls.style.cssText = `
@@ -270,7 +263,6 @@ const VideoChat = {
         container.appendChild(statusIndicator);
         container.appendChild(localVideoContainer);
         container.appendChild(remoteVideoContainer);
-        container.appendChild(audioElement);
         container.appendChild(videoControls);
         
         // Add to document
@@ -283,42 +275,6 @@ const VideoChat = {
         toggleAudioButton.addEventListener('click', () => this.toggleAudio());
         
         console.log('Video chat UI created');
-    },
-    
-    // Setup iOS audio - specific handling for iOS audio issues
-    setupIOSAudio: function() {
-        console.log('Setting up iOS audio handling...');
-        
-        // For iOS, we need to handle audio in a special way
-        if (this.isIOS) {
-            // Create an audio context
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (AudioContext) {
-                const audioContext = new AudioContext();
-                
-                // This forces the audio system to activate
-                const silentAudio = audioContext.createOscillator();
-                const destination = audioContext.createMediaStreamDestination();
-                silentAudio.connect(destination);
-                silentAudio.start();
-                silentAudio.stop(audioContext.currentTime + 0.001);
-                
-                console.log('iOS audio system activated');
-            }
-            
-            // Force audio output to speaker
-            const audioTracks = this.localStream.getAudioTracks();
-            if (audioTracks.length > 0) {
-                // Check and log audio track constraints
-                const audioTrack = audioTracks[0];
-                console.log('Audio track:', audioTrack.label, 'enabled:', audioTrack.enabled);
-                
-                // Ensure audio is enabled
-                audioTrack.enabled = true;
-            } else {
-                console.warn('No audio tracks found in local stream');
-            }
-        }
     },
     
     // Start the video chat
@@ -350,9 +306,6 @@ const VideoChat = {
                 video: true,
                 audio: true
             });
-            
-            // Set up iOS audio specifically
-            this.setupIOSAudio();
             
             // Display local video
             localVideo.srcObject = this.localStream;
@@ -435,13 +388,6 @@ const VideoChat = {
             if (remoteVideo && remoteVideo.srcObject) {
                 remoteVideo.play();
             }
-            
-            // Also play the audio element for iOS
-            const remoteAudio = document.getElementById('remote-audio');
-            if (remoteAudio && remoteAudio.srcObject) {
-                remoteAudio.play();
-            }
-            
             playOverlay.remove();
         });
     },
@@ -549,14 +495,6 @@ const VideoChat = {
             this.localStream.getTracks().forEach(track => {
                 this.peerConnection.addTrack(track, this.localStream);
             });
-            
-            // Ensure audio tracks are correctly added to the connection
-            const audioTracks = this.localStream.getAudioTracks();
-            if (audioTracks.length > 0) {
-                console.log('Adding audio track to peer connection');
-                // Make sure audio is enabled
-                audioTracks[0].enabled = true;
-            }
         } else {
             console.error('No local stream when setting up peer connection');
             return;
@@ -607,44 +545,26 @@ const VideoChat = {
         
         // Handle received remote tracks
         this.peerConnection.ontrack = (event) => {
-            console.log('Remote track received:', event.track.kind);
+            console.log('Remote track received');
             
             // When we receive tracks from the remote peer
             const remoteVideo = document.getElementById('remote-video');
             const remoteVideoContainer = remoteVideo.parentElement;
-            const remoteAudio = document.getElementById('remote-audio');
             
             if (event.streams && event.streams[0]) {
-                // For video tracks, use the remote video element
-                if (event.track.kind === 'video') {
-                    remoteVideo.srcObject = event.streams[0];
-                    remoteVideoContainer.style.display = 'block';
-                    
-                    // Handle autoplay issues on iOS
-                    try {
-                        remoteVideo.play()
-                            .then(() => console.log('Remote video playing'))
-                            .catch(err => {
-                                console.warn('Remote video autoplay prevented:', err);
-                                this.createPlayOverlay(remoteVideoContainer, remoteVideo);
-                            });
-                    } catch (error) {
-                        console.error('Error starting remote video:', error);
-                    }
-                }
+                remoteVideo.srcObject = event.streams[0];
+                remoteVideoContainer.style.display = 'block';
                 
-                // For audio tracks on iOS, also use the separate audio element
-                if (event.track.kind === 'audio' && this.isIOS) {
-                    // In addition to the video element, also set audio on a separate audio element for iOS
-                    remoteAudio.srcObject = event.streams[0];
-                    
-                    try {
-                        remoteAudio.play()
-                            .then(() => console.log('Remote audio playing in dedicated audio element'))
-                            .catch(err => console.warn('Remote audio autoplay prevented:', err));
-                    } catch (error) {
-                        console.error('Error starting remote audio:', error);
-                    }
+                // Handle autoplay issues on iOS
+                try {
+                    remoteVideo.play()
+                        .then(() => console.log('Remote video playing'))
+                        .catch(err => {
+                            console.warn('Remote video autoplay prevented:', err);
+                            this.createPlayOverlay(remoteVideoContainer, remoteVideo);
+                        });
+                } catch (error) {
+                    console.error('Error starting remote video:', error);
                 }
             }
         };
@@ -733,26 +653,6 @@ const VideoChat = {
     handleOffer: async function(offer) {
         try {
             console.log('Handling offer...');
-            
-            // For iOS, ensure audio is ready before handling the offer
-            if (this.isIOS) {
-                console.log('iOS device: ensuring audio is ready');
-                
-                // Create a temporary audio element and play a silent audio clip
-                // This helps initialize the audio subsystem on iOS
-                const tempAudio = document.createElement('audio');
-                tempAudio.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU3LjU2LjEwMAAAAAAAAAAAAAAA//tAwAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABGwCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA=';
-                tempAudio.play().catch(err => console.warn('iOS audio init error:', err));
-                
-                // Make sure audio is enabled in the stream if available
-                if (this.localStream) {
-                    const audioTracks = this.localStream.getAudioTracks();
-                    if (audioTracks.length > 0) {
-                        audioTracks[0].enabled = true;
-                    }
-                }
-            }
-            
             if (!this.peerConnection) {
                 console.error('Cannot handle offer: peer connection not initialized');
                 
@@ -936,11 +836,9 @@ const VideoChat = {
         
         const localVideo = document.getElementById('local-video');
         const remoteVideo = document.getElementById('remote-video');
-        const remoteAudio = document.getElementById('remote-audio');
         
         if (localVideo) localVideo.srcObject = null;
         if (remoteVideo) remoteVideo.srcObject = null;
-        if (remoteAudio) remoteAudio.srcObject = null;
         
         const container = document.getElementById('video-chat-container');
         if (container) {
