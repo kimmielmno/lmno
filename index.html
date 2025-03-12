@@ -639,6 +639,62 @@
             animation: shake 0.5s ease-in-out;
         }
 
+.video-chat-container {
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  width: 220px !important;
+  z-index: 1000 !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  display: block !important;
+}
+
+#local-video-wrapper {
+  position: absolute;
+  width: 80px;
+  height: 60px;
+  bottom: 10px;
+  right: 10px;
+  z-index: 2;
+  border: 2px solid white;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+#local-video, #remote-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #222;
+}
+
+#remote-video-wrapper {
+  width: 100%;
+  height: 160px;
+}
+
+.video-controls {
+  display: flex;
+  justify-content: space-around;
+  padding: 5px;
+}
+
+.video-controls button {
+  background: #333;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.video-controls button:hover {
+  background: #555;
+}
+
         /* === RESPONSIVE STYLES === */
         @media screen and (max-width: 480px) {
             .game-board {
@@ -715,7 +771,27 @@
                 text-align: center;
                 z-index: 1000;
             }
-        }
+        
+  .video-chat-container {
+    width: 140px;
+    top: 5px;
+    right: 5px;
+  }
+  
+  #remote-video-wrapper {
+    height: 100px;
+  }
+  
+  #local-video-wrapper {
+    width: 50px;
+    height: 40px;
+  }
+  
+  .video-controls button {
+    font-size: 10px;
+    padding: 3px 5px;
+  }
+}
     </style>
 </head>
 <body>
@@ -736,7 +812,7 @@
         <div class="title-tile tile-o">O</div>
     </div>
 </div>
-            
+
             <!-- Name Entry Screen (FIRST SCREEN) -->
             <div id="nameEntryScreen">
     <div class="instructions-container" style="text-align: center; margin-bottom: 40px; font-size: 16px; color: #000000; max-width: 600px; margin-left: auto; margin-right: auto;">
@@ -817,10 +893,2843 @@
         </div>
         <div id="currentTile"></div>
         <div id="discardOption"></div>
+<!-- This should be directly inside your game board div, not inside the setup overlay -->
+<div id="video-chat-container" style="display: none;" class="video-chat-container">
+  <div id="local-video-wrapper">
+    <video id="local-video" autoplay muted></video>
+  </div>
+  <div id="remote-video-wrapper">
+    <video id="remote-video" autoplay></video>
+  </div>
+  <div class="video-controls">
+    <button id="toggle-video">Turn Off Camera</button>
+    <button id="toggle-audio">Mute Audio</button>
+  </div>
+</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
     <script>
-        const _0x589aac=_0x42f1;(function(_0x5bc05a,_0x3f2307){const _0x14c581=_0x42f1,_0x177cb5=_0x5bc05a();while(!![]){try{const _0x14d465=parseInt(_0x14c581(0x187))/0x1*(parseInt(_0x14c581(0x1b0))/0x2)+parseInt(_0x14c581(0x150))/0x3+-parseInt(_0x14c581(0x1f5))/0x4+-parseInt(_0x14c581(0x1bc))/0x5*(-parseInt(_0x14c581(0x15f))/0x6)+-parseInt(_0x14c581(0x213))/0x7*(parseInt(_0x14c581(0x1ed))/0x8)+-parseInt(_0x14c581(0x244))/0x9*(parseInt(_0x14c581(0x1a4))/0xa)+parseInt(_0x14c581(0x22d))/0xb;if(_0x14d465===_0x3f2307)break;else _0x177cb5['push'](_0x177cb5['shift']());}catch(_0x111487){_0x177cb5['push'](_0x177cb5['shift']());}}}(_0x37af,0xdcceb));const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ',emojis=['🦊','🐢','🐘','🦁','🐬','🦄','🐠','🦋','🐵'];function _0x42f1(_0x30e8b5,_0x450271){const _0x37af2c=_0x37af();return _0x42f1=function(_0x42f165,_0x210275){_0x42f165=_0x42f165-0x141;let _0x26ed39=_0x37af2c[_0x42f165];return _0x26ed39;},_0x42f1(_0x30e8b5,_0x450271);}let gameEmojis=[],selectedEmojis=[],playerName=_0x589aac(0x158),opponentName=_0x589aac(0x201);const socket=io('https://lmno-production.up.railway.app/');let gameId=null,playerId=null,isMyTurn=![],currentPlayer=0x1,gameOver=![],currentTile=null,discardedLetters=[],iAmPlayer1=![],players={'first':null,'second':null,'names':{}};const letterCounts={},setupOverlay=document[_0x589aac(0x17d)](_0x589aac(0x1c3)),startButton=document[_0x589aac(0x17d)](_0x589aac(0x1b3)),joinButton=document['getElementById'](_0x589aac(0x142)),waitingMessage=document[_0x589aac(0x17d)](_0x589aac(0x149)),gameBoard=document['querySelector'](_0x589aac(0x243)),player1Area=document[_0x589aac(0x17d)]('player1Area'),player2Area=document[_0x589aac(0x17d)](_0x589aac(0x1aa)),drawPile=document[_0x589aac(0x17d)](_0x589aac(0x168)),currentTileDisplay=document[_0x589aac(0x17d)](_0x589aac(0x210)),discardOption=document[_0x589aac(0x17d)](_0x589aac(0x1ea)),startScreen=document[_0x589aac(0x17d)](_0x589aac(0x255)),createScreen=document[_0x589aac(0x17d)](_0x589aac(0x249)),joinScreen=document[_0x589aac(0x17d)](_0x589aac(0x1ef)),submitJoinButton=document[_0x589aac(0x17d)]('submitJoinButton'),backButton=document[_0x589aac(0x17d)]('backButton'),gameCodeEmojis=document[_0x589aac(0x17d)](_0x589aac(0x238)),emojiGrid=document['getElementById'](_0x589aac(0x147)),emojiSelection=document[_0x589aac(0x17d)]('emojiSelection'),nameEntryScreen=document[_0x589aac(0x17d)](_0x589aac(0x1bb)),playerNameInput=document[_0x589aac(0x17d)]('playerNameInput'),submitNameButton=document[_0x589aac(0x17d)](_0x589aac(0x235)),emojiSlots=[document[_0x589aac(0x17d)](_0x589aac(0x22c)),document[_0x589aac(0x17d)]('slot2'),document[_0x589aac(0x17d)](_0x589aac(0x1cc))];let nameRetryCounts=0x0;const nameRetryInterval=setInterval(()=>{const _0xdbffb2=_0x589aac;if(nameRetryCounts>0x5||!gameId){clearInterval(nameRetryInterval);return;}gameId&&playerId&&(socket[_0xdbffb2(0x1cb)](_0xdbffb2(0x223),{'gameId':gameId,'playerId':socket['id'],'name':playerName}),nameRetryCounts++);},0x7d0);let syncInterval=setInterval(syncGameState,0x1388);const drawPileInterval=setInterval(syncDrawPile,0x7d0),recoveryInterval=setInterval(()=>{const _0x407662=_0x589aac;if(gameId&&!gameOver){const _0x382e10=drawPile[_0x407662(0x1c9)][_0x407662(0x252)];if(_0x382e10<0x8){const _0x58f7ec=Array[_0x407662(0x1d9)](drawPile[_0x407662(0x1d2)](_0x407662(0x22b)));!currentTile&&_0x58f7ec[_0x407662(0x252)]>0x0&&setTimeout(()=>{const _0x4c6178=_0x407662;_0x58f7ec[_0x4c6178(0x20e)](_0x183cea=>{const _0x47ee23=_0x4c6178;!currentTile&&_0x183cea['classList']['remove'](_0x47ee23(0x220));});},0x1388);}}},0x1388);socket['on'](_0x589aac(0x1df),()=>{}),socket['on'](_0x589aac(0x172),_0x3e1487=>{}),socket['on'](_0x589aac(0x18e),()=>{const _0x5c35d1=_0x589aac;emojiSelection[_0x5c35d1(0x232)]['add'](_0x5c35d1(0x1af));const _0x4926db=document[_0x5c35d1(0x1c0)]('#joinScreen\x20.setup-message');_0x4926db[_0x5c35d1(0x184)]=_0x5c35d1(0x1b6),_0x4926db['style'][_0x5c35d1(0x151)]='#e74c3c',setTimeout(()=>{const _0x403d9b=_0x5c35d1;emojiSelection[_0x403d9b(0x232)][_0x403d9b(0x1be)](_0x403d9b(0x1af)),setTimeout(()=>{const _0xa5da0e=_0x403d9b;_0x4926db[_0xa5da0e(0x184)]='Pick\x20the\x203\x20emojis\x20to\x20join:',_0x4926db[_0xa5da0e(0x1eb)][_0xa5da0e(0x151)]='#2c3e50';},0x7d0);},0x1f4);}),socket['on'](_0x589aac(0x17f),_0x3894a4=>{const _0x34e9f0=_0x589aac;_0x3894a4['playerId']!==socket['id']&&gameId===_0x3894a4[_0x34e9f0(0x240)]&&(isMyTurn&&_0x3894a4[_0x34e9f0(0x1e5)]&&(socket['id']===players[_0x34e9f0(0x203)]&&(isMyTurn=![])),currentPlayer!==_0x3894a4[_0x34e9f0(0x204)]&&(socket['id']===players[_0x34e9f0(0x203)]&&(currentPlayer=_0x3894a4[_0x34e9f0(0x204)]===0x1?0x2:0x1)),updateTileColors());}),socket['on']('gameCreated',_0x5bca05=>{const _0x2d0c69=_0x589aac;gameId=_0x5bca05[_0x2d0c69(0x240)],playerId=_0x5bca05[_0x2d0c69(0x183)];let _0x300b25=[],_0x21436a=new Set();for(let _0x34132e=0x0;_0x34132e<0x3;_0x34132e++){let _0x39cb9e=_0x5bca05[_0x2d0c69(0x240)][_0x34132e]||'A',_0x13ebbe=_0x39cb9e[_0x2d0c69(0x200)](0x0);(_0x13ebbe<0x41||_0x13ebbe>0x49)&&(_0x39cb9e='A');if(_0x21436a[_0x2d0c69(0x1c8)](_0x39cb9e))for(let _0x10cae7=0x41;_0x10cae7<=0x49;_0x10cae7++){const _0x1fa6bb=String['fromCharCode'](_0x10cae7);if(!_0x21436a['has'](_0x1fa6bb)){_0x39cb9e=_0x1fa6bb;break;}}_0x21436a[_0x2d0c69(0x218)](_0x39cb9e),_0x300b25['push'](_0x39cb9e);}const _0x2bcd3f=_0x300b25[_0x2d0c69(0x212)](_0x512d4e=>_0x512d4e[_0x2d0c69(0x200)](0x0)-0x41);gameEmojis=_0x2bcd3f[_0x2d0c69(0x212)](_0x1ec790=>emojis[_0x1ec790]),gameCodeEmojis[_0x2d0c69(0x242)]='';const _0x573e03=[...new Set(gameEmojis)];while(_0x573e03['length']<0x3){const _0x1aebbf=emojis[Math[_0x2d0c69(0x185)](Math[_0x2d0c69(0x154)]()*emojis['length'])];!_0x573e03[_0x2d0c69(0x175)](_0x1aebbf)&&_0x573e03[_0x2d0c69(0x1a8)](_0x1aebbf);}_0x573e03['slice'](0x0,0x3)[_0x2d0c69(0x20e)](_0x1e72f5=>{const _0x370a3a=_0x2d0c69,_0x47f547=document['createElement']('div');_0x47f547[_0x370a3a(0x232)][_0x370a3a(0x218)](_0x370a3a(0x239)),_0x47f547[_0x370a3a(0x184)]=_0x1e72f5,gameCodeEmojis[_0x370a3a(0x146)](_0x47f547);}),gameEmojis=_0x573e03[_0x2d0c69(0x18f)](0x0,0x3),socket[_0x2d0c69(0x1cb)](_0x2d0c69(0x223),{'gameId':gameId,'playerId':socket['id'],'name':playerName}),startScreen[_0x2d0c69(0x1eb)]['display']=_0x2d0c69(0x1fe),createScreen['style'][_0x2d0c69(0x1f8)]=_0x2d0c69(0x208);}),socket['on']('disconnect',()=>{const _0x329a16=_0x589aac;setupOverlay['style'][_0x329a16(0x1f8)]!==_0x329a16(0x1fe)&&(startButton[_0x329a16(0x184)]='Start\x20New\x20Game',startButton[_0x329a16(0x1e9)]=![],joinButton[_0x329a16(0x1e9)]=![]);}),socket['on']('reconnect',()=>{const _0x3034e8=_0x589aac;gameId&&socket[_0x3034e8(0x1cb)](_0x3034e8(0x1f0),{'gameId':gameId,'playerId':socket['id']});}),socket['on']('gameStarted',_0x4a2257=>{const _0x32aa38=_0x589aac;gameId=_0x4a2257['gameId'],playerId=socket['id'],players['first']=_0x4a2257[_0x32aa38(0x1ec)][0x0],players['second']=_0x4a2257['players'][0x1],setupOverlay[_0x32aa38(0x1eb)][_0x32aa38(0x1f8)]=_0x32aa38(0x1fe),gameBoard[_0x32aa38(0x1eb)][_0x32aa38(0x1f8)]=_0x32aa38(0x193),isMyTurn=_0x4a2257['players'][0x0]===socket['id'],currentPlayer=0x1,initGame(),updateTileColors(),setTimeout(()=>{const _0xaec0e7=_0x32aa38;socket[_0xaec0e7(0x1cb)](_0xaec0e7(0x178),{'type':_0xaec0e7(0x1a7),'gameId':gameId,'playerId':socket['id'],'isPlayer1':iAmPlayer1,'name':playerName,'timestamp':Date[_0xaec0e7(0x1d7)]()});},0x3e8),setTimeout(updatePlayerLabelsBasedOnPosition,0x1f4);}),socket['on'](_0x589aac(0x223),_0x404329=>{const _0x28916c=_0x589aac;_0x404329[_0x28916c(0x183)]&&_0x404329['playerId']!==socket['id']&&(players['names'][_0x404329[_0x28916c(0x183)]]=_0x404329[_0x28916c(0x1e1)],opponentName=_0x404329[_0x28916c(0x1e1)],updatePlayerLabels());}),socket['on'](_0x589aac(0x229),_0x369650=>{const _0x5d8f98=_0x589aac;console[_0x5d8f98(0x1ff)]('Received\x20gameMove\x20event:',_0x369650[_0x5d8f98(0x1e6)],_0x369650);if(_0x369650[_0x5d8f98(0x1e6)]===_0x5d8f98(0x1a7)&&_0x369650[_0x5d8f98(0x183)]!==socket['id']){const _0x26717a=document[_0x5d8f98(0x1c0)](_0x5d8f98(0x17b)),_0xf39396=document['querySelector'](_0x5d8f98(0x14b));_0x369650[_0x5d8f98(0x22f)]?_0x26717a['textContent']=_0x369650[_0x5d8f98(0x1e1)]:_0xf39396[_0x5d8f98(0x184)]=_0x369650[_0x5d8f98(0x1e1)],socket[_0x5d8f98(0x1cb)](_0x5d8f98(0x178),{'type':_0x5d8f98(0x1a7),'gameId':gameId,'playerId':socket['id'],'isPlayer1':iAmPlayer1,'name':playerName,'timestamp':Date[_0x5d8f98(0x1d7)]()});}else{if(_0x369650[_0x5d8f98(0x1e6)]===_0x5d8f98(0x14e)&&_0x369650['playerId']!==socket['id']){const _0x1e3c7e=Array[_0x5d8f98(0x1d9)](drawPile['children']);_0x1e3c7e[_0x5d8f98(0x20e)](_0x1b2207=>{const _0xb0426d=_0x5d8f98;!_0x1b2207[_0xb0426d(0x232)][_0xb0426d(0x231)]('wiggle')&&(_0x1b2207[_0xb0426d(0x184)]=''),_0x1b2207[_0xb0426d(0x232)][_0xb0426d(0x1be)](_0xb0426d(0x199),_0xb0426d(0x15c),_0xb0426d(0x17c));});let _0x4501cd=_0x1e3c7e[_0x5d8f98(0x157)](_0x5cb3f9=>_0x5cb3f9[_0x5d8f98(0x1b8)][_0x5d8f98(0x17a)]===_0x369650[_0x5d8f98(0x1b7)]);!_0x4501cd&&(_0x4501cd=document[_0x5d8f98(0x181)](_0x5d8f98(0x23b)),_0x4501cd[_0x5d8f98(0x232)][_0x5d8f98(0x218)](_0x5d8f98(0x1b7)),_0x4501cd[_0x5d8f98(0x1b8)][_0x5d8f98(0x17a)]=_0x369650[_0x5d8f98(0x1b7)],_0x4501cd[_0x5d8f98(0x1a3)](_0x5d8f98(0x24c),selectDrawTile),drawPile[_0x5d8f98(0x146)](_0x4501cd)),_0x4501cd[_0x5d8f98(0x232)][_0x5d8f98(0x218)]('wiggle','duplicate-offer'),_0x4501cd['textContent']=_0x369650[_0x5d8f98(0x1b7)],_0x1e3c7e[_0x5d8f98(0x20e)](_0x1ec4cc=>{const _0x16214b=_0x5d8f98;_0x1ec4cc!==_0x4501cd&&_0x1ec4cc[_0x16214b(0x1b8)]['letter']===_0x369650[_0x16214b(0x1b7)]&&(_0x1ec4cc[_0x16214b(0x184)]='');}),_0x1e3c7e[_0x5d8f98(0x20e)](_0x5f4e93=>{const _0x347a36=_0x5d8f98;_0x5f4e93!==_0x4501cd&&(_0x5f4e93['style'][_0x347a36(0x171)]=_0x347a36(0x1fe));}),setTimeout(()=>{const _0x170e01=_0x5d8f98;_0x4501cd[_0x170e01(0x232)][_0x170e01(0x218)](_0x170e01(0x15c));},0xfa),_0x4501cd[_0x5d8f98(0x1a3)](_0x5d8f98(0x24c),()=>{const _0x25b56e=_0x5d8f98;_0x1e3c7e[_0x25b56e(0x20e)](_0x579cfb=>{const _0x5dbed8=_0x25b56e;_0x579cfb[_0x5dbed8(0x1eb)][_0x5dbed8(0x171)]=_0x5dbed8(0x1c5);}),currentTile=_0x4501cd[_0x25b56e(0x1b8)][_0x25b56e(0x17a)],_0x4501cd[_0x25b56e(0x232)][_0x25b56e(0x1be)]('wiggle',_0x25b56e(0x15c)),_0x4501cd['classList'][_0x25b56e(0x218)](_0x25b56e(0x220));const _0x102a2d=drawPile['querySelectorAll']('.duplicate-offer');_0x102a2d['forEach'](_0x2d3614=>{const _0x21f459=_0x25b56e;_0x2d3614!==_0x4501cd&&_0x2d3614[_0x21f459(0x1be)]();}),_0x4501cd[_0x25b56e(0x232)]['remove'](_0x25b56e(0x17c)),updateTileColors();},{'once':!![]}),isMyTurn=!![],currentPlayer=_0x369650[_0x5d8f98(0x1bd)],updateTileColors();}}if(_0x369650['type']===_0x5d8f98(0x234)&&_0x369650[_0x5d8f98(0x183)]!==socket['id']){const _0x2b8be1=_0x369650[_0x5d8f98(0x1bd)]===0x1?player1Area:player2Area;if(_0x369650[_0x5d8f98(0x15d)]>=0x0&&_0x369650[_0x5d8f98(0x15d)]<_0x2b8be1['children'][_0x5d8f98(0x252)]){const _0x33f7b6=_0x2b8be1[_0x5d8f98(0x1c9)][_0x369650['position']];_0x33f7b6&&!_0x33f7b6['classList'][_0x5d8f98(0x231)](_0x5d8f98(0x248))&&(console[_0x5d8f98(0x1ff)](_0x5d8f98(0x1fb),_0x369650['position'],_0x5d8f98(0x20d),_0x369650[_0x5d8f98(0x1b7)]),_0x33f7b6[_0x5d8f98(0x1b8)][_0x5d8f98(0x17a)]=_0x369650[_0x5d8f98(0x1b7)],_0x33f7b6['textContent']=_0x369650[_0x5d8f98(0x1b7)],_0x33f7b6[_0x5d8f98(0x232)]['add'](_0x5d8f98(0x248)));}}else{if(_0x369650[_0x5d8f98(0x1e6)]===_0x5d8f98(0x1e3)){gameOver=!![];const _0x28b151=parseInt(_0x369650[_0x5d8f98(0x1c6)]),_0x1da029=document[_0x5d8f98(0x1c0)](_0x5d8f98(0x17b)),_0x35e608=document['querySelector'](_0x5d8f98(0x14b));let _0x48c1f2;if(_0x369650[_0x5d8f98(0x1de)])_0x48c1f2=_0x369650[_0x5d8f98(0x1de)];else{const _0x128b2f=socket['id']===players[_0x5d8f98(0x14d)]?playerName:opponentName,_0x3cb4ca=socket['id']===players[_0x5d8f98(0x203)]?playerName:opponentName;_0x48c1f2=_0x28b151===0x1?_0x128b2f:_0x3cb4ca;}const _0x1c78fe=_0x28b151===0x1&&socket['id']===players[_0x5d8f98(0x14d)]||_0x28b151===0x2&&socket['id']===players['second'];_0x1c78fe?showSimpleWinnerAnimation(_0x48c1f2):showSimpleLoserScreen(_0x48c1f2);const _0xa7634f=socket['id']===players[_0x5d8f98(0x14d)]?playerName:opponentName,_0x1b9d80=socket['id']===players[_0x5d8f98(0x203)]?playerName:opponentName;_0x28b151===0x1?(_0x1da029[_0x5d8f98(0x184)]=_0xa7634f+_0x5d8f98(0x1b9),_0x35e608['textContent']=_0x1b9d80+':\x20'+_0x48c1f2+_0x5d8f98(0x1a9)):(_0x1da029[_0x5d8f98(0x184)]=_0xa7634f+':\x20'+_0x48c1f2+_0x5d8f98(0x1a9),_0x35e608[_0x5d8f98(0x184)]=_0x1b9d80+_0x5d8f98(0x1b9)),isMyTurn=![],updateTileColors();}else{if(_0x369650[_0x5d8f98(0x1e6)]===_0x5d8f98(0x224)&&_0x369650[_0x5d8f98(0x183)]!==socket['id']){console[_0x5d8f98(0x1ff)](_0x5d8f98(0x250),_0x369650[_0x5d8f98(0x19c)]);if(_0x369650[_0x5d8f98(0x19c)]===_0x5d8f98(0x141)){const _0x5b4580=_0x369650[_0x5d8f98(0x1bd)]===0x1?0x2:0x1,_0x47459b=document[_0x5d8f98(0x1c0)]('.game-section:nth-child('+(_0x369650['currentPlayer']===0x1?0x1:0x3)+_0x5d8f98(0x155)),_0x584893=document[_0x5d8f98(0x1c0)](_0x5d8f98(0x23c)+(_0x5b4580===0x1?0x1:0x3)+_0x5d8f98(0x155)),_0x386f0b=_0x369650[_0x5d8f98(0x1b1)]||(_0x369650[_0x5d8f98(0x1bd)]===0x1?socket['id']===players[_0x5d8f98(0x14d)]?playerName:opponentName:socket['id']===players[_0x5d8f98(0x203)]?playerName:opponentName);_0x47459b[_0x5d8f98(0x184)]=_0x386f0b+_0x5d8f98(0x15b);if(socket['id']===(_0x5b4580===0x1?players['first']:players[_0x5d8f98(0x203)]))_0x584893['textContent']=playerName+':\x20Player\x20Skipped,\x20Your\x20Turn!';else{const _0x423505=_0x369650[_0x5d8f98(0x21c)]||(_0x5b4580===0x1?socket['id']===players['first']?playerName:opponentName:socket['id']===players[_0x5d8f98(0x203)]?playerName:opponentName);_0x584893[_0x5d8f98(0x184)]=_0x423505+_0x5d8f98(0x207);}const _0x2231d=Array[_0x5d8f98(0x1d9)](drawPile[_0x5d8f98(0x1c9)]);let _0x140f86=_0x2231d[_0x369650[_0x5d8f98(0x18a)]];!_0x140f86&&(_0x140f86=_0x2231d[_0x5d8f98(0x157)](_0x30b49d=>_0x30b49d[_0x5d8f98(0x1b8)][_0x5d8f98(0x17a)]==='🐸')),!_0x140f86?(_0x140f86=document[_0x5d8f98(0x181)](_0x5d8f98(0x23b)),_0x140f86[_0x5d8f98(0x232)]['add']('tile',_0x5d8f98(0x148)),_0x140f86[_0x5d8f98(0x1b8)][_0x5d8f98(0x17a)]='🐸',_0x140f86[_0x5d8f98(0x184)]='🐸',drawPile[_0x5d8f98(0x146)](_0x140f86)):_0x140f86[_0x5d8f98(0x184)]='🐸',_0x140f86[_0x5d8f98(0x232)][_0x5d8f98(0x218)](_0x5d8f98(0x220)),currentTileDisplay[_0x5d8f98(0x184)]=_0x5d8f98(0x1ae),setTimeout(()=>{const _0x16136d=_0x5d8f98;_0x140f86['parentNode']===drawPile&&_0x140f86[_0x16136d(0x1be)](),currentTileDisplay['textContent']='',currentTile=null,isMyTurn=socket['id']===(_0x5b4580===0x1?players['first']:players[_0x16136d(0x203)]),currentPlayer=_0x5b4580,updateTileColors();},0xbb8),setTimeout(()=>{const _0x63b7e8=_0x5d8f98;_0x47459b['textContent'][_0x63b7e8(0x175)](_0x63b7e8(0x202))&&(_0x47459b[_0x63b7e8(0x184)]=_0x47459b[_0x63b7e8(0x184)][_0x63b7e8(0x227)](':')[0x0][_0x63b7e8(0x1b4)]()),_0x584893['textContent'][_0x63b7e8(0x175)](_0x63b7e8(0x247))&&(_0x584893[_0x63b7e8(0x184)]=_0x584893[_0x63b7e8(0x184)][_0x63b7e8(0x227)](':')[0x0][_0x63b7e8(0x1b4)]());},0x1f40);}else{if(_0x369650['action']===_0x5d8f98(0x195)){const _0x4261f6=_0x369650['currentPlayer']===0x1?0x2:0x1,_0x53174b=document[_0x5d8f98(0x1c0)](_0x5d8f98(0x23c)+(_0x369650[_0x5d8f98(0x1bd)]===0x1?0x1:0x3)+_0x5d8f98(0x155)),_0x574075=document[_0x5d8f98(0x1c0)](_0x5d8f98(0x23c)+(_0x4261f6===0x1?0x1:0x3)+')\x20h3'),_0x505385=_0x369650[_0x5d8f98(0x1b1)]||(_0x369650[_0x5d8f98(0x1bd)]===0x1?socket['id']===players[_0x5d8f98(0x14d)]?playerName:opponentName:socket['id']===players['second']?playerName:opponentName);_0x53174b[_0x5d8f98(0x184)]=_0x505385+_0x5d8f98(0x152);if(socket['id']===(_0x4261f6===0x1?players[_0x5d8f98(0x14d)]:players['second']))_0x574075[_0x5d8f98(0x184)]=playerName+_0x5d8f98(0x1f7);else{const _0x45124e=_0x369650[_0x5d8f98(0x21c)]||(_0x4261f6===0x1?socket['id']===players[_0x5d8f98(0x14d)]?playerName:opponentName:socket['id']===players[_0x5d8f98(0x203)]?playerName:opponentName);_0x574075[_0x5d8f98(0x184)]=_0x45124e+_0x5d8f98(0x1f7);}const _0x3e3b77=Array[_0x5d8f98(0x1d9)](drawPile[_0x5d8f98(0x1c9)]);let _0x50623c=_0x3e3b77[_0x369650[_0x5d8f98(0x18a)]];!_0x50623c&&(_0x50623c=_0x3e3b77[_0x5d8f98(0x157)](_0xcddc37=>_0xcddc37['dataset'][_0x5d8f98(0x17a)]==='🐙')),!_0x50623c?(_0x50623c=document[_0x5d8f98(0x181)](_0x5d8f98(0x23b)),_0x50623c[_0x5d8f98(0x232)][_0x5d8f98(0x218)](_0x5d8f98(0x1b7),_0x5d8f98(0x148)),_0x50623c[_0x5d8f98(0x1b8)][_0x5d8f98(0x17a)]='🐙',_0x50623c[_0x5d8f98(0x184)]='🐙',drawPile['appendChild'](_0x50623c)):_0x50623c[_0x5d8f98(0x184)]='🐙',_0x50623c[_0x5d8f98(0x232)][_0x5d8f98(0x218)](_0x5d8f98(0x220)),currentTileDisplay[_0x5d8f98(0x184)]=_0x5d8f98(0x1bf),setTimeout(()=>{const _0x5df83e=_0x5d8f98;_0x50623c[_0x5df83e(0x189)]===drawPile&&_0x50623c[_0x5df83e(0x1be)](),currentTileDisplay[_0x5df83e(0x184)]='',currentTile=null,switchPiles(),isMyTurn=socket['id']===(_0x4261f6===0x1?players[_0x5df83e(0x14d)]:players[_0x5df83e(0x203)]),currentPlayer=_0x4261f6,updateTileColors();},0xbb8),setTimeout(()=>{const _0x299932=_0x5d8f98;_0x53174b[_0x299932(0x184)]['includes'](_0x299932(0x1d5))&&(_0x53174b[_0x299932(0x184)]=_0x53174b[_0x299932(0x184)][_0x299932(0x227)](':')[0x0][_0x299932(0x1b4)]()),_0x574075[_0x299932(0x184)][_0x299932(0x175)](_0x299932(0x173))&&(_0x574075['textContent']=_0x574075[_0x299932(0x184)]['split'](':')[0x0]['trim']());},0x1f40);}else{if(_0x369650['action']==='potionBubbles'){console['log'](_0x5d8f98(0x24d),_0x369650);const _0x2e1532=document[_0x5d8f98(0x1c0)](_0x5d8f98(0x17b)),_0x3fc430=document[_0x5d8f98(0x1c0)](_0x5d8f98(0x14b)),_0x15720e=_0x369650['activePlayerName']||(_0x369650['currentPlayer']===0x1?socket['id']===players[_0x5d8f98(0x14d)]?playerName:opponentName:socket['id']===players[_0x5d8f98(0x203)]?playerName:opponentName);_0x369650[_0x5d8f98(0x1bd)]===0x1?(_0x2e1532[_0x5d8f98(0x184)]=_0x15720e+_0x5d8f98(0x16d),_0x3fc430[_0x5d8f98(0x184)]=_0x3fc430[_0x5d8f98(0x184)][_0x5d8f98(0x227)](':')[0x0]+':\x20'+_0x15720e+'\x20Magic\x20Mushroom\x20Found!'):(_0x3fc430[_0x5d8f98(0x184)]=_0x15720e+_0x5d8f98(0x16d),_0x2e1532['textContent']=_0x2e1532['textContent'][_0x5d8f98(0x227)](':')[0x0]+':\x20'+_0x15720e+'\x20Magic\x20Mushroom\x20Found!');setTimeout(()=>{const _0x14e80c=_0x5d8f98;_0x2e1532['textContent'][_0x14e80c(0x175)](_0x14e80c(0x14a))&&(_0x2e1532[_0x14e80c(0x184)]=_0x2e1532[_0x14e80c(0x184)][_0x14e80c(0x227)](':')[0x0][_0x14e80c(0x1b4)]()),_0x3fc430[_0x14e80c(0x184)][_0x14e80c(0x175)](_0x14e80c(0x14a))&&(_0x3fc430[_0x14e80c(0x184)]=_0x3fc430[_0x14e80c(0x184)][_0x14e80c(0x227)](':')[0x0][_0x14e80c(0x1b4)]());},0x1388);const _0x1538f8=Array['from'](drawPile[_0x5d8f98(0x1c9)]);let _0x2f5af9=_0x1538f8[_0x369650[_0x5d8f98(0x18a)]];!_0x2f5af9&&(_0x2f5af9=_0x1538f8[_0x5d8f98(0x157)](_0xc08354=>_0xc08354['dataset']['letter']==='🍄')),!_0x2f5af9?(_0x2f5af9=document[_0x5d8f98(0x181)](_0x5d8f98(0x23b)),_0x2f5af9[_0x5d8f98(0x232)][_0x5d8f98(0x218)](_0x5d8f98(0x1b7),_0x5d8f98(0x148)),_0x2f5af9[_0x5d8f98(0x1b8)][_0x5d8f98(0x17a)]='🍄',_0x2f5af9[_0x5d8f98(0x184)]='🍄',drawPile[_0x5d8f98(0x146)](_0x2f5af9)):_0x2f5af9[_0x5d8f98(0x184)]='🍄',_0x2f5af9['classList'][_0x5d8f98(0x218)]('selected'),currentTileDisplay['textContent']=_0x15720e+_0x5d8f98(0x17e),setTimeout(()=>{const _0x1a0d1e=_0x5d8f98;_0x2f5af9['parentNode']===drawPile&&_0x2f5af9[_0x1a0d1e(0x1be)](),currentTileDisplay[_0x1a0d1e(0x184)]='';},0xbb8);}else{if(_0x369650[_0x5d8f98(0x19c)]==='bothHave'){const _0x35600b=drawPile['querySelector'](_0x5d8f98(0x16f));if(_0x35600b)_0x35600b[_0x5d8f98(0x1be)]();if(_0x369650[_0x5d8f98(0x194)]){!discardedLetters[_0x5d8f98(0x175)](_0x369650[_0x5d8f98(0x194)])&&discardedLetters['push'](_0x369650[_0x5d8f98(0x194)]);const _0x3eee08=Array['from'](drawPile[_0x5d8f98(0x1c9)])[_0x5d8f98(0x163)](_0x212f03=>_0x212f03[_0x5d8f98(0x1b8)][_0x5d8f98(0x17a)]===_0x369650[_0x5d8f98(0x194)]);_0x3eee08[_0x5d8f98(0x20e)](_0x109e2d=>_0x109e2d[_0x5d8f98(0x1be)]());}setTimeout(()=>{currentTile=null,isMyTurn=!![],currentPlayer=_0x369650['currentPlayer']===0x1?0x2:0x1,updateTileColors();},0x3e8);}}}}}else{if(_0x369650[_0x5d8f98(0x1e6)]==='potionRevealTile'&&_0x369650[_0x5d8f98(0x183)]!==socket['id']){console['log'](_0x5d8f98(0x221),_0x369650);const _0x17f874=_0x369650[_0x5d8f98(0x1bd)]===0x1?player1Area:player2Area;if(_0x369650[_0x5d8f98(0x15d)]>=0x0&&_0x369650[_0x5d8f98(0x15d)]<_0x17f874[_0x5d8f98(0x1c9)][_0x5d8f98(0x252)]){const _0x53f809=_0x17f874[_0x5d8f98(0x1c9)][_0x369650[_0x5d8f98(0x15d)]];_0x53f809&&(console[_0x5d8f98(0x1ff)](_0x5d8f98(0x1b5),_0x369650[_0x5d8f98(0x15d)],_0x5d8f98(0x20d),_0x369650[_0x5d8f98(0x1b7)]),createBubbleAnimation(_0x53f809),setTimeout(()=>{const _0x510870=_0x5d8f98;_0x53f809[_0x510870(0x1b8)][_0x510870(0x17a)]=_0x369650[_0x510870(0x1b7)],_0x53f809['textContent']=_0x369650[_0x510870(0x1b7)],_0x53f809[_0x510870(0x232)][_0x510870(0x218)](_0x510870(0x248));},0x3e8));}}else{if(_0x369650[_0x5d8f98(0x1e6)]===_0x5d8f98(0x169)&&_0x369650['playerId']!==socket['id'])_0x369650[_0x5d8f98(0x1d0)]['forEach'](_0xd05b48=>{const _0x232d58=_0x5d8f98;!discardedLetters[_0x232d58(0x175)](_0xd05b48)&&discardedLetters['push'](_0xd05b48);const _0x598fb5=Array[_0x232d58(0x1d9)](drawPile[_0x232d58(0x1c9)])[_0x232d58(0x163)](_0x119513=>_0x119513[_0x232d58(0x1b8)]['letter']===_0xd05b48);_0x598fb5['forEach'](_0x1a8f7=>_0x1a8f7[_0x232d58(0x1be)]());});else{if(_0x369650['type']===_0x5d8f98(0x24a)&&_0x369650['playerId']!==socket['id']){const _0x3e171b=document['createElement'](_0x5d8f98(0x23b));_0x3e171b['classList']['add'](_0x5d8f98(0x1b7)),_0x3e171b[_0x5d8f98(0x1b8)][_0x5d8f98(0x17a)]=_0x369650[_0x5d8f98(0x17a)],_0x3e171b['addEventListener']('click',selectDrawTile),drawPile[_0x5d8f98(0x146)](_0x3e171b);}else{if(_0x369650[_0x5d8f98(0x1e6)]===_0x5d8f98(0x20a)&&_0x369650['playerId']!==socket['id']){const _0xcc88f1=_0x369650[_0x5d8f98(0x20f)],_0x2cd65d=_0x369650[_0x5d8f98(0x14f)];player1Area[_0x5d8f98(0x242)]='',_0xcc88f1[_0x5d8f98(0x20e)](_0xe359d=>{const _0x40357f=_0x5d8f98,_0x3b2f65=document['createElement'](_0x40357f(0x23b));_0x3b2f65['classList'][_0x40357f(0x218)](_0x40357f(0x1b7));if(_0xe359d[_0x40357f(0x248)])_0x3b2f65[_0x40357f(0x232)]['add'](_0x40357f(0x248));_0x3b2f65['dataset']['letter']=_0xe359d[_0x40357f(0x17a)];if(_0xe359d[_0x40357f(0x206)])_0x3b2f65['dataset'][_0x40357f(0x206)]=_0xe359d[_0x40357f(0x206)];_0x3b2f65[_0x40357f(0x184)]=_0xe359d[_0x40357f(0x248)]?_0xe359d[_0x40357f(0x206)]||_0xe359d[_0x40357f(0x17a)]:'',_0x3b2f65[_0x40357f(0x1a3)](_0x40357f(0x24c),placeTile),player1Area['appendChild'](_0x3b2f65);}),player2Area[_0x5d8f98(0x242)]='',_0x2cd65d[_0x5d8f98(0x20e)](_0x52dbee=>{const _0x190722=_0x5d8f98,_0x17adcc=document['createElement'](_0x190722(0x23b));_0x17adcc[_0x190722(0x232)][_0x190722(0x218)](_0x190722(0x1b7));if(_0x52dbee[_0x190722(0x248)])_0x17adcc['classList']['add'](_0x190722(0x248));_0x17adcc[_0x190722(0x1b8)][_0x190722(0x17a)]=_0x52dbee[_0x190722(0x17a)];if(_0x52dbee[_0x190722(0x206)])_0x17adcc[_0x190722(0x1b8)][_0x190722(0x206)]=_0x52dbee[_0x190722(0x206)];_0x17adcc['textContent']=_0x52dbee[_0x190722(0x248)]?_0x52dbee[_0x190722(0x206)]||_0x52dbee['letter']:'',_0x17adcc['addEventListener'](_0x190722(0x24c),placeTile),player2Area[_0x190722(0x146)](_0x17adcc);}),updateTileColors();}else{if(_0x369650['type']===_0x5d8f98(0x16a)&&_0x369650[_0x5d8f98(0x183)]!==socket['id']){const _0x533a8a=Array['from'](drawPile[_0x5d8f98(0x1c9)]),_0x2093ca=_0x533a8a[_0x369650[_0x5d8f98(0x18a)]];_0x2093ca&&(_0x533a8a[_0x5d8f98(0x20e)](_0x42be86=>{const _0xe7f579=_0x5d8f98;_0x42be86['classList'][_0xe7f579(0x1be)](_0xe7f579(0x220)),_0x42be86===_0x2093ca?_0x42be86[_0xe7f579(0x184)]=_0x369650[_0xe7f579(0x1b7)]:_0x42be86['textContent']='';}),_0x2093ca[_0x5d8f98(0x232)]['add'](_0x5d8f98(0x220)),_0x2093ca['textContent']=_0x369650['tile'],currentTile=_0x369650[_0x5d8f98(0x1b7)],currentTileDisplay['textContent']='');}else{if(_0x369650[_0x5d8f98(0x1e6)]===_0x5d8f98(0x20b)&&_0x369650[_0x5d8f98(0x183)]!==socket['id']){const _0x23b8d3=socket['id']===players['first']?player2Area:player1Area,_0x37a7c3=_0x23b8d3[_0x5d8f98(0x1c9)][_0x369650['position']];if(_0x37a7c3){const _0x3e046c=_0x37a7c3[_0x5d8f98(0x1b8)][_0x5d8f98(0x17a)];_0x37a7c3[_0x5d8f98(0x1b8)][_0x5d8f98(0x17a)]=_0x369650[_0x5d8f98(0x1b7)],_0x37a7c3[_0x5d8f98(0x184)]=_0x369650[_0x5d8f98(0x1b7)],_0x37a7c3['classList']['add'](_0x5d8f98(0x248));const _0x3cd013=drawPile['querySelector'](_0x5d8f98(0x16f));if(_0x3cd013)_0x3cd013[_0x5d8f98(0x1be)]();_0x3e046c&&(_0x3e046c!=='🐸'&&_0x3e046c!=='🐙'&&_0x3e046c!=='⭐'&&_0x3e046c!=='🍄'&&returnTileToDrawPile(_0x3e046c));}isMyTurn=![],updateTileColors();}}}}}}}}}}),socket['on'](_0x589aac(0x188),_0x5e0cea=>{const _0x2fcd6c=_0x589aac;_0x5e0cea[_0x2fcd6c(0x240)]===gameId&&_0x5e0cea[_0x2fcd6c(0x183)]!==socket['id']&&(currentPlayer!==_0x5e0cea[_0x2fcd6c(0x1bd)]&&(currentPlayer=_0x5e0cea[_0x2fcd6c(0x1bd)],isMyTurn=socket['id']===(currentPlayer===0x1?players[_0x2fcd6c(0x14d)]:players[_0x2fcd6c(0x203)]),updateTileColors()));}),startButton[_0x589aac(0x1a3)](_0x589aac(0x24c),()=>{const _0x2f541a=_0x589aac;iAmPlayer1=!![],startButton[_0x2f541a(0x184)]=_0x2f541a(0x192),startButton[_0x2f541a(0x1e9)]=!![],joinButton[_0x2f541a(0x1e9)]=!![];const _0x5a8140=setTimeout(()=>{const _0x4c737d=_0x2f541a;startButton[_0x4c737d(0x184)]=_0x4c737d(0x1dd),startButton[_0x4c737d(0x1e9)]=![],joinButton[_0x4c737d(0x1e9)]=![];},0x1388);window[_0x2f541a(0x153)]=_0x5a8140,socket['connected']?socket[_0x2f541a(0x1cb)](_0x2f541a(0x15a)):(socket[_0x2f541a(0x1df)](),setTimeout(()=>{const _0xd68cdc=_0x2f541a;socket[_0xd68cdc(0x236)]?socket[_0xd68cdc(0x1cb)](_0xd68cdc(0x15a)):(startButton[_0xd68cdc(0x184)]=_0xd68cdc(0x1dd),startButton['disabled']=![],joinButton[_0xd68cdc(0x1e9)]=![],clearTimeout(_0x5a8140));},0x3e8));}),joinButton[_0x589aac(0x1a3)](_0x589aac(0x24c),()=>{const _0x2c29b1=_0x589aac;startScreen[_0x2c29b1(0x1eb)][_0x2c29b1(0x1f8)]='none',joinScreen[_0x2c29b1(0x1eb)][_0x2c29b1(0x1f8)]=_0x2c29b1(0x208),createEmojiGrid();}),backButton['addEventListener']('click',()=>{const _0x45c3d2=_0x589aac;joinScreen[_0x45c3d2(0x1eb)][_0x45c3d2(0x1f8)]=_0x45c3d2(0x1fe),startScreen['style'][_0x45c3d2(0x1f8)]=_0x45c3d2(0x208),selectedEmojis=[],updateEmojiSelection();}),submitJoinButton[_0x589aac(0x1a3)](_0x589aac(0x24c),()=>{const _0x26e018=_0x589aac;if(selectedEmojis[_0x26e018(0x252)]===0x3){iAmPlayer1=![];const _0x3667ef=selectedEmojis[_0x26e018(0x212)](_0x597545=>emojis['indexOf'](_0x597545)),_0x5b0224=_0x3667ef[_0x26e018(0x212)](_0x4b4e35=>{const _0x26f5cd=_0x26e018;if(_0x4b4e35<0x0)return'A';return String[_0x26f5cd(0x21b)](0x41+_0x4b4e35);}),_0x316aaa=_0x5b0224[_0x26e018(0x14c)]('');socket[_0x26e018(0x1cb)](_0x26e018(0x143),_0x316aaa);}else emojiSelection[_0x26e018(0x232)]['add'](_0x26e018(0x1af)),setTimeout(()=>{const _0x1101ad=_0x26e018;emojiSelection[_0x1101ad(0x232)][_0x1101ad(0x1be)](_0x1101ad(0x1af));},0x1f4);}),submitNameButton[_0x589aac(0x1a3)](_0x589aac(0x24c),()=>{const _0xc48c73=_0x589aac,_0x282af6=playerNameInput[_0xc48c73(0x1d4)][_0xc48c73(0x1b4)]();_0x282af6[_0xc48c73(0x252)]>0x0?(playerName=_0x282af6,nameEntryScreen['style'][_0xc48c73(0x1f8)]=_0xc48c73(0x1fe),startScreen[_0xc48c73(0x1eb)]['display']='block'):(playerNameInput['classList']['add'](_0xc48c73(0x1af)),setTimeout(()=>playerNameInput[_0xc48c73(0x232)][_0xc48c73(0x1be)](_0xc48c73(0x1af)),0x1f4));}),playerNameInput['addEventListener'](_0x589aac(0x19a),_0x371e0a=>{const _0x3dfa07=_0x589aac;_0x371e0a[_0x3dfa07(0x1b2)]===_0x3dfa07(0x196)&&submitNameButton['click']();});function shuffleArray(_0x2f6d8f){const _0x2326f3=_0x589aac;for(let _0x2c0656=_0x2f6d8f[_0x2326f3(0x252)]-0x1;_0x2c0656>0x0;_0x2c0656--){const _0x36b8cc=Math[_0x2326f3(0x185)](Math[_0x2326f3(0x154)]()*(_0x2c0656+0x1));[_0x2f6d8f[_0x2c0656],_0x2f6d8f[_0x36b8cc]]=[_0x2f6d8f[_0x36b8cc],_0x2f6d8f[_0x2c0656]];}return _0x2f6d8f;}function syncGameState(){const _0x3409bb=_0x589aac;if(gameId&&playerId){const _0x5ad16=drawPile['children']['length'];socket[_0x3409bb(0x1cb)](_0x3409bb(0x17f),{'gameId':gameId,'myTurn':isMyTurn,'myPlayer':currentPlayer,'remainingTiles':_0x5ad16,'timestamp':Date['now']()}),_0x5ad16<0xa&&syncInterval[_0x3409bb(0x1a0)]>0x7d0&&(clearInterval(syncInterval),syncInterval=setInterval(syncGameState,0x7d0));}}function syncDrawPile(){const _0x31d3b9=_0x589aac;if(gameId&&drawPile[_0x31d3b9(0x1c9)]['length']<0xa){const _0x42c509=Array['from'](drawPile[_0x31d3b9(0x1c9)])[_0x31d3b9(0x212)](_0x5d5154=>({'letter':_0x5d5154[_0x31d3b9(0x1b8)][_0x31d3b9(0x17a)],'position':Array[_0x31d3b9(0x1d9)](drawPile['children'])['indexOf'](_0x5d5154)}));socket[_0x31d3b9(0x1cb)](_0x31d3b9(0x188),{'gameId':gameId,'tiles':_0x42c509,'currentPlayer':currentPlayer,'isMyTurn':isMyTurn});}}function createTiles(_0x1bc292,_0x33594d,_0x4c3ea0=![]){const _0x4e94d7=_0x589aac;let _0x169a70=[];if(_0x4c3ea0){let _0x23127b=0x0,_0x5e9628=0x0,_0x43ad08=0x0;const _0x48b85a=alphabet[_0x4e94d7(0x1f2)](0x2)['split'](''),_0x56909b=Array(0x4)[_0x4e94d7(0x21f)]('🐸')[_0x4e94d7(0x253)](Array(0x4)[_0x4e94d7(0x21f)]('🐙'),Array(0x4)[_0x4e94d7(0x21f)]('⭐'));_0x169a70=shuffleArray([..._0x48b85a,..._0x56909b]),_0x169a70=_0x169a70[_0x4e94d7(0x163)](_0xdee24a=>{if(_0xdee24a==='🐸')return _0x23127b++<0x4;if(_0xdee24a==='🐙')return _0x5e9628++<0x4;if(_0xdee24a==='⭐')return _0x43ad08++<0x4;return!![];})[_0x4e94d7(0x18f)](0x0,_0x33594d),window[_0x4e94d7(0x1a2)]=alphabet[_0x4e94d7(0x227)]('');}else{const _0x24cc9e=alphabet['split'](''),_0x88ed1c=Array(0x1)[_0x4e94d7(0x21f)]('🐸')['concat'](Array(0x1)[_0x4e94d7(0x21f)]('🐙'),Array(0x1)[_0x4e94d7(0x21f)]('⭐'));_0x169a70=shuffleArray([..._0x24cc9e,..._0x88ed1c])[_0x4e94d7(0x18f)](0x0,_0x33594d);}for(let _0x1550ff=0x0;_0x1550ff<_0x169a70[_0x4e94d7(0x252)];_0x1550ff++){const _0x39d2f4=document[_0x4e94d7(0x181)](_0x4e94d7(0x23b));_0x39d2f4[_0x4e94d7(0x232)][_0x4e94d7(0x218)](_0x4e94d7(0x1b7)),_0x39d2f4[_0x4e94d7(0x1b8)][_0x4e94d7(0x17a)]=_0x169a70[_0x1550ff],_0x4c3ea0?_0x39d2f4['addEventListener'](_0x4e94d7(0x24c),selectDrawTile):_0x39d2f4[_0x4e94d7(0x1a3)](_0x4e94d7(0x24c),placeTile),_0x1bc292['appendChild'](_0x39d2f4);}if(_0x4c3ea0&&_0x1bc292===drawPile){const _0x473ea0=document[_0x4e94d7(0x181)]('div');_0x473ea0[_0x4e94d7(0x232)][_0x4e94d7(0x218)](_0x4e94d7(0x1b7)),_0x473ea0[_0x4e94d7(0x1b8)][_0x4e94d7(0x17a)]='🍄',_0x473ea0['addEventListener'](_0x4e94d7(0x24c),selectDrawTile);const _0x19bea6=Math['floor'](Math[_0x4e94d7(0x154)]()*(drawPile[_0x4e94d7(0x1c9)][_0x4e94d7(0x252)]+0x1));_0x19bea6>=drawPile[_0x4e94d7(0x1c9)]['length']?drawPile[_0x4e94d7(0x146)](_0x473ea0):drawPile[_0x4e94d7(0x21a)](_0x473ea0,drawPile[_0x4e94d7(0x1c9)][_0x19bea6]),console[_0x4e94d7(0x1ff)]('Added\x20potion\x20tile\x20at\x20position',_0x19bea6);}}function addReserveTileIfNeeded(){const _0x2da2a3=_0x589aac;if(!window[_0x2da2a3(0x1a2)]||window[_0x2da2a3(0x1a2)]['length']===0x0||gameOver)return;const _0x5cd9c4=Array[_0x2da2a3(0x1d9)](player1Area[_0x2da2a3(0x1c9)])['filter'](_0x4ab16f=>!_0x4ab16f[_0x2da2a3(0x232)]['contains'](_0x2da2a3(0x248)))['length'],_0x1862ad=Array['from'](player2Area[_0x2da2a3(0x1c9)])['filter'](_0x42bf92=>!_0x42bf92[_0x2da2a3(0x232)][_0x2da2a3(0x231)](_0x2da2a3(0x248)))[_0x2da2a3(0x252)],_0x5448bd=Math[_0x2da2a3(0x1d6)](_0x5cd9c4,_0x1862ad),_0x261cc5=drawPile['children'][_0x2da2a3(0x252)];if(_0x261cc5<_0x5448bd){if(window[_0x2da2a3(0x1a2)][_0x2da2a3(0x252)]>0x0){const _0x5089ca=window[_0x2da2a3(0x1a2)]['pop']();if(bothPlayersHaveTile(_0x5089ca)||discardedLetters[_0x2da2a3(0x175)](_0x5089ca)){setTimeout(addReserveTileIfNeeded,0x64);return;}const _0x40696b=document[_0x2da2a3(0x181)](_0x2da2a3(0x23b));_0x40696b[_0x2da2a3(0x232)][_0x2da2a3(0x218)]('tile'),_0x40696b[_0x2da2a3(0x1b8)][_0x2da2a3(0x17a)]=_0x5089ca,_0x40696b[_0x2da2a3(0x1a3)](_0x2da2a3(0x24c),selectDrawTile),drawPile[_0x2da2a3(0x146)](_0x40696b),socket[_0x2da2a3(0x1cb)](_0x2da2a3(0x178),{'type':_0x2da2a3(0x24a),'gameId':gameId,'playerId':socket['id'],'letter':_0x5089ca,'timestamp':Date[_0x2da2a3(0x1d7)]()});}}}function cleanupDuplicateTiles(){const _0x3f5c66=_0x589aac;if(!gameId||!playerId||gameOver)return;const _0x22dc72=Array[_0x3f5c66(0x1d9)](player1Area[_0x3f5c66(0x1c9)])[_0x3f5c66(0x163)](_0x48cc2e=>!_0x48cc2e[_0x3f5c66(0x232)]['contains'](_0x3f5c66(0x248)))['length'],_0x300b36=Array[_0x3f5c66(0x1d9)](player2Area[_0x3f5c66(0x1c9)])['filter'](_0x10fbe1=>!_0x10fbe1[_0x3f5c66(0x232)][_0x3f5c66(0x231)](_0x3f5c66(0x248)))['length'],_0x47885f=Math[_0x3f5c66(0x1d6)](_0x22dc72,_0x300b36);for(const _0x17ee1e of alphabet[_0x3f5c66(0x227)]('')){if(bothPlayersHaveTile(_0x17ee1e)){const _0x544332=Array[_0x3f5c66(0x1d9)](drawPile[_0x3f5c66(0x1c9)])[_0x3f5c66(0x163)](_0x585872=>_0x585872[_0x3f5c66(0x1b8)][_0x3f5c66(0x17a)]===_0x17ee1e);_0x544332['length']>0x0&&(!discardedLetters[_0x3f5c66(0x175)](_0x17ee1e)&&discardedLetters[_0x3f5c66(0x1a8)](_0x17ee1e),_0x544332[_0x3f5c66(0x20e)](_0x5324f1=>_0x5324f1[_0x3f5c66(0x1be)]()),socket[_0x3f5c66(0x1cb)](_0x3f5c66(0x178),{'type':_0x3f5c66(0x169),'gameId':gameId,'playerId':socket['id'],'removedLetters':[_0x17ee1e],'timestamp':Date[_0x3f5c66(0x1d7)]()}));}}drawPile['children'][_0x3f5c66(0x252)]<_0x47885f+0x5&&addReserveTileIfNeeded();}function countAllTiles(){const _0x285fee=_0x589aac;Object[_0x285fee(0x18d)](letterCounts)[_0x285fee(0x20e)](_0x58b55a=>{letterCounts[_0x58b55a]=0x0;}),Array[_0x285fee(0x1d9)](player1Area[_0x285fee(0x1c9)])[_0x285fee(0x20e)](_0x394e57=>{const _0xf1dd7f=_0x285fee,_0x2bdc59=_0x394e57['dataset'][_0xf1dd7f(0x17a)];if(_0x2bdc59)letterCounts[_0x2bdc59]=(letterCounts[_0x2bdc59]||0x0)+0x1;}),Array[_0x285fee(0x1d9)](player2Area[_0x285fee(0x1c9)])[_0x285fee(0x20e)](_0x109391=>{const _0x5336a0=_0x285fee,_0x5448f5=_0x109391[_0x5336a0(0x1b8)][_0x5336a0(0x17a)];if(_0x5448f5)letterCounts[_0x5448f5]=(letterCounts[_0x5448f5]||0x0)+0x1;}),Array[_0x285fee(0x1d9)](drawPile['children'])[_0x285fee(0x20e)](_0x2c7347=>{const _0x197ad0=_0x285fee,_0x5064c5=_0x2c7347[_0x197ad0(0x1b8)][_0x197ad0(0x17a)];if(_0x5064c5)letterCounts[_0x5064c5]=(letterCounts[_0x5064c5]||0x0)+0x1;});}function playerHasLetter(_0x1dd317,_0x2259ec){const _0x412681=_0x589aac,_0x57fa04=_0x1dd317===0x1?player1Area:player2Area;return Array[_0x412681(0x1d9)](_0x57fa04[_0x412681(0x1c9)])[_0x412681(0x164)](_0x41708c=>{const _0x1357b=_0x412681;if(!_0x41708c['classList'][_0x1357b(0x231)](_0x1357b(0x248)))return![];if(_0x41708c[_0x1357b(0x1b8)][_0x1357b(0x17a)]==='⭐'){const _0x1b89c6=Array[_0x1357b(0x1d9)](_0x57fa04[_0x1357b(0x1c9)])[_0x1357b(0x170)](_0x41708c),_0x241bb1=alphabet[_0x1b89c6];return _0x241bb1===_0x2259ec;}return _0x41708c['dataset']['letter']===_0x2259ec;});}function bothPlayersHaveTile(_0x56b3a6){const _0x274e9b=_0x589aac;if(_0x56b3a6==='🐸'||_0x56b3a6==='🐙'||_0x56b3a6==='⭐')return![];const _0x1301c0=Array[_0x274e9b(0x1d9)](player1Area[_0x274e9b(0x1c9)])[_0x274e9b(0x164)](_0x3a7364=>{const _0x2f5fbf=_0x274e9b;if(!_0x3a7364[_0x2f5fbf(0x232)]['contains'](_0x2f5fbf(0x248)))return![];if(_0x3a7364[_0x2f5fbf(0x1b8)][_0x2f5fbf(0x17a)]===_0x56b3a6)return!![];if(_0x3a7364['dataset'][_0x2f5fbf(0x17a)]==='⭐'){const _0x59417f=Array[_0x2f5fbf(0x1d9)](player1Area[_0x2f5fbf(0x1c9)])[_0x2f5fbf(0x170)](_0x3a7364);if(_0x59417f>=0x0&&_0x59417f<alphabet['length'])return alphabet[_0x59417f]===_0x56b3a6;}return![];}),_0x1f4cb7=Array[_0x274e9b(0x1d9)](player2Area[_0x274e9b(0x1c9)])[_0x274e9b(0x164)](_0x20cdce=>{const _0x86b8ac=_0x274e9b;if(!_0x20cdce[_0x86b8ac(0x232)][_0x86b8ac(0x231)](_0x86b8ac(0x248)))return![];if(_0x20cdce['dataset']['letter']===_0x56b3a6)return!![];if(_0x20cdce['dataset'][_0x86b8ac(0x17a)]==='⭐'){const _0x4cc1c9=Array['from'](player2Area['children'])['indexOf'](_0x20cdce);if(_0x4cc1c9>=0x0&&_0x4cc1c9<alphabet['length'])return alphabet[_0x4cc1c9]===_0x56b3a6;}return![];});return _0x1301c0&&_0x1f4cb7;}function clearBothHaveMessages(){const _0x2e3739=_0x589aac;currentTileDisplay&&currentTileDisplay[_0x2e3739(0x184)]&&currentTileDisplay[_0x2e3739(0x184)][_0x2e3739(0x219)]()[_0x2e3739(0x175)](_0x2e3739(0x1a6))&&(currentTileDisplay[_0x2e3739(0x184)]='');const _0x3d7585=document[_0x2e3739(0x1d2)](_0x2e3739(0x1f9));_0x3d7585[_0x2e3739(0x20e)](_0x155200=>{const _0x47822a=_0x2e3739;if(_0x155200[_0x47822a(0x184)]&&_0x155200[_0x47822a(0x184)][_0x47822a(0x219)]()[_0x47822a(0x175)](_0x47822a(0x1ba))){const _0x30dd12=_0x155200['textContent'][_0x47822a(0x227)](':')[0x0][_0x47822a(0x1b4)]();_0x30dd12&&(_0x155200[_0x47822a(0x184)]=_0x30dd12);}});}setInterval(clearBothHaveMessages,0x64);function _0x37af(){const _0x4a4544=['2216790MyjLBr','color',':\x20Reversed\x20Tiles!','createGameTimeout','random',')\x20h3','#FF4500','find','Player\x201','.tile','createGame',':\x20Skipped!','pink','position','\x0a\x20\x20\x20\x20\x20\x20\x20\x20position:\x20fixed;\x0a\x20\x20\x20\x20\x20\x20\x20\x20top:\x200;\x0a\x20\x20\x20\x20\x20\x20\x20\x20left:\x200;\x0a\x20\x20\x20\x20\x20\x20\x20\x20width:\x20100%;\x0a\x20\x20\x20\x20\x20\x20\x20\x20height:\x20100%;\x0a\x20\x20\x20\x20\x20\x20\x20\x20background:\x20#ffffff;\x20/*\x20Solid\x20white\x20background\x20*/\x0a\x20\x20\x20\x20\x20\x20\x20\x20display:\x20flex;\x0a\x20\x20\x20\x20\x20\x20\x20\x20flex-direction:\x20column;\x0a\x20\x20\x20\x20\x20\x20\x20\x20justify-content:\x20center;\x0a\x20\x20\x20\x20\x20\x20\x20\x20align-items:\x20center;\x0a\x20\x20\x20\x20\x20\x20\x20\x20z-index:\x202000;\x0a\x20\x20\x20\x20','6aSeeLC','scale(0.2)','#FFFF00','top','filter','some','px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20height:\x20','Play\x20Again','scale(0.7)','drawPile','cleanupTiles','selectTile','fillStyle','translate',':\x20Magic\x20Mushroom\x20Found!','button','.tile.selected','indexOf','pointerEvents','connect_error','Tiles\x20Reversed,\x20Your\x20Turn','px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20opacity:\x200;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20transform:\x20rotate(','includes','active','deg);\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20clip-path:\x20polygon(50%\x200%,\x2061%\x2035%,\x2098%\x2035%,\x2068%\x2057%,\x2079%\x2091%,\x2050%\x2070%,\x2021%\x2091%,\x2032%\x2057%,\x202%\x2035%,\x2039%\x2035%);\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20','makeMove','inactive','letter','.game-section:nth-child(1)\x20h3','duplicate-offer','getElementById','\x20Magic\x20Mushroom\x20Found!','syncRequest','drift','createElement','\x0a\x20\x20\x20\x20\x20\x20\x20\x20z-index:\x202001;\x0a\x20\x20\x20\x20\x20\x20\x20\x20position:\x20relative;\x0a\x20\x20\x20\x20','playerId','textContent','floor','scale(1)','4jwpVwu','syncDrawPile','parentNode','tilePosition','\x0a\x20\x20\x20\x20\x20\x20\x20\x20font-size:\x2048px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20font-weight:\x20bold;\x0a\x20\x20\x20\x20\x20\x20\x20\x20color:\x20#000000;\x20\x0a\x20\x20\x20\x20\x20\x20\x20\x20margin-bottom:\x2020px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20text-shadow:\x202px\x202px\x204px\x20rgba(0,0,0,0.2);\x0a\x20\x20\x20\x20\x20\x20\x20\x20animation:\x20pulse\x201.5s\x20infinite;\x0a\x20\x20\x20\x20\x20\x20\x20\x20z-index:\x202001;\x20/*\x20Make\x20sure\x20text\x20is\x20above\x20canvas\x20*/\x0a\x20\x20\x20\x20','#FFD700','keys','joinFailed','slice','No\x20unrevealed\x20tiles\x20found','save','Creating\x20game...','flex','discardedLetter','reverse','Enter','px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20height:\x20','getBoundingClientRect','wiggle','keypress','px;\x20\x20//\x20Same\x20size\x20as\x20tile\x20(was\x201.2x)\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20height:\x20','action','cssText','innerHeight','\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20position:\x20fixed;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20top:\x200;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20left:\x200;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20width:\x20100%;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20height:\x20100%;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20pointer-events:\x20none;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20z-index:\x209999;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20','_idleTimeout','speed','reserveTiles','addEventListener','42830uQxbja','\x20with\x20letter\x20','both','shareName','push','\x20Wins!','player2Area','names','Reverse\x20tile!','splice','Opponent\x20used\x20Skip\x20tile!','shake','633056QFsoPy','activePlayerName','key','startButton','trim','Revealing\x20tile\x20position','Wrong\x20emoji\x20code!\x20Try\x20again','tile','dataset',':\x20Winner!','both\x20have','nameEntryScreen','1024405asGEcx','currentPlayer','remove','Opponent\x20used\x20Reverse\x20tile!','querySelector','revealTileBtn','rotationSpeed','setup-overlay','height','auto','winner','getContext','has','children','innerWidth','emit','slot3','px;\x20\x20//\x20Much\x20smaller\x20(was\x201.8x)\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20height:\x20','sin','#00FFFF','removedLetters','\x0a\x20\x20\x20\x20\x20\x20\x20\x20position:\x20absolute;\x0a\x20\x20\x20\x20\x20\x20\x20\x20top:\x200;\x0a\x20\x20\x20\x20\x20\x20\x20\x20left:\x200;\x0a\x20\x20\x20\x20\x20\x20\x20\x20width:\x20100%;\x0a\x20\x20\x20\x20\x20\x20\x20\x20height:\x20100%;\x0a\x20\x20\x20\x20\x20\x20\x20\x20pointer-events:\x20none;\x0a\x20\x20\x20\x20','querySelectorAll','\x0a\x20\x20\x20\x20\x20\x20\x20\x20@keyframes\x20pulse\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x200%\x20{\x20transform:\x20scale(1);\x20}\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x2050%\x20{\x20transform:\x20scale(1.1);\x20}\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20100%\x20{\x20transform:\x20scale(1);\x20}\x0a\x20\x20\x20\x20\x20\x20\x20\x20}\x0a\x20\x20\x20\x20','value','Reversed','max','now','Number\x20of\x20potion\x20tiles\x20found\x20in\x20draw\x20pile:','from','rotate','deg)\x20scale(0)','#FF0000','Start\x20New\x20Game','winnerName','connect','\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20position:\x20absolute;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20width:\x20','name','#00FF00','gameOver','face-up','myTurn','type','#0000FF','Potion\x20tile\x20exists\x20at\x20position:','disabled','discardOption','style','players','536fzrasX','canvas','joinScreen','rejoinGame','every','repeat','px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20opacity:\x200;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20box-shadow:\x20none;\x20\x20//\x20No\x20glow\x20effect\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20','rotation','1927416kzuQnr','location',':\x20Tiles\x20Reversed,\x20Your\x20Turn!','display','.game-section\x20h3','#FF8C00','Sync\x20revealing\x20tile\x20position','pop','px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20opacity:\x200;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20pointer-events:\x20none;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20z-index:\x2010000;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20box-shadow:\x200\x200\x2010px\x203px\x20rgba(255,255,255,0.4);\x20\x20//\x20Smaller\x20shadow\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20','none','log','charCodeAt','Player\x202','Skipped','second','myPlayer','deg)\x20scale(1)','wildValue',':\x20Player\x20Skipped,\x20Your\x20Turn!','block','px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20background:\x20radial-gradient(circle,\x20rgba(255,255,255,0.7),\x20rgba(255,255,255,0)\x2070%);\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20border-radius:\x2050%;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20left:\x20','pileSwitch','placeTile','px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20opacity:\x200;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20pointer-events:\x20none;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20z-index:\x2010000;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20','with\x20letter','forEach','player2State','currentTile','px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20top:\x20','map','112966VfJbSA','width','reload','#00A0FF','setup-button','add','toLowerCase','insertBefore','fromCharCode','nextPlayerName','px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20background-color:\x20white;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20left:\x20','fillRect','fill','selected','PROCESSING\x20POTION\x20REVEAL\x20TILE\x20EVENT:','restore','playerName','specialTile','cos','\x20Won!','split','\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20position:\x20absolute;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20width:\x20','gameMove','target','.selected','slot1','16873318HxHgyk','Potion\x20Bubbles\x20animation\x20activated!','isPlayer1','.wiggle','contains','classList','clearRect','syncRevealedTile','submitNameButton','connected','animate','gameCodeEmojis','emoji','left','div','.game-section:nth-child(','Syncing\x20revealed\x20tile\x20at\x20position\x20','ease-out','emoji-button','gameId','potionRevealTile','innerHTML','.game-board','2682gJqdkh','\x0a\x20\x20\x20\x20\x20\x20\x20\x20position:\x20fixed;\x0a\x20\x20\x20\x20\x20\x20\x20\x20top:\x200;\x0a\x20\x20\x20\x20\x20\x20\x20\x20left:\x200;\x0a\x20\x20\x20\x20\x20\x20\x20\x20width:\x20100%;\x0a\x20\x20\x20\x20\x20\x20\x20\x20height:\x20100%;\x0a\x20\x20\x20\x20\x20\x20\x20\x20background:\x20#ffffff;\x0a\x20\x20\x20\x20\x20\x20\x20\x20display:\x20flex;\x0a\x20\x20\x20\x20\x20\x20\x20\x20flex-direction:\x20column;\x0a\x20\x20\x20\x20\x20\x20\x20\x20justify-content:\x20center;\x0a\x20\x20\x20\x20\x20\x20\x20\x20align-items:\x20center;\x0a\x20\x20\x20\x20\x20\x20\x20\x20z-index:\x202000;\x0a\x20\x20\x20\x20','animateAllBtn','Player\x20Skipped,\x20Your\x20Turn','revealed','createScreen','addReserveTile','No\x20potion\x20tile\x20found,\x20calling\x20addPotionTile()','click','Received\x20potionBubbles\x20action\x20from\x20other\x20player','px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20background:\x20radial-gradient(circle,\x20white,\x20rgba(255,255,255,0)\x2070%);\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20border-radius:\x2050%;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20left:\x20','px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20top:\x20','Special\x20tile\x20action\x20from\x20opponent:','scale(1.2)','length','concat','gameBoard','startScreen','className','#FF00FF','skip','joinButton','joinGame','magic-tile','rotate(','appendChild','emojiGrid','temporary','waitingMessage','Magic\x20Mushroom\x20Found!','.game-section:nth-child(3)\x20h3','join','first','discardOffer','player1State'];_0x37af=function(){return _0x4a4544;};return _0x37af();}function returnTileToDrawPile(_0x2e42f3,_0x483f7e=![]){const _0x501811=_0x589aac;if(_0x2e42f3==='🐸'||_0x2e42f3==='🐙'||_0x2e42f3==='⭐'||_0x2e42f3==='🍄')return;countAllTiles();if(letterCounts[_0x2e42f3]>=0x4)return;if(bothPlayersHaveTile(_0x2e42f3)){!discardedLetters[_0x501811(0x175)](_0x2e42f3)&&discardedLetters[_0x501811(0x1a8)](_0x2e42f3);return;}const _0x46353f=document[_0x501811(0x181)](_0x501811(0x23b));_0x46353f[_0x501811(0x232)]['add'](_0x501811(0x1b7)),_0x46353f[_0x501811(0x1b8)][_0x501811(0x17a)]=_0x2e42f3,_0x46353f[_0x501811(0x1a3)](_0x501811(0x24c),selectDrawTile),_0x483f7e&&(_0x46353f[_0x501811(0x232)]['add'](_0x501811(0x1e4)),_0x46353f[_0x501811(0x184)]=_0x2e42f3),drawPile[_0x501811(0x146)](_0x46353f),letterCounts[_0x2e42f3]=(letterCounts[_0x2e42f3]||0x0)+0x1;}function handleSkipTile(_0x2a1622){const _0x5c0a7f=_0x589aac;document[_0x5c0a7f(0x1c0)](_0x5c0a7f(0x17b))['textContent']=document[_0x5c0a7f(0x1c0)](_0x5c0a7f(0x17b))[_0x5c0a7f(0x184)][_0x5c0a7f(0x227)](':')[0x0],document[_0x5c0a7f(0x1c0)](_0x5c0a7f(0x14b))['textContent']=document[_0x5c0a7f(0x1c0)](_0x5c0a7f(0x14b))['textContent'][_0x5c0a7f(0x227)](':')[0x0],currentTileDisplay[_0x5c0a7f(0x184)]='Skip\x20tile!',_0x2a1622[_0x5c0a7f(0x232)][_0x5c0a7f(0x218)](_0x5c0a7f(0x220)),_0x2a1622[_0x5c0a7f(0x184)]='🐸';const _0x10db84=Array[_0x5c0a7f(0x1d9)](drawPile[_0x5c0a7f(0x1c9)])[_0x5c0a7f(0x170)](_0x2a1622),_0x437063=currentPlayer===0x1?0x2:0x1,_0x36a97e=document['querySelector'](_0x5c0a7f(0x23c)+(currentPlayer===0x1?0x1:0x3)+_0x5c0a7f(0x155)),_0x5b154e=document['querySelector']('.game-section:nth-child('+(_0x437063===0x1?0x1:0x3)+_0x5c0a7f(0x155)),_0x35149c=_0x36a97e['textContent']['split'](':')[0x0][_0x5c0a7f(0x1b4)](),_0x2e083c=_0x5b154e[_0x5c0a7f(0x184)][_0x5c0a7f(0x227)](':')[0x0][_0x5c0a7f(0x1b4)]();_0x36a97e[_0x5c0a7f(0x184)]=_0x35149c+_0x5c0a7f(0x15b),_0x5b154e[_0x5c0a7f(0x184)]=_0x2e083c+_0x5c0a7f(0x207),socket[_0x5c0a7f(0x1cb)](_0x5c0a7f(0x178),{'type':_0x5c0a7f(0x224),'tile':'🐸','action':_0x5c0a7f(0x141),'tilePosition':_0x10db84,'currentPlayer':currentPlayer,'nextPlayer':_0x437063,'gameId':gameId,'playerId':socket['id'],'activePlayerName':_0x35149c,'nextPlayerName':_0x2e083c}),setTimeout(()=>{const _0xe0acac=_0x5c0a7f;_0x2a1622[_0xe0acac(0x189)]===drawPile&&_0x2a1622[_0xe0acac(0x1be)](),currentTileDisplay[_0xe0acac(0x184)]='',currentTile=null,isMyTurn=![],currentPlayer=_0x437063,updateTileColors();},0xbb8),setTimeout(()=>{const _0xadd630=_0x5c0a7f;_0x36a97e[_0xadd630(0x184)][_0xadd630(0x175)]('Skipped')&&(_0x36a97e[_0xadd630(0x184)]=_0x36a97e[_0xadd630(0x184)][_0xadd630(0x227)](':')[0x0][_0xadd630(0x1b4)]()),_0x5b154e['textContent']['includes']('Player\x20Skippec,\x20Your\x20Turn')&&(_0x5b154e[_0xadd630(0x184)]=_0x5b154e[_0xadd630(0x184)][_0xadd630(0x227)](':')[0x0][_0xadd630(0x1b4)]());},0x1f40);}function handleReverseTile(_0x3d4bb7){const _0x258c8f=_0x589aac;document[_0x258c8f(0x1c0)](_0x258c8f(0x17b))[_0x258c8f(0x184)]=document[_0x258c8f(0x1c0)](_0x258c8f(0x17b))[_0x258c8f(0x184)]['split'](':')[0x0],document[_0x258c8f(0x1c0)]('.game-section:nth-child(3)\x20h3')[_0x258c8f(0x184)]=document['querySelector'](_0x258c8f(0x14b))[_0x258c8f(0x184)][_0x258c8f(0x227)](':')[0x0],currentTileDisplay[_0x258c8f(0x184)]=_0x258c8f(0x1ac),_0x3d4bb7[_0x258c8f(0x232)]['add']('selected'),_0x3d4bb7[_0x258c8f(0x184)]='🐙';const _0x3c3ab5=Array[_0x258c8f(0x1d9)](drawPile[_0x258c8f(0x1c9)])['indexOf'](_0x3d4bb7),_0xb42421=currentPlayer===0x1?0x2:0x1,_0x643f19=document[_0x258c8f(0x1c0)](_0x258c8f(0x23c)+(currentPlayer===0x1?0x1:0x3)+')\x20h3'),_0x3daadf=document[_0x258c8f(0x1c0)](_0x258c8f(0x23c)+(_0xb42421===0x1?0x1:0x3)+_0x258c8f(0x155)),_0x5ea845=_0x643f19[_0x258c8f(0x184)][_0x258c8f(0x227)](':')[0x0][_0x258c8f(0x1b4)](),_0x2b2ff5=_0x3daadf['textContent']['split'](':')[0x0][_0x258c8f(0x1b4)]();_0x643f19[_0x258c8f(0x184)]=_0x5ea845+':\x20Reversed\x20Tiles!',_0x3daadf[_0x258c8f(0x184)]=_0x2b2ff5+_0x258c8f(0x1f7),socket[_0x258c8f(0x1cb)](_0x258c8f(0x178),{'type':_0x258c8f(0x224),'tile':'🐙','action':_0x258c8f(0x195),'tilePosition':_0x3c3ab5,'currentPlayer':currentPlayer,'nextPlayer':_0xb42421,'gameId':gameId,'playerId':socket['id'],'activePlayerName':_0x5ea845,'nextPlayerName':_0x2b2ff5}),setTimeout(()=>{const _0x4c3350=_0x258c8f;_0x3d4bb7[_0x4c3350(0x189)]===drawPile&&_0x3d4bb7['remove'](),currentTileDisplay[_0x4c3350(0x184)]='',currentTile=null,isMyTurn=![],currentPlayer=_0xb42421,updateTileColors();},0xbb8),setTimeout(()=>{const _0x2ca2bb=_0x258c8f;_0x643f19[_0x2ca2bb(0x184)][_0x2ca2bb(0x175)](_0x2ca2bb(0x1d5))&&(_0x643f19[_0x2ca2bb(0x184)]=_0x643f19[_0x2ca2bb(0x184)]['split'](':')[0x0][_0x2ca2bb(0x1b4)]()),_0x3daadf['textContent'][_0x2ca2bb(0x175)](_0x2ca2bb(0x173))&&(_0x3daadf['textContent']=_0x3daadf[_0x2ca2bb(0x184)]['split'](':')[0x0][_0x2ca2bb(0x1b4)]());},0x1f40);}function selectDrawTile(_0x4e96a0){const _0x2d12c0=_0x589aac,_0x3b271a=document[_0x2d12c0(0x1c0)](_0x2d12c0(0x17b)),_0x441381=document[_0x2d12c0(0x1c0)](_0x2d12c0(0x14b));_0x3b271a['textContent']['includes'](':')&&(_0x3b271a[_0x2d12c0(0x184)]=_0x3b271a['textContent']['split'](':')[0x0]['trim']());_0x441381[_0x2d12c0(0x184)][_0x2d12c0(0x175)](':')&&(_0x441381['textContent']=_0x441381['textContent'][_0x2d12c0(0x227)](':')[0x0][_0x2d12c0(0x1b4)]());if(!isMyTurn||gameOver||currentTile)return;const _0x4676f8=_0x4e96a0[_0x2d12c0(0x22a)],_0x13df9f=Array['from'](drawPile[_0x2d12c0(0x1c9)])[_0x2d12c0(0x170)](_0x4676f8);currentTile=_0x4676f8[_0x2d12c0(0x1b8)][_0x2d12c0(0x17a)];if(currentTile==='🐸'){handleSkipTile(_0x4676f8);return;}if(currentTile==='🐙'){handleReverseTile(_0x4676f8);return;}if(currentTile==='🍄'){_0x4676f8[_0x2d12c0(0x184)]='🍄',handlePotionBubbles(_0x4676f8);return;}drawPile[_0x2d12c0(0x1d2)]('.tile')[_0x2d12c0(0x20e)](_0x1c9a81=>{const _0x1b6b33=_0x2d12c0;_0x1c9a81[_0x1b6b33(0x232)][_0x1b6b33(0x1be)]('selected'),_0x1c9a81===_0x4676f8?_0x1c9a81[_0x1b6b33(0x184)]=currentTile:_0x1c9a81[_0x1b6b33(0x184)]='';}),_0x4676f8[_0x2d12c0(0x232)]['add'](_0x2d12c0(0x220)),_0x4676f8[_0x2d12c0(0x184)]=currentTile,currentTileDisplay[_0x2d12c0(0x184)]='',socket[_0x2d12c0(0x1cb)](_0x2d12c0(0x178),{'type':'selectTile','tile':currentTile,'tilePosition':_0x13df9f,'gameId':gameId,'playerId':socket['id']});if(currentTile!=='⭐'&&playerHasLetter(currentPlayer,currentTile)){if(bothPlayersHaveTile(currentTile)){_0x4676f8[_0x2d12c0(0x1be)]();!discardedLetters['includes'](currentTile)&&discardedLetters[_0x2d12c0(0x1a8)](currentTile);currentTile=null;return;}_0x4676f8[_0x2d12c0(0x232)]['add']('redWiggle',_0x2d12c0(0x17c)),socket[_0x2d12c0(0x1cb)](_0x2d12c0(0x178),{'type':_0x2d12c0(0x14e),'gameId':gameId,'tile':currentTile,'currentPlayer':currentPlayer===0x1?0x2:0x1,'playerId':socket['id'],'tilePosition':_0x13df9f}),setTimeout(()=>{const _0x4a90ed=_0x2d12c0,_0x1adc5f=drawPile[_0x4a90ed(0x1c0)]('.duplicate-offer');_0x1adc5f&&_0x1adc5f[_0x4a90ed(0x1be)](),currentTile=null,isMyTurn=![],currentPlayer=currentPlayer===0x1?0x2:0x1,updateTileColors();},0xbb8);return;}}function placeTile(_0x39dee4){const _0x4eefb6=_0x589aac;if(!isMyTurn||gameOver||!currentTile)return;const _0x5cc571=currentPlayer===0x1?player1Area:player2Area;if(_0x39dee4[_0x4eefb6(0x22a)][_0x4eefb6(0x189)]!==_0x5cc571)return;const _0x1e289a=Array[_0x4eefb6(0x1d9)](_0x5cc571[_0x4eefb6(0x1c9)])[_0x4eefb6(0x170)](_0x39dee4[_0x4eefb6(0x22a)]);if(currentTile!=='⭐'&&alphabet[_0x1e289a]!==currentTile&&currentTile!=='🐸'&&currentTile!=='🐙')return;if(_0x39dee4[_0x4eefb6(0x22a)][_0x4eefb6(0x232)][_0x4eefb6(0x231)](_0x4eefb6(0x248)))return;const _0x32bde2=_0x39dee4[_0x4eefb6(0x22a)][_0x4eefb6(0x1b8)]['letter'],_0x48e0a8=drawPile['querySelector'](_0x4eefb6(0x230));_0x48e0a8&&_0x48e0a8['remove']();socket[_0x4eefb6(0x1cb)](_0x4eefb6(0x178),{'type':_0x4eefb6(0x20b),'tile':currentTile,'position':_0x1e289a,'gameId':gameId,'replacedTile':_0x32bde2}),_0x39dee4[_0x4eefb6(0x22a)][_0x4eefb6(0x1b8)][_0x4eefb6(0x17a)]=currentTile,_0x39dee4[_0x4eefb6(0x22a)][_0x4eefb6(0x184)]=currentTile,_0x39dee4[_0x4eefb6(0x22a)][_0x4eefb6(0x232)]['add']('revealed'),_0x39dee4[_0x4eefb6(0x22a)][_0x4eefb6(0x237)]([{'transform':_0x4eefb6(0x186)},{'transform':_0x4eefb6(0x251)},{'transform':_0x4eefb6(0x186)}],{'duration':0x12c,'easing':_0x4eefb6(0x23e)});const _0x2fb814=drawPile[_0x4eefb6(0x1c0)]('.tile.selected');if(_0x2fb814)_0x2fb814[_0x4eefb6(0x1be)]();_0x32bde2&&(_0x32bde2!=='🐸'&&_0x32bde2!=='🐙'&&_0x32bde2!=='⭐'&&returnTileToDrawPile(_0x32bde2)),currentTile=null,currentTileDisplay['textContent']='',cleanupDuplicateTiles(),updateTileColors(),checkGameEnd(_0x5cc571);}function sendMove(_0x4c6ea8){const _0x27ab5e=_0x589aac,_0x3a2b72={'gameId':gameId,'playerId':socket['id'],'currentPlayer':currentPlayer,'nextPlayer':currentPlayer===0x1?0x2:0x1,'timestamp':Date[_0x27ab5e(0x1d7)]()};socket['emit'](_0x27ab5e(0x178),{..._0x3a2b72,..._0x4c6ea8});}function switchPiles(){const _0x73cae4=_0x589aac,_0x40c302=Array['from'](player1Area[_0x73cae4(0x1c9)])[_0x73cae4(0x212)](_0x223bf4=>({'letter':_0x223bf4['dataset'][_0x73cae4(0x17a)],'revealed':_0x223bf4[_0x73cae4(0x232)][_0x73cae4(0x231)](_0x73cae4(0x248)),'wildValue':_0x223bf4[_0x73cae4(0x1b8)][_0x73cae4(0x206)]||null})),_0x10d3b4=Array[_0x73cae4(0x1d9)](player2Area[_0x73cae4(0x1c9)])[_0x73cae4(0x212)](_0x578733=>({'letter':_0x578733[_0x73cae4(0x1b8)][_0x73cae4(0x17a)],'revealed':_0x578733[_0x73cae4(0x232)][_0x73cae4(0x231)](_0x73cae4(0x248)),'wildValue':_0x578733[_0x73cae4(0x1b8)][_0x73cae4(0x206)]||null}));player1Area[_0x73cae4(0x242)]='',player2Area[_0x73cae4(0x242)]='',_0x10d3b4[_0x73cae4(0x20e)](_0x2d5bc0=>{const _0x524ecb=_0x73cae4,_0x37124f=document[_0x524ecb(0x181)](_0x524ecb(0x23b));_0x37124f[_0x524ecb(0x232)][_0x524ecb(0x218)](_0x524ecb(0x1b7));if(_0x2d5bc0[_0x524ecb(0x248)])_0x37124f['classList']['add'](_0x524ecb(0x248));_0x37124f[_0x524ecb(0x1b8)][_0x524ecb(0x17a)]=_0x2d5bc0[_0x524ecb(0x17a)];if(_0x2d5bc0[_0x524ecb(0x206)])_0x37124f[_0x524ecb(0x1b8)][_0x524ecb(0x206)]=_0x2d5bc0[_0x524ecb(0x206)];_0x37124f[_0x524ecb(0x184)]=_0x2d5bc0['revealed']?_0x2d5bc0[_0x524ecb(0x206)]||_0x2d5bc0[_0x524ecb(0x17a)]:'',_0x37124f[_0x524ecb(0x1a3)](_0x524ecb(0x24c),placeTile),player1Area[_0x524ecb(0x146)](_0x37124f);}),_0x40c302[_0x73cae4(0x20e)](_0x3d914c=>{const _0x5a532b=_0x73cae4,_0x41f238=document[_0x5a532b(0x181)](_0x5a532b(0x23b));_0x41f238[_0x5a532b(0x232)]['add']('tile');if(_0x3d914c[_0x5a532b(0x248)])_0x41f238[_0x5a532b(0x232)]['add'](_0x5a532b(0x248));_0x41f238['dataset']['letter']=_0x3d914c[_0x5a532b(0x17a)];if(_0x3d914c[_0x5a532b(0x206)])_0x41f238[_0x5a532b(0x1b8)][_0x5a532b(0x206)]=_0x3d914c[_0x5a532b(0x206)];_0x41f238[_0x5a532b(0x184)]=_0x3d914c[_0x5a532b(0x248)]?_0x3d914c[_0x5a532b(0x206)]||_0x3d914c[_0x5a532b(0x17a)]:'',_0x41f238['addEventListener'](_0x5a532b(0x24c),placeTile),player2Area[_0x5a532b(0x146)](_0x41f238);}),sendMove({'type':_0x73cae4(0x20a),'player1State':_0x40c302,'player2State':_0x10d3b4}),updateTileColors();}function checkGameEnd(_0x1174a6){const _0x1128f7=_0x589aac;if(Array[_0x1128f7(0x1d9)](_0x1174a6[_0x1128f7(0x1c9)])['every'](_0x2752ec=>_0x2752ec['classList']['contains'](_0x1128f7(0x248)))){gameOver=!![];const _0xdcb3d=_0x1174a6===player1Area?0x1:0x2,_0x44630f=document[_0x1128f7(0x1c0)]('.game-section:nth-child(1)\x20h3'),_0x16944a=document[_0x1128f7(0x1c0)](_0x1128f7(0x14b)),_0x5e5295=socket['id']===players[_0x1128f7(0x14d)]?playerName:opponentName,_0x3148e0=socket['id']===players[_0x1128f7(0x203)]?playerName:opponentName,_0x1819c1=_0xdcb3d===0x1?_0x5e5295:_0x3148e0,_0x35fbb3=_0xdcb3d===0x1&&socket['id']===players[_0x1128f7(0x14d)]||_0xdcb3d===0x2&&socket['id']===players[_0x1128f7(0x203)];return _0x35fbb3?showSimpleWinnerAnimation(_0x1819c1):showSimpleLoserScreen(_0x1819c1),_0xdcb3d===0x1?(_0x44630f[_0x1128f7(0x184)]=_0x5e5295+_0x1128f7(0x1b9),_0x16944a[_0x1128f7(0x184)]=_0x3148e0+':\x20'+_0x5e5295+_0x1128f7(0x1a9)):(_0x44630f[_0x1128f7(0x184)]=_0x5e5295+':\x20'+_0x3148e0+_0x1128f7(0x1a9),_0x16944a[_0x1128f7(0x184)]=_0x3148e0+_0x1128f7(0x1b9)),socket['emit']('makeMove',{'type':_0x1128f7(0x1e3),'gameId':gameId,'winner':_0xdcb3d,'winnerName':_0x1819c1,'timestamp':Date[_0x1128f7(0x1d7)]()}),isMyTurn=![],updateTileColors(),!![];}return![];}function updateTileColors(){const _0x4f6559=_0x589aac,_0x1e9a01=player1Area[_0x4f6559(0x1d2)](_0x4f6559(0x159)),_0x3abc20=player2Area[_0x4f6559(0x1d2)](_0x4f6559(0x159));currentPlayer===0x1?socket['id']===players[_0x4f6559(0x14d)]?(_0x1e9a01[_0x4f6559(0x20e)](_0x47e73d=>{const _0x4b1cc5=_0x4f6559;_0x47e73d[_0x4b1cc5(0x232)]['remove'](_0x4b1cc5(0x179)),!_0x47e73d[_0x4b1cc5(0x232)][_0x4b1cc5(0x231)]('revealed')&&(_0x47e73d[_0x4b1cc5(0x184)]='');}),_0x3abc20['forEach'](_0x362f6a=>{const _0x7d59e9=_0x4f6559;_0x362f6a['classList']['add'](_0x7d59e9(0x179)),!_0x362f6a[_0x7d59e9(0x232)][_0x7d59e9(0x231)](_0x7d59e9(0x248))&&(_0x362f6a[_0x7d59e9(0x184)]='');}),player1Area[_0x4f6559(0x232)]['remove'](_0x4f6559(0x179)),player2Area[_0x4f6559(0x232)][_0x4f6559(0x1be)]('active')):(_0x1e9a01[_0x4f6559(0x20e)](_0x425d12=>{const _0x430db0=_0x4f6559;_0x425d12['classList'][_0x430db0(0x1be)](_0x430db0(0x179)),!_0x425d12[_0x430db0(0x232)][_0x430db0(0x231)](_0x430db0(0x248))&&(_0x425d12[_0x430db0(0x184)]='');}),_0x3abc20[_0x4f6559(0x20e)](_0x4777a6=>{const _0xc42302=_0x4f6559;_0x4777a6['classList'][_0xc42302(0x218)](_0xc42302(0x179)),!_0x4777a6[_0xc42302(0x232)][_0xc42302(0x231)](_0xc42302(0x248))&&(_0x4777a6['textContent']='');}),player1Area[_0x4f6559(0x232)][_0x4f6559(0x1be)]('inactive'),player2Area['classList'][_0x4f6559(0x1be)](_0x4f6559(0x176))):socket['id']===players[_0x4f6559(0x203)]?(_0x3abc20[_0x4f6559(0x20e)](_0x5b4e29=>{const _0x2fee4d=_0x4f6559;_0x5b4e29[_0x2fee4d(0x232)]['remove'](_0x2fee4d(0x179)),!_0x5b4e29[_0x2fee4d(0x232)][_0x2fee4d(0x231)](_0x2fee4d(0x248))&&(_0x5b4e29['textContent']='');}),_0x1e9a01[_0x4f6559(0x20e)](_0x3d2c42=>{const _0x4ebbaa=_0x4f6559;_0x3d2c42['classList'][_0x4ebbaa(0x218)](_0x4ebbaa(0x179)),!_0x3d2c42[_0x4ebbaa(0x232)]['contains']('revealed')&&(_0x3d2c42[_0x4ebbaa(0x184)]='');}),player2Area[_0x4f6559(0x232)][_0x4f6559(0x218)]('active'),player1Area[_0x4f6559(0x232)][_0x4f6559(0x218)]('inactive')):(_0x3abc20[_0x4f6559(0x20e)](_0x122cd6=>{const _0x1f2df8=_0x4f6559;_0x122cd6['classList'][_0x1f2df8(0x1be)](_0x1f2df8(0x179)),!_0x122cd6['classList']['contains'](_0x1f2df8(0x248))&&(_0x122cd6[_0x1f2df8(0x184)]='');}),_0x1e9a01['forEach'](_0x1f6bb1=>{const _0x5043e7=_0x4f6559;_0x1f6bb1[_0x5043e7(0x232)][_0x5043e7(0x218)]('inactive'),!_0x1f6bb1['classList']['contains'](_0x5043e7(0x248))&&(_0x1f6bb1['textContent']='');}),player2Area[_0x4f6559(0x232)][_0x4f6559(0x218)](_0x4f6559(0x176)),player1Area[_0x4f6559(0x232)]['add'](_0x4f6559(0x179)));}function initGame(){const _0x3965e4=_0x589aac;setupOverlay[_0x3965e4(0x1eb)][_0x3965e4(0x1f8)]=_0x3965e4(0x1fe),document[_0x3965e4(0x17d)](_0x3965e4(0x254))[_0x3965e4(0x1eb)][_0x3965e4(0x1f8)]=_0x3965e4(0x193),player1Area[_0x3965e4(0x242)]='',player2Area[_0x3965e4(0x242)]='',drawPile[_0x3965e4(0x242)]='',createTiles(player1Area,0x1a),createTiles(player2Area,0x1a),createTiles(drawPile,0x26,!![]);const _0x59acf2=document['querySelector'](_0x3965e4(0x17b)),_0x50884e=document[_0x3965e4(0x1c0)](_0x3965e4(0x14b));iAmPlayer1?_0x59acf2['textContent']=playerName:_0x50884e[_0x3965e4(0x184)]=playerName,updateTileColors(),setTimeout(cleanupDuplicateTiles,0x1f4),setTimeout(addPotionTile,0x3e8);}setTimeout(()=>{const _0x5ac332=_0x589aac,_0x172e19=Array[_0x5ac332(0x1d9)](drawPile[_0x5ac332(0x1c9)])[_0x5ac332(0x163)](_0x409721=>_0x409721[_0x5ac332(0x1b8)]['letter']==='🍄');console[_0x5ac332(0x1ff)](_0x5ac332(0x1d8),_0x172e19[_0x5ac332(0x252)]),_0x172e19[_0x5ac332(0x252)]>0x0?console[_0x5ac332(0x1ff)](_0x5ac332(0x1e8),Array['from'](drawPile[_0x5ac332(0x1c9)])[_0x5ac332(0x170)](_0x172e19[0x0])):(console[_0x5ac332(0x1ff)](_0x5ac332(0x24b)),addPotionTile());},0x7d0);function addPotionTile(){const _0x3393f7=_0x589aac,_0x44720b=Array[_0x3393f7(0x1d9)](drawPile[_0x3393f7(0x1c9)])[_0x3393f7(0x157)](_0x9cc12d=>_0x9cc12d[_0x3393f7(0x1b8)][_0x3393f7(0x17a)]==='🍄');if(!_0x44720b){const _0x2fd021=document['createElement']('div');_0x2fd021[_0x3393f7(0x232)][_0x3393f7(0x218)]('tile'),_0x2fd021[_0x3393f7(0x1b8)][_0x3393f7(0x17a)]='🍄',_0x2fd021[_0x3393f7(0x1a3)](_0x3393f7(0x24c),selectDrawTile);const _0xb471dc=Math['floor'](Math[_0x3393f7(0x154)]()*(drawPile['children']['length']+0x1));_0xb471dc>=drawPile['children'][_0x3393f7(0x252)]?drawPile[_0x3393f7(0x146)](_0x2fd021):drawPile[_0x3393f7(0x21a)](_0x2fd021,drawPile[_0x3393f7(0x1c9)][_0xb471dc]),console[_0x3393f7(0x1ff)]('Potion\x20tile\x20added\x20to\x20draw\x20pile\x20at\x20position',_0xb471dc);}}setTimeout(addPotionTile,0x3e8);function updatePlayerLabelsBasedOnPosition(){const _0x3822f4=_0x589aac,_0x3536d3=document['querySelector'](_0x3822f4(0x17b)),_0x26040a=document['querySelector'](_0x3822f4(0x14b));iAmPlayer1?_0x3536d3[_0x3822f4(0x184)]=playerName:_0x26040a[_0x3822f4(0x184)]=playerName,socket[_0x3822f4(0x1cb)](_0x3822f4(0x178),{'type':_0x3822f4(0x1a7),'gameId':gameId,'playerId':socket['id'],'isPlayer1':iAmPlayer1,'name':playerName,'timestamp':Date['now']()});}function updatePlayerLabels(){const _0x207f35=_0x589aac,_0x3677d2=document[_0x207f35(0x1c0)](_0x207f35(0x17b)),_0x16a363=document[_0x207f35(0x1c0)]('.game-section:nth-child(3)\x20h3'),_0x112297=players['first']&&players[_0x207f35(0x1ab)][players['first']]?players['names'][players[_0x207f35(0x14d)]]:'Player\x201',_0x58cfd6=players[_0x207f35(0x203)]&&players[_0x207f35(0x1ab)][players[_0x207f35(0x203)]]?players[_0x207f35(0x1ab)][players[_0x207f35(0x203)]]:_0x207f35(0x201);_0x3677d2[_0x207f35(0x184)]=_0x112297,_0x16a363[_0x207f35(0x184)]=_0x58cfd6;}function handleEmojiSelection(_0x4683ce,_0x58932b){const _0x3f3ef9=_0x589aac,_0x5688a8=selectedEmojis[_0x3f3ef9(0x170)](_0x4683ce);if(_0x5688a8>-0x1)selectedEmojis[_0x3f3ef9(0x1ad)](_0x5688a8,0x1),_0x58932b['classList'][_0x3f3ef9(0x1be)]('selected');else{if(selectedEmojis[_0x3f3ef9(0x252)]<0x3)selectedEmojis['push'](_0x4683ce),_0x58932b[_0x3f3ef9(0x232)]['add'](_0x3f3ef9(0x220)),_0x58932b['animate']([{'transform':_0x3f3ef9(0x186)},{'transform':_0x3f3ef9(0x251)},{'transform':'scale(1)'}],{'duration':0x12c,'easing':'ease-out'});else{const _0x384bd3=selectedEmojis[_0x3f3ef9(0x1fc)](),_0x2a4a5f=Array['from'](emojiGrid[_0x3f3ef9(0x1d2)]('.emoji-button'))[_0x3f3ef9(0x157)](_0x1a408a=>_0x1a408a['textContent']===_0x384bd3);if(_0x2a4a5f)_0x2a4a5f[_0x3f3ef9(0x232)][_0x3f3ef9(0x1be)]('selected');selectedEmojis[_0x3f3ef9(0x1a8)](_0x4683ce),_0x58932b[_0x3f3ef9(0x232)][_0x3f3ef9(0x218)]('selected'),_0x58932b[_0x3f3ef9(0x237)]([{'transform':'scale(1)'},{'transform':_0x3f3ef9(0x251)},{'transform':'scale(1)'}],{'duration':0x12c,'easing':_0x3f3ef9(0x23e)});}}updateEmojiSelection();}function createEmojiGrid(){const _0x3c0564=_0x589aac;emojiGrid[_0x3c0564(0x242)]='';const _0x5f2739=[...new Set(emojis)],_0x24d9ca=[..._0x5f2739]['sort'](()=>Math[_0x3c0564(0x154)]()-0.5);_0x24d9ca[_0x3c0564(0x20e)](_0x161d74=>{const _0x5c6ea8=_0x3c0564,_0x17e5ee=document[_0x5c6ea8(0x181)](_0x5c6ea8(0x23b));_0x17e5ee[_0x5c6ea8(0x232)]['add'](_0x5c6ea8(0x23f)),_0x17e5ee[_0x5c6ea8(0x184)]=_0x161d74,_0x17e5ee[_0x5c6ea8(0x1a3)]('click',()=>{handleEmojiSelection(_0x161d74,_0x17e5ee);}),emojiGrid[_0x5c6ea8(0x146)](_0x17e5ee);}),selectedEmojis=[],updateEmojiSelection();}function updateEmojiSelection(){const _0x67d83=_0x589aac;emojiSlots[_0x67d83(0x20e)]((_0xf4fca,_0x4cf0a5)=>{const _0x5d7af2=_0x67d83;_0x4cf0a5<selectedEmojis['length']?_0xf4fca[_0x5d7af2(0x184)]=selectedEmojis[_0x4cf0a5]:_0xf4fca['textContent']='';});}setTimeout(fixCreateScreenVisibility,0x1f4);function fixCreateScreenVisibility(){const _0x5c6e65=_0x589aac;gameId&&iAmPlayer1&&setupOverlay['style']['display']!==_0x5c6e65(0x1fe)&&(startScreen['style']['display']=_0x5c6e65(0x1fe),createScreen[_0x5c6e65(0x1eb)][_0x5c6e65(0x1f8)]=_0x5c6e65(0x208));}function showSimpleWinnerAnimation(_0x39c2b1){const _0x2a5740=_0x589aac,_0x3ba9ff=document[_0x2a5740(0x181)](_0x2a5740(0x23b));_0x3ba9ff[_0x2a5740(0x1eb)][_0x2a5740(0x19d)]=_0x2a5740(0x15e);const _0x52a2d9=document[_0x2a5740(0x181)](_0x2a5740(0x1ee));_0x52a2d9[_0x2a5740(0x1eb)][_0x2a5740(0x19d)]=_0x2a5740(0x1d1),_0x3ba9ff['appendChild'](_0x52a2d9);const _0x73cd2c=document[_0x2a5740(0x181)](_0x2a5740(0x23b));_0x73cd2c['textContent']=_0x39c2b1+_0x2a5740(0x226),_0x73cd2c[_0x2a5740(0x1eb)][_0x2a5740(0x19d)]=_0x2a5740(0x18b);const _0x203553=document[_0x2a5740(0x181)](_0x2a5740(0x1eb));_0x203553[_0x2a5740(0x184)]=_0x2a5740(0x1d3),document['head'][_0x2a5740(0x146)](_0x203553);const _0x213f14=document[_0x2a5740(0x181)](_0x2a5740(0x16e));_0x213f14[_0x2a5740(0x184)]=_0x2a5740(0x166),_0x213f14[_0x2a5740(0x256)]=_0x2a5740(0x217),_0x213f14['style']['zIndex']='2001',_0x213f14['addEventListener'](_0x2a5740(0x24c),()=>{const _0x46cf02=_0x2a5740;_0x3ba9ff[_0x46cf02(0x1be)](),window['location'][_0x46cf02(0x215)]();}),_0x3ba9ff[_0x2a5740(0x146)](_0x73cd2c),_0x3ba9ff[_0x2a5740(0x146)](_0x213f14),document['body']['appendChild'](_0x3ba9ff);const _0x117890=_0x52a2d9[_0x2a5740(0x1c7)]('2d');_0x52a2d9[_0x2a5740(0x214)]=window[_0x2a5740(0x1ca)],_0x52a2d9[_0x2a5740(0x1c4)]=window[_0x2a5740(0x19e)];const _0x582c20=[],_0x54e701=0xc8,_0x3d0c6d=[_0x2a5740(0x1dc),'#FF00FF',_0x2a5740(0x1e7),_0x2a5740(0x1cf),_0x2a5740(0x1e2),_0x2a5740(0x161),'#FFA500',_0x2a5740(0x156),'#8A2BE2','#FF1493'];for(let _0x260ed6=0x0;_0x260ed6<_0x54e701;_0x260ed6++){_0x582c20[_0x2a5740(0x1a8)]({'x':Math[_0x2a5740(0x154)]()*_0x52a2d9['width'],'y':Math[_0x2a5740(0x154)]()*_0x52a2d9['height']-_0x52a2d9[_0x2a5740(0x1c4)],'width':Math['random']()*0x8+0x4,'height':Math[_0x2a5740(0x154)]()*0x4+0x4,'color':_0x3d0c6d[Math['floor'](Math[_0x2a5740(0x154)]()*_0x3d0c6d[_0x2a5740(0x252)])],'speed':0x2+Math['random']()*0x3,'drift':Math[_0x2a5740(0x154)]()*0.8-0.4,'rotation':Math[_0x2a5740(0x154)]()*Math['PI']*0x2,'rotationSpeed':Math['random']()*0.005});}function _0x37403b(){const _0x3b8ccb=_0x2a5740;_0x117890[_0x3b8ccb(0x233)](0x0,0x0,_0x52a2d9[_0x3b8ccb(0x214)],_0x52a2d9[_0x3b8ccb(0x1c4)]),_0x582c20['forEach']((_0x133558,_0x262353)=>{const _0x4eb05d=_0x3b8ccb;_0x133558['y']+=_0x133558[_0x4eb05d(0x1a1)],_0x133558['x']+=_0x133558[_0x4eb05d(0x180)],_0x133558[_0x4eb05d(0x1f4)]+=_0x133558[_0x4eb05d(0x1c2)],_0x133558['y']>_0x52a2d9[_0x4eb05d(0x1c4)]&&(_0x582c20[_0x262353]={'x':Math[_0x4eb05d(0x154)]()*_0x52a2d9[_0x4eb05d(0x214)],'y':-0x14,'width':Math['random']()*0x8+0x4,'height':Math['random']()*0x4+0x4,'color':_0x3d0c6d[Math['floor'](Math[_0x4eb05d(0x154)]()*_0x3d0c6d[_0x4eb05d(0x252)])],'speed':0x2+Math[_0x4eb05d(0x154)]()*0x3,'drift':Math[_0x4eb05d(0x154)]()*0.8-0.4,'rotation':Math[_0x4eb05d(0x154)]()*Math['PI']*0x2,'rotationSpeed':Math[_0x4eb05d(0x154)]()*0.005}),_0x117890[_0x4eb05d(0x191)](),_0x117890[_0x4eb05d(0x16c)](_0x133558['x'],_0x133558['y']),_0x117890[_0x4eb05d(0x1da)](_0x133558[_0x4eb05d(0x1f4)]),_0x117890[_0x4eb05d(0x16b)]=_0x133558[_0x4eb05d(0x151)],_0x117890[_0x4eb05d(0x21e)](-_0x133558['width']/0x2,-_0x133558[_0x4eb05d(0x1c4)]/0x2,_0x133558[_0x4eb05d(0x214)],_0x133558['height']),_0x117890[_0x4eb05d(0x222)]();}),requestAnimationFrame(_0x37403b);}_0x37403b();}function showSimpleLoserScreen(_0x24f41f){const _0x3d5eb3=_0x589aac,_0x328739=document[_0x3d5eb3(0x181)](_0x3d5eb3(0x23b));_0x328739[_0x3d5eb3(0x1eb)][_0x3d5eb3(0x19d)]=_0x3d5eb3(0x245),document['body'][_0x3d5eb3(0x146)](_0x328739);const _0x1575b0=document[_0x3d5eb3(0x181)]('div');_0x1575b0[_0x3d5eb3(0x184)]=_0x24f41f+'\x20Won!',_0x1575b0['style'][_0x3d5eb3(0x19d)]='\x0a\x20\x20\x20\x20\x20\x20\x20\x20font-size:\x2048px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20font-weight:\x20bold;\x0a\x20\x20\x20\x20\x20\x20\x20\x20color:\x20#000000;\x0a\x20\x20\x20\x20\x20\x20\x20\x20margin-bottom:\x2020px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20z-index:\x202001;\x0a\x20\x20\x20\x20\x20\x20\x20\x20position:\x20relative;\x0a\x20\x20\x20\x20',_0x328739['appendChild'](_0x1575b0);const _0x200a47=document[_0x3d5eb3(0x181)]('button');_0x200a47['textContent']=_0x3d5eb3(0x166),_0x200a47[_0x3d5eb3(0x256)]=_0x3d5eb3(0x217),_0x200a47[_0x3d5eb3(0x1eb)][_0x3d5eb3(0x19d)]=_0x3d5eb3(0x182),_0x200a47[_0x3d5eb3(0x1a3)]('click',()=>{const _0x39c774=_0x3d5eb3;_0x328739[_0x39c774(0x1be)](),window[_0x39c774(0x1f6)]['reload']();}),_0x328739[_0x3d5eb3(0x146)](_0x200a47);}function handlePotionBubbles(_0x46bea5){const _0x447cf7=_0x589aac;console[_0x447cf7(0x1ff)](_0x447cf7(0x22e));const _0xea8547=currentPlayer===0x1?player1Area:player2Area,_0x56f9ab=document['querySelector'](_0x447cf7(0x17b)),_0x1f83ad=document[_0x447cf7(0x1c0)](_0x447cf7(0x14b));_0x56f9ab['textContent']=_0x56f9ab['textContent'][_0x447cf7(0x227)](':')[0x0],_0x1f83ad[_0x447cf7(0x184)]=_0x1f83ad[_0x447cf7(0x184)][_0x447cf7(0x227)](':')[0x0];const _0x24b914=currentPlayer===0x1?_0x56f9ab[_0x447cf7(0x184)]:_0x1f83ad[_0x447cf7(0x184)];currentPlayer===0x1?(_0x56f9ab['textContent']=_0x24b914+_0x447cf7(0x16d),_0x1f83ad[_0x447cf7(0x184)]=_0x1f83ad['textContent']+':\x20'+_0x24b914+_0x447cf7(0x17e)):(_0x1f83ad['textContent']=_0x24b914+_0x447cf7(0x16d),_0x56f9ab[_0x447cf7(0x184)]=_0x56f9ab['textContent']+':\x20'+_0x24b914+_0x447cf7(0x17e));const _0x35fb9c=Array[_0x447cf7(0x1d9)](drawPile[_0x447cf7(0x1c9)])[_0x447cf7(0x170)](_0x46bea5);socket['emit'](_0x447cf7(0x178),{'type':_0x447cf7(0x224),'tile':'🍄','action':'potionBubbles','tilePosition':_0x35fb9c,'currentPlayer':currentPlayer,'gameId':gameId,'playerId':socket['id'],'playerName':_0x24b914,'activePlayerName':_0x24b914,'nextPlayer':currentPlayer});const _0x3c5646=Array['from'](_0xea8547[_0x447cf7(0x1c9)])[_0x447cf7(0x163)](_0x19a9ea=>!_0x19a9ea['classList'][_0x447cf7(0x231)]('revealed'));if(_0x3c5646[_0x447cf7(0x252)]===0x0){console[_0x447cf7(0x1ff)](_0x447cf7(0x190)),_0x46bea5[_0x447cf7(0x1be)]();return;}const _0x525cc2=Math['min'](_0x3c5646[_0x447cf7(0x252)],0x3),_0x75edfa=[],_0x4541bd=[..._0x3c5646];for(let _0x5dafaa=0x0;_0x5dafaa<_0x525cc2;_0x5dafaa++){const _0xb759da=Math[_0x447cf7(0x185)](Math['random']()*_0x4541bd['length']),_0x5253e2=_0x4541bd[_0xb759da],_0x1611ec=Array[_0x447cf7(0x1d9)](_0xea8547[_0x447cf7(0x1c9)])[_0x447cf7(0x170)](_0x5253e2),_0x4d7c79=alphabet[_0x1611ec];_0x75edfa[_0x447cf7(0x1a8)]({'tile':_0x5253e2,'position':_0x1611ec,'letter':_0x4d7c79}),_0x4541bd[_0x447cf7(0x1ad)](_0xb759da,0x1);}for(let _0x300aac=0x0;_0x300aac<_0x75edfa['length'];_0x300aac++){const _0xd91fc3=_0x75edfa[_0x300aac];setTimeout(()=>{const _0x58488b=_0x447cf7,_0x28930c=_0xd91fc3[_0x58488b(0x1b7)],_0x287b2a=_0xd91fc3[_0x58488b(0x15d)],_0x5c2792=_0xd91fc3['letter'];createBubbleAnimation(_0x28930c),setTimeout(()=>{const _0x1ae7f2=_0x58488b;_0x28930c[_0x1ae7f2(0x1b8)][_0x1ae7f2(0x17a)]=_0x5c2792,_0x28930c[_0x1ae7f2(0x184)]=_0x5c2792,_0x28930c[_0x1ae7f2(0x232)][_0x1ae7f2(0x218)](_0x1ae7f2(0x248)),socket[_0x1ae7f2(0x1cb)](_0x1ae7f2(0x178),{'type':_0x1ae7f2(0x241),'position':_0x287b2a,'tile':_0x5c2792,'currentPlayer':currentPlayer,'gameId':gameId,'playerId':socket['id']});},0x3e8);},_0x300aac*0x5dc);}const _0x3445bf=_0x75edfa['length']*0x5dc+0x3e8;setTimeout(()=>{const _0x4561d7=_0x447cf7;_0x46bea5[_0x4561d7(0x189)]===drawPile&&_0x46bea5[_0x4561d7(0x1be)]();setTimeout(()=>{const _0x59f177=_0x4561d7;_0x56f9ab[_0x59f177(0x184)][_0x59f177(0x175)](_0x59f177(0x14a))&&(_0x56f9ab[_0x59f177(0x184)]=_0x56f9ab[_0x59f177(0x184)][_0x59f177(0x227)](':')[0x0][_0x59f177(0x1b4)]()),_0x1f83ad['textContent'][_0x59f177(0x175)](_0x59f177(0x14a))&&(_0x1f83ad[_0x59f177(0x184)]=_0x1f83ad[_0x59f177(0x184)][_0x59f177(0x227)](':')[0x0]['trim']());},0x1388);const _0x5d0a42=Array[_0x4561d7(0x1d9)](_0xea8547['children'])[_0x4561d7(0x1f1)](_0x2bfcaf=>_0x2bfcaf[_0x4561d7(0x232)][_0x4561d7(0x231)](_0x4561d7(0x248)));_0x5d0a42?checkGameEnd(_0xea8547):(currentTile=null,updateTileColors());},_0x3445bf);}function createBubbleAnimation(_0x8cfbab){const _0x4ba5e6=_0x589aac,_0x4cb1ee=_0x8cfbab[_0x4ba5e6(0x198)](),_0x57af24=document['createElement']('div');_0x57af24['style'][_0x4ba5e6(0x19d)]=_0x4ba5e6(0x19f),document['body'][_0x4ba5e6(0x146)](_0x57af24);const _0x4f4948=['#FF007A',_0x4ba5e6(0x216),'#00FF84',_0x4ba5e6(0x18c),'#B300FF',_0x4ba5e6(0x1fa),'#00FF00',_0x4ba5e6(0x257)];for(let _0xe66e88=0x0;_0xe66e88<0xf;_0xe66e88++){const _0x1ee970=document[_0x4ba5e6(0x181)]('div'),_0x8c59f7=0x4+Math[_0x4ba5e6(0x154)]()*0xa,_0x409b07=_0x4f4948[Math['floor'](Math['random']()*_0x4f4948['length'])],_0x54d822=0xf,_0x1cad56=_0x4cb1ee[_0x4ba5e6(0x23a)]+Math[_0x4ba5e6(0x154)]()*(_0x4cb1ee['width']+_0x54d822)-_0x54d822/0x2,_0x29ffdd=_0x4cb1ee['top']+Math['random']()*(_0x4cb1ee[_0x4ba5e6(0x1c4)]+_0x54d822)-_0x54d822/0x2;_0x1ee970[_0x4ba5e6(0x1eb)][_0x4ba5e6(0x19d)]=_0x4ba5e6(0x228)+_0x8c59f7+_0x4ba5e6(0x165)+_0x8c59f7+'px;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20background-color:\x20'+_0x409b07+';\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20border-radius:\x2050%;\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20left:\x20'+_0x1cad56+_0x4ba5e6(0x211)+_0x29ffdd+_0x4ba5e6(0x1f3),_0x57af24[_0x4ba5e6(0x146)](_0x1ee970),_0x1ee970[_0x4ba5e6(0x237)]([{'opacity':0x0,'transform':_0x4ba5e6(0x160)},{'opacity':0.9,'transform':'scale(1)'},{'opacity':0x0,'transform':_0x4ba5e6(0x160)}],{'duration':0x258+Math[_0x4ba5e6(0x154)]()*0x1f4,'delay':Math[_0x4ba5e6(0x154)]()*0x190,'easing':'ease-in-out'});}const _0x871d2d=document[_0x4ba5e6(0x181)]('div');_0x871d2d[_0x4ba5e6(0x1eb)]['cssText']=_0x4ba5e6(0x1e0)+_0x4cb1ee[_0x4ba5e6(0x214)]+_0x4ba5e6(0x19b)+_0x4cb1ee[_0x4ba5e6(0x1c4)]+_0x4ba5e6(0x209)+(_0x4cb1ee[_0x4ba5e6(0x23a)]+_0x4cb1ee['width']/0x2-_0x4cb1ee['width']/0x2)+_0x4ba5e6(0x24f)+(_0x4cb1ee['top']+_0x4cb1ee[_0x4ba5e6(0x1c4)]/0x2-_0x4cb1ee[_0x4ba5e6(0x1c4)]/0x2)+_0x4ba5e6(0x1fd),_0x57af24[_0x4ba5e6(0x146)](_0x871d2d),_0x871d2d[_0x4ba5e6(0x237)]([{'opacity':0x0,'transform':'scale(0.7)'},{'opacity':0.9,'transform':_0x4ba5e6(0x186)},{'opacity':0x0,'transform':_0x4ba5e6(0x167)}],{'duration':0x258,'easing':'ease-out'});for(let _0x201c73=0x0;_0x201c73<0x4;_0x201c73++){createSparkle(_0x57af24,_0x4cb1ee);}setTimeout(()=>{const _0x108e6a=_0x4ba5e6,_0x2b7a43=document['createElement'](_0x108e6a(0x23b));_0x2b7a43['style']['cssText']=_0x108e6a(0x228)+_0x4cb1ee[_0x108e6a(0x214)]*1.4+_0x108e6a(0x1cd)+_0x4cb1ee[_0x108e6a(0x1c4)]*1.4+_0x108e6a(0x24e)+(_0x4cb1ee['left']+_0x4cb1ee['width']/0x2-_0x4cb1ee['width']*0.7)+_0x108e6a(0x211)+(_0x4cb1ee[_0x108e6a(0x162)]+_0x4cb1ee['height']/0x2-_0x4cb1ee['height']*0.7)+_0x108e6a(0x20c),_0x57af24[_0x108e6a(0x146)](_0x2b7a43),_0x2b7a43[_0x108e6a(0x237)]([{'opacity':0x0},{'opacity':0.7},{'opacity':0x0}],{'duration':0x1f4,'easing':'ease-out'});},0x1f4),setTimeout(()=>{const _0x13409e=_0x4ba5e6;_0x57af24[_0x13409e(0x1be)]();},0x5dc);}function createSparkle(_0x235c79,_0x39a289){const _0x287c10=_0x589aac,_0x3693c1=document[_0x287c10(0x181)](_0x287c10(0x23b)),_0x4b736f=Math[_0x287c10(0x154)]()*Math['PI']*0x2,_0x4fd4e2=0x8+Math[_0x287c10(0x154)]()*0xf,_0x4ae4af=_0x39a289[_0x287c10(0x23a)]+_0x39a289['width']/0x2,_0x4840b2=_0x39a289['top']+_0x39a289[_0x287c10(0x1c4)]/0x2,_0x54d3ca=_0x4ae4af+Math[_0x287c10(0x225)](_0x4b736f)*_0x4fd4e2,_0x36677f=_0x4840b2+Math[_0x287c10(0x1ce)](_0x4b736f)*_0x4fd4e2,_0x1edf1e=0x2+Math[_0x287c10(0x154)]()*0x5,_0x828592=Math[_0x287c10(0x154)]()*0xb4;_0x3693c1[_0x287c10(0x1eb)][_0x287c10(0x19d)]=_0x287c10(0x1e0)+_0x1edf1e+_0x287c10(0x197)+_0x1edf1e+_0x287c10(0x21d)+_0x54d3ca+_0x287c10(0x24f)+_0x36677f+_0x287c10(0x174)+_0x828592+_0x287c10(0x177),_0x235c79[_0x287c10(0x146)](_0x3693c1),_0x3693c1['animate']([{'opacity':0x0,'transform':_0x287c10(0x145)+_0x828592+_0x287c10(0x1db)},{'opacity':0x1,'transform':_0x287c10(0x145)+(_0x828592+0xb4)+_0x287c10(0x205)},{'opacity':0x0,'transform':'rotate('+(_0x828592+0x168)+'deg)\x20scale(0)'}],{'duration':0x1f4+Math[_0x287c10(0x154)]()*0x12c,'delay':Math[_0x287c10(0x154)]()*0x12c,'easing':'ease-in-out'});}const animateTileBtn=document[_0x589aac(0x17d)]('animateTileBtn'),revealTileBtn=document[_0x589aac(0x17d)](_0x589aac(0x1c1)),animateAllBtn=document[_0x589aac(0x17d)](_0x589aac(0x246)),magicTile=document['querySelector']('.magic-tile'),tiles=document[_0x589aac(0x1d2)](_0x589aac(0x159));revealTileBtn[_0x589aac(0x1a3)](_0x589aac(0x24c),()=>{createBubbleAnimation(magicTile),setTimeout(()=>{const _0x415b2e=_0x42f1,_0x24c591=Array['from'](tiles)[_0x415b2e(0x163)](_0x52514d=>!_0x52514d[_0x415b2e(0x232)][_0x415b2e(0x231)](_0x415b2e(0x248))&&!_0x52514d[_0x415b2e(0x232)][_0x415b2e(0x231)](_0x415b2e(0x144)));if(_0x24c591[_0x415b2e(0x252)]>0x0){const _0x463528=_0x24c591[Math['floor'](Math[_0x415b2e(0x154)]()*_0x24c591['length'])];createBubbleAnimation(_0x463528),setTimeout(()=>{const _0x30b060=_0x415b2e;_0x463528['classList'][_0x30b060(0x218)](_0x30b060(0x248));},0x258);}},0x2bc);}),animateAllBtn['addEventListener'](_0x589aac(0x24c),()=>{const _0x293e16=_0x589aac,_0x43e5c3=Array['from'](tiles)[_0x293e16(0x163)](_0x3e8783=>!_0x3e8783[_0x293e16(0x232)]['contains']('magic-tile'));_0x43e5c3[_0x293e16(0x20e)]((_0x3e3ac3,_0x30b092)=>{setTimeout(()=>{const _0x1a4706=_0x42f1;createBubbleAnimation(_0x3e3ac3),setTimeout(()=>_0x3e3ac3[_0x1a4706(0x232)]['add'](_0x1a4706(0x248)),0x258);},_0x30b092*0x1f4);});}),magicTile[_0x589aac(0x1a3)](_0x589aac(0x24c),()=>{createBubbleAnimation(magicTile);}),Array[_0x589aac(0x1d9)](tiles)[_0x589aac(0x163)](_0x6a7cd6=>!_0x6a7cd6[_0x589aac(0x232)]['contains'](_0x589aac(0x144)))['forEach'](_0x3152a8=>{const _0xdd8f68=_0x589aac;_0x3152a8['addEventListener'](_0xdd8f68(0x24c),()=>{const _0x1190de=_0xdd8f68;!_0x3152a8[_0x1190de(0x232)][_0x1190de(0x231)](_0x1190de(0x248))&&(createBubbleAnimation(_0x3152a8),setTimeout(()=>_0x3152a8[_0x1190de(0x232)][_0x1190de(0x218)](_0x1190de(0x248)),0x258));});}),window[_0x589aac(0x1a3)]('DOMContentLoaded',()=>{setTimeout(()=>{const _0x1a2ce3=_0x42f1,_0x39c211=Array[_0x1a2ce3(0x1d9)](drawPile[_0x1a2ce3(0x1c9)])[_0x1a2ce3(0x163)](_0x1af0dc=>_0x1af0dc['dataset'][_0x1a2ce3(0x17a)]==='🍄');_0x39c211['forEach'](_0x54f2d0=>{const _0x5f2ea6=_0x1a2ce3;_0x54f2d0[_0x5f2ea6(0x184)]='🍄';});},0x3e8);});function forceSyncRevealedTiles(){const _0x18abbf=_0x589aac;if(!gameId)return;const _0x2e3d1b=currentPlayer===0x1?player1Area:player2Area,_0x11b4c0=Array['from'](_0x2e3d1b['children'])['filter'](_0x822a4f=>_0x822a4f[_0x18abbf(0x232)][_0x18abbf(0x231)]('revealed'));_0x11b4c0[_0x18abbf(0x20e)](_0x30f4a5=>{const _0x287f54=_0x18abbf,_0x56e05f=Array[_0x287f54(0x1d9)](_0x2e3d1b[_0x287f54(0x1c9)])[_0x287f54(0x170)](_0x30f4a5),_0x4bc3db=_0x30f4a5['dataset'][_0x287f54(0x17a)];socket[_0x287f54(0x1cb)](_0x287f54(0x178),{'type':'syncRevealedTile','position':_0x56e05f,'tile':_0x4bc3db,'currentPlayer':currentPlayer,'gameId':gameId,'playerId':socket['id'],'timestamp':Date[_0x287f54(0x1d7)]()}),console['log'](_0x287f54(0x23d)+_0x56e05f+_0x287f54(0x1a5)+_0x4bc3db);});}setInterval(forceSyncRevealedTiles,0x1388),window[_0x589aac(0x1a3)]('DOMContentLoaded',()=>{setTimeout(()=>{const _0x475da4=_0x42f1,_0x7f1837=Array['from'](drawPile[_0x475da4(0x1c9)])[_0x475da4(0x163)](_0x1d7759=>_0x1d7759[_0x475da4(0x1b8)][_0x475da4(0x17a)]==='🍄');_0x7f1837[_0x475da4(0x20e)](_0x1650aa=>{const _0x11f6f3=_0x475da4;_0x1650aa[_0x11f6f3(0x184)]='🍄';});},0x3e8);});function addPotionTile(){const _0x306949=_0x589aac,_0x130acd=Array[_0x306949(0x1d9)](drawPile[_0x306949(0x1c9)])[_0x306949(0x157)](_0x3f99da=>_0x3f99da['dataset'][_0x306949(0x17a)]==='🍄');if(!_0x130acd){const _0x4686b8=document[_0x306949(0x181)](_0x306949(0x23b));_0x4686b8['classList']['add']('tile'),_0x4686b8[_0x306949(0x1b8)][_0x306949(0x17a)]='🍄',_0x4686b8['textContent']='🍄',_0x4686b8[_0x306949(0x1a3)](_0x306949(0x24c),selectDrawTile),drawPile['appendChild'](_0x4686b8),console['log']('Potion\x20tile\x20added\x20to\x20draw\x20pile');}}</script>
+        /* === CONSTANTS AND VARIABLES === */
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const emojis = ['🦊', '🐢', '🐘', '🦁', '🐬', '🦄', '🐠', '🦋', '🐵'];
+        let gameEmojis = [];
+        let selectedEmojis = [];
+        let playerName = "Player 1";
+        let opponentName = "Player 2";
+        const socket = io('http://localhost:3000');
+        
+        let gameId = null;
+        let playerId = null;
+        let isMyTurn = false;
+        let currentPlayer = 1;
+        let gameOver = false;
+        let currentTile = null;
+        let discardedLetters = [];
+        let iAmPlayer1 = false;
+        let players = {
+            first: null,
+            second: null,
+            names: {}
+        };
+        const letterCounts = {};
+        
+        /* === DOM ELEMENT REFERENCES === */
+        const setupOverlay = document.getElementById('setup-overlay');
+        const startButton = document.getElementById('startButton');
+        const joinButton = document.getElementById('joinButton');
+        const waitingMessage = document.getElementById('waitingMessage');
+        const gameBoard = document.querySelector('.game-board');
+        const player1Area = document.getElementById('player1Area');
+        const player2Area = document.getElementById('player2Area');
+        const drawPile = document.getElementById('drawPile');
+        const currentTileDisplay = document.getElementById('currentTile');
+        const discardOption = document.getElementById('discardOption');
+        const startScreen = document.getElementById('startScreen');
+        const createScreen = document.getElementById('createScreen');
+        const joinScreen = document.getElementById('joinScreen');
+        const submitJoinButton = document.getElementById('submitJoinButton');
+        const backButton = document.getElementById('backButton');
+        const gameCodeEmojis = document.getElementById('gameCodeEmojis');
+        const emojiGrid = document.getElementById('emojiGrid');
+        const emojiSelection = document.getElementById('emojiSelection');
+        const nameEntryScreen = document.getElementById('nameEntryScreen');
+        const playerNameInput = document.getElementById('playerNameInput');
+        const submitNameButton = document.getElementById('submitNameButton');
+        const emojiSlots = [
+            document.getElementById('slot1'),
+            document.getElementById('slot2'),
+            document.getElementById('slot3')
+        ];
+        
+        /* === INITIALIZATION === */
+        let nameRetryCounts = 0;
+        const nameRetryInterval = setInterval(() => {
+            if (nameRetryCounts > 5 || !gameId) {
+                clearInterval(nameRetryInterval);
+                return;
+            }
+            
+            if (gameId && playerId) {
+                socket.emit('playerName', {
+                    gameId: gameId,
+                    playerId: socket.id,
+                    name: playerName
+                });
+                nameRetryCounts++;
+            }
+        }, 2000);
+        
+        let syncInterval = setInterval(syncGameState, 5000);
+        const drawPileInterval = setInterval(syncDrawPile, 2000);
+        
+        // Add recovery monitoring to detect and fix stuck game states
+        const recoveryInterval = setInterval(() => {
+            if (gameId && !gameOver) {
+                const remainingTiles = drawPile.children.length;
+                
+                // Special handling for end-game scenarios
+                if (remainingTiles < 8) {
+                    // Check for selected tiles without current tile state
+                    const stuckSelectedTiles = Array.from(drawPile.querySelectorAll('.selected'));
+                    if (!currentTile && stuckSelectedTiles.length > 0) {
+                        // Clear stale selected state without affecting animations
+                        setTimeout(() => {
+                            stuckSelectedTiles.forEach(tile => {
+                                if (!currentTile) {
+                                    tile.classList.remove('selected');
+                                }
+                            });
+                        }, 5000); // Give plenty of time for animations to complete
+                    }
+                }
+            }
+        }, 5000); // Check every 5 seconds (not too aggressive)
+        
+        /* === SOCKET EVENT HANDLERS === */
+        socket.on('connect', () => {});
+        
+        socket.on('connect_error', (error) => {});
+        
+        socket.on('joinFailed', () => {
+            emojiSelection.classList.add('shake');
+            
+            const setupMessage = document.querySelector('#joinScreen .setup-message');
+            setupMessage.textContent = 'Wrong emoji code! Try again';
+            setupMessage.style.color = '#e74c3c';
+            
+            setTimeout(() => {
+                emojiSelection.classList.remove('shake');
+                
+                setTimeout(() => {
+                    setupMessage.textContent = 'Pick the 3 emojis to join:';
+                    setupMessage.style.color = '#2c3e50';
+                }, 2000);
+            }, 500);
+        });
+        
+        socket.on('syncRequest', (data) => {
+            if (data.playerId !== socket.id && gameId === data.gameId) {
+                if (isMyTurn && data.myTurn) {
+                    if (socket.id === players.second) {
+                        isMyTurn = false;
+                    }
+                }
+                
+                if (currentPlayer !== data.myPlayer) {
+                    if (socket.id === players.second) {
+                        currentPlayer = data.myPlayer === 1 ? 2 : 1;
+                    }
+                }
+                
+                updateTileColors();
+            }
+        });
+        
+        socket.on('gameCreated', (data) => {
+            gameId = data.gameId;
+            playerId = data.playerId;
+            
+            let codeLetters = [];
+            let usedChars = new Set();
+            
+            for (let i = 0; i < 3; i++) {
+                let char = data.gameId[i] || 'A';
+                
+                let charCode = char.charCodeAt(0);
+                if (charCode < 65 || charCode > 73) {
+                    char = 'A';
+                }
+                
+                if (usedChars.has(char)) {
+                    for (let j = 65; j <= 73; j++) {
+                        const newChar = String.fromCharCode(j);
+                        if (!usedChars.has(newChar)) {
+                            char = newChar;
+                            break;
+                        }
+                    }
+                }
+                
+                usedChars.add(char);
+                codeLetters.push(char);
+            }
+            
+            const emojiIndices = codeLetters.map(letter => letter.charCodeAt(0) - 65);
+            
+            gameEmojis = emojiIndices.map(index => emojis[index]);
+            
+            gameCodeEmojis.innerHTML = '';
+            const uniqueEmojis = [...new Set(gameEmojis)];
+            
+            while (uniqueEmojis.length < 3) {
+                const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                if (!uniqueEmojis.includes(randomEmoji)) {
+                    uniqueEmojis.push(randomEmoji);
+                }
+            }
+            
+            uniqueEmojis.slice(0, 3).forEach(emoji => {
+                const emojiElement = document.createElement('div');
+                emojiElement.classList.add('emoji');
+                emojiElement.textContent = emoji;
+                gameCodeEmojis.appendChild(emojiElement);
+            });
+            
+            gameEmojis = uniqueEmojis.slice(0, 3);
+            
+            socket.emit('playerName', {
+                gameId: gameId,
+                playerId: socket.id,
+                name: playerName
+            });
+            
+            startScreen.style.display = 'none';
+            createScreen.style.display = 'block';
+        });
+        
+        socket.on('disconnect', () => {
+            if (setupOverlay.style.display !== 'none') {
+                startButton.textContent = "Start New Game";
+                startButton.disabled = false;
+                joinButton.disabled = false;
+            }
+        });
+        
+        socket.on('reconnect', () => {
+            if (gameId) {
+                socket.emit('rejoinGame', {
+                    gameId: gameId,
+                    playerId: socket.id
+                });
+            }
+        });
+        
+        socket.on('gameStarted', (data) => {
+            gameId = data.gameId;
+            playerId = socket.id;
+            players.first = data.players[0];
+            players.second = data.players[1];
+            setupOverlay.style.display = 'none';
+            gameBoard.style.display = 'flex';
+            isMyTurn = data.players[0] === socket.id;
+            currentPlayer = 1;
+            initGame();
+            updateTileColors();
+            
+            setTimeout(() => {
+                socket.emit('makeMove', {
+                    type: 'shareName',
+                    gameId: gameId,
+                    playerId: socket.id,
+                    isPlayer1: iAmPlayer1,
+                    name: playerName,
+                    timestamp: Date.now()
+                });
+            }, 1000);
+            
+            setTimeout(updatePlayerLabelsBasedOnPosition, 500);
+        });
+        
+        socket.on('playerName', (data) => {
+            if (data.playerId && data.playerId !== socket.id) {
+                players.names[data.playerId] = data.name;
+                opponentName = data.name;
+                updatePlayerLabels();
+            }
+        });
+        
+        socket.on('gameMove', (data) => {
+    console.log("Received gameMove event:", data.type, data);
+    
+    if (data.type === 'shareName' && data.playerId !== socket.id) {
+        const topLabel = document.querySelector('.game-section:nth-child(1) h3');
+        const bottomLabel = document.querySelector('.game-section:nth-child(3) h3');
+        
+        if (data.isPlayer1) {
+            topLabel.textContent = data.name;
+        } else {
+            bottomLabel.textContent = data.name;
+        }
+        
+        socket.emit('makeMove', {
+            type: 'shareName',
+            gameId: gameId,
+            playerId: socket.id,
+            isPlayer1: iAmPlayer1,
+            name: playerName,
+            timestamp: Date.now()
+        });
+    }
+    
+    else if (data.type === 'discardOffer' && data.playerId !== socket.id) {
+        const tiles = Array.from(drawPile.children);
+        
+        tiles.forEach(tile => {
+            if (!tile.classList.contains('wiggle')) {
+                tile.textContent = '';
+            }
+            tile.classList.remove('wiggle', 'pink', 'duplicate-offer');
+        });
+        
+        let matchingTile = tiles.find(tile => tile.dataset.letter === data.tile);
+        
+        if (!matchingTile) {
+            matchingTile = document.createElement('div');
+            matchingTile.classList.add('tile');
+            matchingTile.dataset.letter = data.tile;
+            matchingTile.addEventListener('click', selectDrawTile);
+            drawPile.appendChild(matchingTile);
+        }
+        
+        matchingTile.classList.add('wiggle', 'duplicate-offer');
+        matchingTile.textContent = data.tile;
+        
+        tiles.forEach(tile => {
+            if (tile !== matchingTile && tile.dataset.letter === data.tile) {
+                tile.textContent = '';
+            }
+        });
+        
+        tiles.forEach(tile => {
+            if (tile !== matchingTile) {
+                tile.style.pointerEvents = 'none';
+            }
+        });
+        
+        setTimeout(() => {
+            matchingTile.classList.add('pink');
+        }, 250);
+        
+        matchingTile.addEventListener('click', () => {
+            // Enable pointer events on other tiles
+            tiles.forEach(tile => {
+                tile.style.pointerEvents = 'auto';
+            });
+            
+            // Set this as the current selected tile
+            currentTile = matchingTile.dataset.letter;
+            
+            // Remove wiggle and add selected class
+            matchingTile.classList.remove('wiggle', 'pink');
+            matchingTile.classList.add('selected');
+            
+            // Remove any other duplicate offers except this one
+            const duplicateTiles = drawPile.querySelectorAll('.duplicate-offer');
+            duplicateTiles.forEach(tile => {
+                if (tile !== matchingTile) {
+                    tile.remove();
+                }
+            });
+            
+            // Clear duplicate-offer class from the selected tile
+            // but keep it in the draw pile until placed
+            matchingTile.classList.remove('duplicate-offer');
+            
+            // Update colors to show it's this player's turn
+            updateTileColors();
+        }, { once: true });
+        
+        isMyTurn = true;
+        currentPlayer = data.currentPlayer;
+        updateTileColors();
+    }
+
+// And add this handler in your socket.on('gameMove') function:
+if (data.type === 'syncRevealedTile' && data.playerId !== socket.id) {
+    // Process similar to potionRevealTile
+    const playerArea = (data.currentPlayer === 1) ? player1Area : player2Area;
+    
+    if (data.position >= 0 && data.position < playerArea.children.length) {
+        const tile = playerArea.children[data.position];
+        
+        if (tile && !tile.classList.contains('revealed')) {
+            // Only update if not already revealed
+            console.log("Sync revealing tile position", data.position, "with letter", data.tile);
+            
+            tile.dataset.letter = data.tile;
+            tile.textContent = data.tile;
+            tile.classList.add('revealed');
+        }
+    }
+}
+    
+    else if (data.type === 'gameOver') {
+        gameOver = true;
+        
+        const winnerNum = parseInt(data.winner);
+        const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+        const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+        
+        // Use the winnerName from the message if provided
+        let winnerName;
+        if (data.winnerName) {
+            winnerName = data.winnerName;  // Use the name directly from the message
+        } else {
+            const p1Name = socket.id === players.first ? playerName : opponentName;
+            const p2Name = socket.id === players.second ? playerName : opponentName;
+            winnerName = winnerNum === 1 ? p1Name : p2Name;
+        }
+        
+        // Check if I am the winner
+        const iAmWinner = (winnerNum === 1 && socket.id === players.first) || 
+                        (winnerNum === 2 && socket.id === players.second);
+        
+        // Show the appropriate screen with the correct winner name
+        if (iAmWinner) {
+            showSimpleWinnerAnimation(winnerName);
+        } else {
+            showSimpleLoserScreen(winnerName);
+        }
+        
+        // Use the winner name for labels too
+        const p1Name = socket.id === players.first ? playerName : opponentName;
+        const p2Name = socket.id === players.second ? playerName : opponentName;
+        
+        if (winnerNum === 1) {
+            player1Label.textContent = `${p1Name}: Winner!`;
+            player2Label.textContent = `${p2Name}: ${winnerName} Wins!`;
+        } else {
+            player1Label.textContent = `${p1Name}: ${winnerName} Wins!`;
+            player2Label.textContent = `${p2Name}: Winner!`;
+        }
+        
+        isMyTurn = false;
+        updateTileColors();
+    }
+    
+    // Special tiles handler
+    else if (data.type === 'specialTile' && data.playerId !== socket.id) {
+        console.log("Special tile action from opponent:", data.action);
+        
+        if (data.action === 'skip') {
+            // Handle skip from opponent
+            const nextPlayer = data.currentPlayer === 1 ? 2 : 1;
+            
+            // Get player labels
+            const currentPlayerLabel = document.querySelector(`.game-section:nth-child(${data.currentPlayer === 1 ? 1 : 3}) h3`);
+            const nextPlayerLabel = document.querySelector(`.game-section:nth-child(${nextPlayer === 1 ? 1 : 3}) h3`);
+            
+            // Get names 
+            const activePlayerName = data.activePlayerName || (
+                data.currentPlayer === 1 ? 
+                (socket.id === players.first ? playerName : opponentName) :
+                (socket.id === players.second ? playerName : opponentName)
+            );
+            
+            // Set messages
+            currentPlayerLabel.textContent = `${activePlayerName}: Skipped!`;
+            
+            // If it's my turn next, show "Your Turn!"
+            if (socket.id === (nextPlayer === 1 ? players.first : players.second)) {
+                nextPlayerLabel.textContent = `${playerName}: Player Skipped, Your Turn!`;
+            } else {
+                const nextPlayerName = data.nextPlayerName || (
+                    nextPlayer === 1 ? 
+                    (socket.id === players.first ? playerName : opponentName) :
+                    (socket.id === players.second ? playerName : opponentName)
+                );
+                nextPlayerLabel.textContent = `${nextPlayerName}: Player Skipped, Your Turn!`;
+            }
+            
+            // Handle the skip tile visually
+            const tiles = Array.from(drawPile.children);
+            let skipTile = tiles[data.tilePosition];
+            
+            if (!skipTile) {
+                skipTile = tiles.find(tile => tile.dataset.letter === '🐸');
+            }
+            
+            if (!skipTile) {
+                skipTile = document.createElement('div');
+                skipTile.classList.add('tile', 'temporary');
+                skipTile.dataset.letter = '🐸';
+                skipTile.textContent = '🐸';
+                drawPile.appendChild(skipTile);
+            } else {
+                skipTile.textContent = '🐸';  // Use frog emoji
+            }
+            
+            skipTile.classList.add('selected');
+            currentTileDisplay.textContent = "Opponent used Skip tile!";
+            
+            // After a delay, update the game state
+            setTimeout(() => {
+                if (skipTile.parentNode === drawPile) {
+                    skipTile.remove();
+                }
+                
+                currentTileDisplay.textContent = '';
+                currentTile = null;
+                isMyTurn = socket.id === (nextPlayer === 1 ? players.first : players.second);
+                currentPlayer = nextPlayer;
+                updateTileColors();
+            }, 3000);
+            
+            // Clear messages after a while
+            setTimeout(() => {
+                if (currentPlayerLabel.textContent.includes('Skipped')) {
+                    currentPlayerLabel.textContent = currentPlayerLabel.textContent.split(':')[0].trim();
+                }
+                if (nextPlayerLabel.textContent.includes('Player Skipped, Your Turn')) {
+                    nextPlayerLabel.textContent = nextPlayerLabel.textContent.split(':')[0].trim();
+                }
+            }, 8000);
+        }
+        
+        else if (data.action === 'reverse') {
+            // Handle reverse from opponent
+            const nextPlayer = data.currentPlayer === 1 ? 2 : 1;
+            
+            // Get player labels
+            const currentPlayerLabel = document.querySelector(`.game-section:nth-child(${data.currentPlayer === 1 ? 1 : 3}) h3`);
+            const nextPlayerLabel = document.querySelector(`.game-section:nth-child(${nextPlayer === 1 ? 1 : 3}) h3`);
+            
+            // Get names 
+            const activePlayerName = data.activePlayerName || (
+                data.currentPlayer === 1 ? 
+                (socket.id === players.first ? playerName : opponentName) :
+                (socket.id === players.second ? playerName : opponentName)
+            );
+            
+            // Set messages
+            currentPlayerLabel.textContent = `${activePlayerName}: Reversed Tiles!`;
+            
+            // If it's my turn next, show "Your Turn!"
+            if (socket.id === (nextPlayer === 1 ? players.first : players.second)) {
+                nextPlayerLabel.textContent = `${playerName}: Tiles Reversed, Your Turn!`;
+            } else {
+                const nextPlayerName = data.nextPlayerName || (
+                    nextPlayer === 1 ? 
+                    (socket.id === players.first ? playerName : opponentName) :
+                    (socket.id === players.second ? playerName : opponentName)
+                );
+                nextPlayerLabel.textContent = `${nextPlayerName}: Tiles Reversed, Your Turn!`;
+            }
+            
+            // Handle the reverse tile visually
+            const tiles = Array.from(drawPile.children);
+            let reverseTile = tiles[data.tilePosition];
+            
+            if (!reverseTile) {
+                reverseTile = tiles.find(tile => tile.dataset.letter === '🐙');
+            }
+            
+            if (!reverseTile) {
+                reverseTile = document.createElement('div');
+                reverseTile.classList.add('tile', 'temporary');
+                reverseTile.dataset.letter = '🐙';
+                reverseTile.textContent = '🐙';
+                drawPile.appendChild(reverseTile);
+            } else {
+                reverseTile.textContent = '🐙';  // Use octopus emoji
+            }
+            
+            reverseTile.classList.add('selected');
+            currentTileDisplay.textContent = "Opponent used Reverse tile!";
+            
+            // After a delay, update the game state
+            setTimeout(() => {
+                if (reverseTile.parentNode === drawPile) {
+                    reverseTile.remove();
+                }
+                
+                currentTileDisplay.textContent = '';
+                currentTile = null;
+                switchPiles();
+                isMyTurn = socket.id === (nextPlayer === 1 ? players.first : players.second);
+                currentPlayer = nextPlayer;
+                updateTileColors();
+            }, 3000);
+            
+            // Clear messages after a while
+            setTimeout(() => {
+                if (currentPlayerLabel.textContent.includes('Reversed')) {
+                    currentPlayerLabel.textContent = currentPlayerLabel.textContent.split(':')[0].trim();
+                }
+                if (nextPlayerLabel.textContent.includes('Tiles Reversed, Your Turn')) {
+                    nextPlayerLabel.textContent = nextPlayerLabel.textContent.split(':')[0].trim();
+                }
+            }, 8000);
+        }
+        
+        else if (data.action === 'potionBubbles') {
+    console.log("Received potionBubbles action from other player", data);
+    
+    // Unlike skip/reverse, potion doesn't change turn, so current player stays the same
+    // But we still need to identify both labels
+    
+    // Get player labels - we need BOTH
+    const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+    const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+    
+    // Get active player name (who used the potion)
+    const activePlayerName = data.activePlayerName || (
+        data.currentPlayer === 1 ? 
+        (socket.id === players.first ? playerName : opponentName) :
+        (socket.id === players.second ? playerName : opponentName)
+    );
+    
+    // Update the label for the player who used the potion
+    if (data.currentPlayer === 1) {
+        player1Label.textContent = `${activePlayerName}: Magic Mushroom Found!`;
+        // Also update the other player's label to notify them
+        player2Label.textContent = `${player2Label.textContent.split(':')[0]}: ${activePlayerName} Magic Mushroom Found!`;
+    } else {
+        player2Label.textContent = `${activePlayerName}: Magic Mushroom Found!`;
+        // Also update the other player's label to notify them
+        player1Label.textContent = `${player1Label.textContent.split(':')[0]}: ${activePlayerName} Magic Mushroom Found!`;
+    }
+    
+    // Clear messages after delay
+    setTimeout(() => {
+        if (player1Label.textContent.includes('Magic Mushroom Found!')) {
+            player1Label.textContent = player1Label.textContent.split(':')[0].trim();
+        }
+        if (player2Label.textContent.includes('Magic Mushroom Found!')) {
+            player2Label.textContent = player2Label.textContent.split(':')[0].trim();
+        }
+    }, 5000);
+    
+    // Handle the potion tile visually
+    const tiles = Array.from(drawPile.children);
+    let potionTile = tiles[data.tilePosition];
+    
+    if (!potionTile) {
+        potionTile = tiles.find(tile => tile.dataset.letter === '🍄');
+    }
+    
+    if (!potionTile) {
+        potionTile = document.createElement('div');
+        potionTile.classList.add('tile', 'temporary');
+        potionTile.dataset.letter = '🍄';
+        potionTile.textContent = '🍄';
+        drawPile.appendChild(potionTile);
+    } else {
+        potionTile.textContent = '🍄';  // Use potion emoji
+    }
+    
+    potionTile.classList.add('selected');
+    currentTileDisplay.textContent = `${activePlayerName} Magic Mushroom Found!`;
+    
+    // After a delay, update the display
+    setTimeout(() => {
+        if (potionTile.parentNode === drawPile) {
+            potionTile.remove();
+        }
+        
+        currentTileDisplay.textContent = '';
+    }, 3000);
+}
+        
+        else if (data.action === 'bothHave') {
+            const selectedTile = drawPile.querySelector('.tile.selected');
+            if (selectedTile) selectedTile.remove();
+            
+            if (data.discardedLetter) {
+                if (!discardedLetters.includes(data.discardedLetter)) {
+                    discardedLetters.push(data.discardedLetter);
+                }
+                
+                const allSameTiles = Array.from(drawPile.children).filter(tile => 
+                    tile.dataset.letter === data.discardedLetter
+                );
+                allSameTiles.forEach(tile => tile.remove());
+            }
+            
+            setTimeout(() => {
+                currentTile = null;
+                isMyTurn = true;
+                currentPlayer = data.currentPlayer === 1 ? 2 : 1;
+                updateTileColors();
+            }, 1000);
+        }
+    }
+    
+    else if (data.type === 'potionRevealTile' && data.playerId !== socket.id) {
+    console.log("PROCESSING POTION REVEAL TILE EVENT:", data);
+    
+    // Get player area based on current player
+    const playerArea = (data.currentPlayer === 1) ? player1Area : player2Area;
+    
+    // Make sure we have a valid position
+    if (data.position >= 0 && data.position < playerArea.children.length) {
+        const tile = playerArea.children[data.position];
+        
+        if (tile) {
+            console.log("Revealing tile position", data.position, "with letter", data.tile);
+            
+            // Show bubble animation on this tile
+            createBubbleAnimation(tile);
+            
+            // Update the tile with the correct letter (after a delay to match animation)
+            setTimeout(() => {
+                tile.dataset.letter = data.tile;
+                tile.textContent = data.tile;
+                tile.classList.add('revealed');
+            }, 1000);
+        }
+    }
+}
+    
+    else if (data.type === 'cleanupTiles' && data.playerId !== socket.id) {
+        data.removedLetters.forEach(letter => {
+            if (!discardedLetters.includes(letter)) {
+                discardedLetters.push(letter);
+            }
+            
+            const tilesToRemove = Array.from(drawPile.children).filter(tile => 
+                tile.dataset.letter === letter
+            );
+            tilesToRemove.forEach(tile => tile.remove());
+        });
+    }
+    
+    else if (data.type === 'addReserveTile' && data.playerId !== socket.id) {
+        const tile = document.createElement('div');
+        tile.classList.add('tile');
+        tile.dataset.letter = data.letter;
+        tile.addEventListener('click', selectDrawTile);
+        drawPile.appendChild(tile);
+    }
+    
+    else if (data.type === 'pileSwitch' && data.playerId !== socket.id) {
+        const player1NewState = data.player2State;
+        const player2NewState = data.player1State;
+        
+        player1Area.innerHTML = '';
+        player1NewState.forEach(tileData => {
+            const newTile = document.createElement('div');
+            newTile.classList.add('tile');
+            if (tileData.revealed) newTile.classList.add('revealed');
+            newTile.dataset.letter = tileData.letter;
+            if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
+            newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
+            newTile.addEventListener('click', placeTile);
+            player1Area.appendChild(newTile);
+        });
+        
+        player2Area.innerHTML = '';
+        player2NewState.forEach(tileData => {
+            const newTile = document.createElement('div');
+            newTile.classList.add('tile');
+            if (tileData.revealed) newTile.classList.add('revealed');
+            newTile.dataset.letter = tileData.letter;
+            if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
+            newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
+            newTile.addEventListener('click', placeTile);
+            player2Area.appendChild(newTile);
+        });
+        
+        updateTileColors();
+    }
+    
+    else if (data.type === 'selectTile' && data.playerId !== socket.id) {
+        const tiles = Array.from(drawPile.children);
+        const tileToSelect = tiles[data.tilePosition];
+        if (tileToSelect) {
+            tiles.forEach(tile => {
+                tile.classList.remove('selected');
+                if (tile === tileToSelect) {
+                    tile.textContent = data.tile;
+                } else {
+                    tile.textContent = '';
+                }
+            });
+            tileToSelect.classList.add('selected');
+            tileToSelect.textContent = data.tile;
+            currentTile = data.tile;
+            currentTileDisplay.textContent = ``;
+        }
+    }
+    
+    else if (data.type === 'placeTile' && data.playerId !== socket.id) {
+        const playerArea = socket.id === players.first ? player2Area : player1Area;
+        const tile = playerArea.children[data.position];
+        if (tile) {
+            const replacedLetter = tile.dataset.letter;
+            
+            tile.dataset.letter = data.tile;
+            tile.textContent = data.tile;
+            tile.classList.add('revealed');
+            
+            const selectedTile = drawPile.querySelector('.tile.selected');
+            if (selectedTile) selectedTile.remove();
+
+            if (replacedLetter) {
+                // Don't return special tiles to the draw pile
+                if (replacedLetter !== '🐸' && replacedLetter !== '🐙' && replacedLetter !== '⭐' && replacedLetter !== '🍄') {
+                    returnTileToDrawPile(replacedLetter);
+                }
+            }
+        }
+        isMyTurn = false;
+        updateTileColors();
+    }
+});
+        
+        socket.on('syncDrawPile', (data) => {
+            if (data.gameId === gameId && data.playerId !== socket.id) {
+                if (currentPlayer !== data.currentPlayer) {
+                    currentPlayer = data.currentPlayer;
+                    isMyTurn = socket.id === (currentPlayer === 1 ? players.first : players.second);
+                    updateTileColors();
+                }
+            }
+        });
+        
+        /* === EVENT LISTENERS === */
+        startButton.addEventListener('click', () => {
+            iAmPlayer1 = true;
+            
+            startButton.textContent = "Creating game...";
+            startButton.disabled = true;
+            joinButton.disabled = true;
+            
+            const timeout = setTimeout(() => {
+                startButton.textContent = "Start New Game";
+                startButton.disabled = false;
+                joinButton.disabled = false;
+            }, 5000);
+            
+            window.createGameTimeout = timeout;
+            
+            if (socket.connected) {
+                socket.emit('createGame');
+            } else {
+                socket.connect();
+                setTimeout(() => {
+                    if (socket.connected) {
+                        socket.emit('createGame');
+                    } else {
+                        startButton.textContent = "Start New Game";
+                        startButton.disabled = false;
+                        joinButton.disabled = false;
+                        clearTimeout(timeout);
+                    }
+                }, 1000);
+            }
+        });
+        
+        joinButton.addEventListener('click', () => {
+            startScreen.style.display = 'none';
+            joinScreen.style.display = 'block';
+            createEmojiGrid();
+        });
+        
+        backButton.addEventListener('click', () => {
+            joinScreen.style.display = 'none';
+            startScreen.style.display = 'block';
+            selectedEmojis = [];
+            updateEmojiSelection();
+        });
+        
+        submitJoinButton.addEventListener('click', () => {
+            if (selectedEmojis.length === 3) {
+                iAmPlayer1 = false;
+                
+                const emojiIndices = selectedEmojis.map(emoji => emojis.indexOf(emoji));
+                
+                const codeLetters = emojiIndices.map(index => {
+                    if (index < 0) {
+                        return 'A';
+                    }
+                    return String.fromCharCode(65 + index);
+                });
+                
+                const code = codeLetters.join('');
+                
+                socket.emit('joinGame', code);
+            } else {
+                emojiSelection.classList.add('shake');
+                setTimeout(() => {
+                    emojiSelection.classList.remove('shake');
+                }, 500);
+            }
+        });
+        
+        submitNameButton.addEventListener('click', () => {
+            const name = playerNameInput.value.trim();
+            
+            if (name.length > 0) {
+                playerName = name;
+                
+                nameEntryScreen.style.display = 'none';
+                startScreen.style.display = 'block';
+            } else {
+                playerNameInput.classList.add('shake');
+                setTimeout(() => playerNameInput.classList.remove('shake'), 500);
+            }
+        });
+        
+        playerNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitNameButton.click();
+            }
+        });
+        
+        /* === GAME FUNCTIONS === */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        function syncGameState() {
+            if (gameId && playerId) {
+                const remainingTiles = drawPile.children.length;
+                
+                socket.emit('syncRequest', {
+                    gameId: gameId,
+                    myTurn: isMyTurn,
+                    myPlayer: currentPlayer,
+                    remainingTiles: remainingTiles,
+                    timestamp: Date.now()
+                });
+                
+                if (remainingTiles < 10 && syncInterval._idleTimeout > 2000) {
+                    clearInterval(syncInterval);
+                    syncInterval = setInterval(syncGameState, 2000);
+                }
+            }
+        }
+        
+        function syncDrawPile() {
+            if (gameId && drawPile.children.length < 10) {
+                const tilePositions = Array.from(drawPile.children).map(tile => ({
+                    letter: tile.dataset.letter,
+                    position: Array.from(drawPile.children).indexOf(tile)
+                }));
+                
+                socket.emit('syncDrawPile', {
+                    gameId: gameId,
+                    tiles: tilePositions,
+                    currentPlayer: currentPlayer,
+                    isMyTurn: isMyTurn
+                });
+            }
+        }
+        
+        function createTiles(container, count, isDrawPile = false) {
+    let letters = [];
+    if (isDrawPile) {
+        let skipCount = 0, reverseCount = 0, wildCount = 0;
+        
+        const visibleLetters = alphabet.repeat(2).split('');
+        // Create an array without the potion tile first
+        const specialTiles = Array(4).fill('🐸').concat(Array(4).fill('🐙'), Array(4).fill('⭐'));
+        letters = shuffleArray([...visibleLetters, ...specialTiles]);
+        
+        letters = letters.filter(letter => {
+            if (letter === '🐸') return skipCount++ < 4;
+            if (letter === '🐙') return reverseCount++ < 4;
+            if (letter === '⭐') return wildCount++ < 4;
+            return true;
+        }).slice(0, count);
+        
+        // Add potion tile - we'll explicitly ensure it's there after creation
+        window.reserveTiles = alphabet.split('');
+    } else {
+        const alphabetTiles = alphabet.split('');
+        const specialTiles = Array(1).fill('🐸').concat(Array(1).fill('🐙'), Array(1).fill('⭐'));
+        letters = shuffleArray([...alphabetTiles, ...specialTiles]).slice(0, count);
+    }
+    
+    // Create all the tiles
+    for (let i = 0; i < letters.length; i++) {
+        const tile = document.createElement('div');
+        tile.classList.add('tile');
+        tile.dataset.letter = letters[i];
+        if (isDrawPile) {
+            tile.addEventListener('click', selectDrawTile);
+        } else {
+            tile.addEventListener('click', placeTile);
+        }
+        container.appendChild(tile);
+    }
+    
+    // After creating tiles, add the potion tile to draw pile
+    if (isDrawPile && container === drawPile) {
+    // Create and add the potion tile
+    const potionTile = document.createElement('div');
+    potionTile.classList.add('tile');
+    potionTile.dataset.letter = '🍄';
+    // Remove this line to keep it hidden:
+    // potionTile.textContent = '🍄'; 
+    potionTile.addEventListener('click', selectDrawTile);
+    
+    // Insert at a random position in the draw pile
+    const position = Math.floor(Math.random() * (drawPile.children.length + 1));
+    if (position >= drawPile.children.length) {
+        drawPile.appendChild(potionTile);
+    } else {
+        drawPile.insertBefore(potionTile, drawPile.children[position]);
+    }
+    
+    console.log("Added potion tile at position", position);
+}
+    }
+
+        
+        function addReserveTileIfNeeded() {
+            if (!window.reserveTiles || window.reserveTiles.length === 0 || gameOver) return;
+            
+            const p1Unrevealed = Array.from(player1Area.children).filter(t => !t.classList.contains('revealed')).length;
+            const p2Unrevealed = Array.from(player2Area.children).filter(t => !t.classList.contains('revealed')).length;
+            const maxUnrevealed = Math.max(p1Unrevealed, p2Unrevealed);
+            const drawPileCount = drawPile.children.length;
+            
+            if (drawPileCount < maxUnrevealed) {
+                if (window.reserveTiles.length > 0) {
+                    const letter = window.reserveTiles.pop();
+                    
+                    // Skip letters both players already have
+                    if (bothPlayersHaveTile(letter) || discardedLetters.includes(letter)) {
+                        // Try another letter
+                        setTimeout(addReserveTileIfNeeded, 100);
+                        return;
+                    }
+                    
+                    const tile = document.createElement('div');
+                    tile.classList.add('tile');
+                    tile.dataset.letter = letter;
+                    tile.addEventListener('click', selectDrawTile);
+                    drawPile.appendChild(tile);
+                    
+                    socket.emit('makeMove', {
+                        type: 'addReserveTile',
+                        gameId: gameId,
+                        playerId: socket.id,
+                        letter: letter,
+                        timestamp: Date.now()
+                    });
+                }
+            }
+        }
+        
+        function cleanupDuplicateTiles() {
+            if (!gameId || !playerId || gameOver) return;
+            
+            const p1Unrevealed = Array.from(player1Area.children).filter(t => !t.classList.contains('revealed')).length;
+            const p2Unrevealed = Array.from(player2Area.children).filter(t => !t.classList.contains('revealed')).length;
+            const maxUnrevealed = Math.max(p1Unrevealed, p2Unrevealed);
+            
+            for (const letter of alphabet.split('')) {
+                if (bothPlayersHaveTile(letter)) {
+                    const tilesToRemove = Array.from(drawPile.children).filter(tile => 
+                        tile.dataset.letter === letter
+                    );
+                    
+                    if (tilesToRemove.length > 0) {
+                        if (!discardedLetters.includes(letter)) {
+                            discardedLetters.push(letter);
+                        }
+                        
+                        tilesToRemove.forEach(tile => tile.remove());
+                        
+                        socket.emit('makeMove', {
+                            type: 'cleanupTiles',
+                            gameId: gameId,
+                            playerId: socket.id,
+                            removedLetters: [letter],
+                            timestamp: Date.now()
+                        });
+                    }
+                }
+            }
+            
+            if (drawPile.children.length < maxUnrevealed + 5) {
+                addReserveTileIfNeeded();
+            }
+        }
+        
+        function countAllTiles() {
+            Object.keys(letterCounts).forEach(key => {
+                letterCounts[key] = 0;
+            });
+            
+            Array.from(player1Area.children).forEach(tile => {
+                const letter = tile.dataset.letter;
+                if (letter) letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+            });
+            
+            Array.from(player2Area.children).forEach(tile => {
+                const letter = tile.dataset.letter;
+                if (letter) letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+            });
+            
+            Array.from(drawPile.children).forEach(tile => {
+                const letter = tile.dataset.letter;
+                if (letter) letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+            });
+        }
+        
+        function playerHasLetter(player, letter) {
+            const area = player === 1 ? player1Area : player2Area;
+            return Array.from(area.children).some(tile => {
+                if (!tile.classList.contains('revealed')) return false;
+                
+                if (tile.dataset.letter === '⭐') {
+                    const position = Array.from(area.children).indexOf(tile);
+                    const actualLetter = alphabet[position];
+                    return actualLetter === letter;
+                }
+                
+                return tile.dataset.letter === letter;
+            });
+        }
+        
+        function bothPlayersHaveTile(letter) {
+            if (letter === '🐸' || letter === '🐙' || letter === '⭐') {
+                return false;
+            }
+            
+            const p1Has = Array.from(player1Area.children).some(tile => {
+                if (!tile.classList.contains('revealed')) return false;
+                
+                if (tile.dataset.letter === letter) return true;
+                
+                if (tile.dataset.letter === '⭐') {
+                    const position = Array.from(player1Area.children).indexOf(tile);
+                    if (position >= 0 && position < alphabet.length) {
+                        return alphabet[position] === letter;
+                    }
+                }
+                return false;
+            });
+            
+            const p2Has = Array.from(player2Area.children).some(tile => {
+                if (!tile.classList.contains('revealed')) return false;
+                
+                if (tile.dataset.letter === letter) return true;
+                
+                if (tile.dataset.letter === '⭐') {
+                    const position = Array.from(player2Area.children).indexOf(tile);
+                    if (position >= 0 && position < alphabet.length) {
+                        return alphabet[position] === letter;
+                    }
+                }
+                return false;
+            });
+            
+            return p1Has && p2Has;
+        }
+        
+        function clearBothHaveMessages() {
+            if (currentTileDisplay && 
+                currentTileDisplay.textContent && 
+                currentTileDisplay.textContent.toLowerCase().includes('both')) {
+                currentTileDisplay.textContent = '';
+            }
+            
+            const allLabels = document.querySelectorAll('.game-section h3');
+            allLabels.forEach(label => {
+                if (label.textContent && 
+                    label.textContent.toLowerCase().includes('both have')) {
+                    const playerPart = label.textContent.split(':')[0].trim();
+                    if (playerPart) {
+                        label.textContent = playerPart;
+                    }
+                }
+            });
+        }
+        
+        setInterval(clearBothHaveMessages, 100);
+        
+        function returnTileToDrawPile(letter, faceUp = false) {
+    // Don't return special tiles to the draw pile
+    if (letter === '🐸' || letter === '🐙' || letter === '⭐' || letter === '🍄') {
+        return;
+    }
+            
+            countAllTiles();
+            
+            if (letterCounts[letter] >= 4) {
+                return;
+            }
+            
+            // Don't return tiles that both players already have
+            if (bothPlayersHaveTile(letter)) {
+                if (!discardedLetters.includes(letter)) {
+                    discardedLetters.push(letter);
+                }
+                return;
+            }
+            
+            const newTile = document.createElement('div');
+            newTile.classList.add('tile');
+            newTile.dataset.letter = letter;
+            newTile.addEventListener('click', selectDrawTile);
+            
+            if (faceUp) {
+                newTile.classList.add('face-up');
+                newTile.textContent = letter;
+            }
+
+            drawPile.appendChild(newTile);
+            
+            letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+        }
+        
+        function handleSkipTile(selectedTile) {
+    // Clear any existing messages
+    document.querySelector('.game-section:nth-child(1) h3').textContent = 
+        document.querySelector('.game-section:nth-child(1) h3').textContent.split(':')[0];
+    document.querySelector('.game-section:nth-child(3) h3').textContent = 
+        document.querySelector('.game-section:nth-child(3) h3').textContent.split(':')[0];
+    
+    currentTileDisplay.textContent = "Skip tile!";
+    
+    selectedTile.classList.add('selected');
+    selectedTile.textContent = '🐸';
+    
+    const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
+    const nextPlayer = currentPlayer === 1 ? 2 : 1;
+    
+    // Update player labels with skip messages
+    const currentPlayerLabel = document.querySelector(`.game-section:nth-child(${currentPlayer === 1 ? 1 : 3}) h3`);
+    const nextPlayerLabel = document.querySelector(`.game-section:nth-child(${nextPlayer === 1 ? 1 : 3}) h3`);
+    
+    const currentPlayerName = currentPlayerLabel.textContent.split(':')[0].trim();
+    const nextPlayerName = nextPlayerLabel.textContent.split(':')[0].trim();
+    
+    currentPlayerLabel.textContent = `${currentPlayerName}: Skipped!`;
+    nextPlayerLabel.textContent = `${nextPlayerName}: Player Skipped, Your Turn!`;
+    
+    socket.emit('makeMove', {
+        type: 'specialTile',
+        tile: '🐸',
+        action: 'skip',
+        tilePosition: tilePosition,
+        currentPlayer: currentPlayer,
+        nextPlayer: nextPlayer,
+        gameId: gameId,
+        playerId: socket.id,
+        activePlayerName: currentPlayerName,
+        nextPlayerName: nextPlayerName
+    });
+    
+    setTimeout(() => {
+        if (selectedTile.parentNode === drawPile) {
+            selectedTile.remove();
+        }
+        
+        currentTileDisplay.textContent = '';
+        currentTile = null;
+        isMyTurn = false;
+        currentPlayer = nextPlayer;
+        updateTileColors();
+    }, 3000);
+
+// Clear our own messages after a delay
+setTimeout(() => {
+    if (currentPlayerLabel.textContent.includes('Skipped')) {
+        currentPlayerLabel.textContent = currentPlayerLabel.textContent.split(':')[0].trim();
+    }
+    if (nextPlayerLabel.textContent.includes('Player Skippec, Your Turn')) {
+        nextPlayerLabel.textContent = nextPlayerLabel.textContent.split(':')[0].trim();
+    }
+}, 8000);
+}
+        
+        function handleReverseTile(selectedTile) {
+    // Clear any existing messages
+    document.querySelector('.game-section:nth-child(1) h3').textContent = 
+        document.querySelector('.game-section:nth-child(1) h3').textContent.split(':')[0];
+    document.querySelector('.game-section:nth-child(3) h3').textContent = 
+        document.querySelector('.game-section:nth-child(3) h3').textContent.split(':')[0];
+        
+    currentTileDisplay.textContent = "Reverse tile!";
+    
+    selectedTile.classList.add('selected');
+    selectedTile.textContent = '🐙';
+    
+    const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
+    const nextPlayer = currentPlayer === 1 ? 2 : 1;
+    
+    // Update player labels with reverse messages
+    const currentPlayerLabel = document.querySelector(`.game-section:nth-child(${currentPlayer === 1 ? 1 : 3}) h3`);
+    const nextPlayerLabel = document.querySelector(`.game-section:nth-child(${nextPlayer === 1 ? 1 : 3}) h3`);
+    
+    const currentPlayerName = currentPlayerLabel.textContent.split(':')[0].trim();
+    const nextPlayerName = nextPlayerLabel.textContent.split(':')[0].trim();
+    
+    currentPlayerLabel.textContent = `${currentPlayerName}: Reversed Tiles!`;
+    nextPlayerLabel.textContent = `${nextPlayerName}: Tiles Reversed, Your Turn!`;
+    
+    socket.emit('makeMove', {
+        type: 'specialTile',
+        tile: '🐙',
+        action: 'reverse',
+        tilePosition: tilePosition,
+        currentPlayer: currentPlayer,
+        nextPlayer: nextPlayer,
+        gameId: gameId,
+        playerId: socket.id,
+        activePlayerName: currentPlayerName,
+        nextPlayerName: nextPlayerName
+    });
+    
+    setTimeout(() => {
+        if (selectedTile.parentNode === drawPile) {
+            selectedTile.remove();
+        }
+        
+        currentTileDisplay.textContent = '';
+        currentTile = null;
+        isMyTurn = false;
+        currentPlayer = nextPlayer;
+        updateTileColors();
+    }, 3000);
+
+// Clear our own messages after a delay
+setTimeout(() => {
+    if (currentPlayerLabel.textContent.includes('Reversed')) {
+        currentPlayerLabel.textContent = currentPlayerLabel.textContent.split(':')[0].trim();
+    }
+    if (nextPlayerLabel.textContent.includes('Tiles Reversed, Your Turn')) {
+        nextPlayerLabel.textContent = nextPlayerLabel.textContent.split(':')[0].trim();
+    }
+}, 8000);
+}
+        
+        function selectDrawTile(event) {
+    // Clear any status messages when a new tile is selected
+    const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+    const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+    
+    // Clear any existing messages
+    if (player1Label.textContent.includes(':')) {
+        player1Label.textContent = player1Label.textContent.split(':')[0].trim();
+    }
+    
+    if (player2Label.textContent.includes(':')) {
+        player2Label.textContent = player2Label.textContent.split(':')[0].trim();
+    }
+            
+            
+            if (!isMyTurn || gameOver || currentTile) {
+                return;
+            }
+            
+            const selectedTile = event.target;
+            const tilePosition = Array.from(drawPile.children).indexOf(selectedTile);
+            currentTile = selectedTile.dataset.letter;
+
+            if (currentTile === '🐸') {
+        handleSkipTile(selectedTile);
+        return;
+    }
+    
+    if (currentTile === '🐙') {
+        handleReverseTile(selectedTile);
+        return;
+    }
+    
+    if (currentTile === '🍄') {
+    // Make the emoji visible ONLY when selected
+    selectedTile.textContent = '🍄';
+    handlePotionBubbles(selectedTile);
+    return;
+}
+
+            drawPile.querySelectorAll('.tile').forEach(tile => {
+                tile.classList.remove('selected');
+                if (tile === selectedTile) {
+                    tile.textContent = currentTile;
+                } else {
+                    tile.textContent = '';
+                }
+            });
+            
+            selectedTile.classList.add('selected');
+            selectedTile.textContent = currentTile;
+            currentTileDisplay.textContent = '';
+            
+            socket.emit('makeMove', {
+                type: 'selectTile',
+                tile: currentTile,
+                tilePosition: tilePosition,
+                gameId: gameId,
+                playerId: socket.id
+            });
+            
+            if (currentTile !== '⭐' && playerHasLetter(currentPlayer, currentTile)) {
+                if (bothPlayersHaveTile(currentTile)) {
+                    selectedTile.remove();
+                    if (!discardedLetters.includes(currentTile)) {
+                        discardedLetters.push(currentTile);
+                    }
+                    currentTile = null;
+                    return;
+                }
+                
+                selectedTile.classList.add('redWiggle', 'duplicate-offer');
+                
+                socket.emit('makeMove', {
+                    type: 'discardOffer',
+                    gameId: gameId,
+                    tile: currentTile,
+                    currentPlayer: currentPlayer === 1 ? 2 : 1,
+                    playerId: socket.id,
+                    tilePosition: tilePosition
+                });
+                
+                setTimeout(() => {
+                    const duplicateTile = drawPile.querySelector('.duplicate-offer');
+                    if (duplicateTile) {
+                        duplicateTile.remove();
+                    }
+                    currentTile = null;
+                    isMyTurn = false;
+                    currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    updateTileColors();
+                }, 3000);
+                
+                return;
+            }
+        }
+        
+        function placeTile(event) {
+            if (!isMyTurn || gameOver || !currentTile) return;
+            const currentPlayerArea = currentPlayer === 1 ? player1Area : player2Area;
+            if (event.target.parentNode !== currentPlayerArea) return;
+            const position = Array.from(currentPlayerArea.children).indexOf(event.target);
+            if (currentTile !== '⭐' && alphabet[position] !== currentTile && currentTile !== '🐸' && currentTile !== '🐙') return;
+            if (event.target.classList.contains('revealed')) return;
+
+            const replacedLetter = event.target.dataset.letter;
+
+            const animatedTile = drawPile.querySelector('.wiggle');
+            if (animatedTile) {
+                animatedTile.remove();
+            }
+            
+            socket.emit('makeMove', {
+                type: 'placeTile',
+                tile: currentTile,
+                position: position,
+                gameId: gameId,
+                replacedTile: replacedLetter
+            });
+
+            event.target.dataset.letter = currentTile;
+            event.target.textContent = currentTile;
+            event.target.classList.add('revealed');
+
+            event.target.animate([
+                { transform: 'scale(1)' },
+                { transform: 'scale(1.2)' },
+                { transform: 'scale(1)' }
+            ], {
+                duration: 300,
+                easing: 'ease-out'
+            });
+
+            const selectedTile = drawPile.querySelector('.tile.selected');
+            if (selectedTile) selectedTile.remove();
+            
+            if (replacedLetter) {
+                // Don't return special tiles to the draw pile
+                if (replacedLetter !== '🐸' && replacedLetter !== '🐙' && replacedLetter !== '⭐') {
+                    returnTileToDrawPile(replacedLetter);
+                }
+            }
+
+            currentTile = null;
+            currentTileDisplay.textContent = '';
+            
+            cleanupDuplicateTiles();
+            
+            updateTileColors();
+            checkGameEnd(currentPlayerArea);
+        }
+        
+        function sendMove(moveData) {
+            const baseData = {
+                gameId: gameId,
+                playerId: socket.id,
+                currentPlayer: currentPlayer,
+                nextPlayer: currentPlayer === 1 ? 2 : 1,
+                timestamp: Date.now()
+            };
+            
+            socket.emit('makeMove', {...baseData, ...moveData});
+        }
+        
+        function switchPiles() {
+            const player1Tiles = Array.from(player1Area.children).map(tile => ({
+                letter: tile.dataset.letter,
+                revealed: tile.classList.contains('revealed'),
+                wildValue: tile.dataset.wildValue || null
+            }));
+            
+            const player2Tiles = Array.from(player2Area.children).map(tile => ({
+                letter: tile.dataset.letter,
+                revealed: tile.classList.contains('revealed'),
+                wildValue: tile.dataset.wildValue || null
+            }));
+
+            player1Area.innerHTML = '';
+            player2Area.innerHTML = '';
+
+            player2Tiles.forEach(tileData => {
+                const newTile = document.createElement('div');
+                newTile.classList.add('tile');
+                if (tileData.revealed) newTile.classList.add('revealed');
+                newTile.dataset.letter = tileData.letter;
+                if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
+                newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
+                newTile.addEventListener('click', placeTile);
+                player1Area.appendChild(newTile);
+            });
+            
+            player1Tiles.forEach(tileData => {
+                const newTile = document.createElement('div');
+                newTile.classList.add('tile');
+                if (tileData.revealed) newTile.classList.add('revealed');
+                newTile.dataset.letter = tileData.letter;
+                if (tileData.wildValue) newTile.dataset.wildValue = tileData.wildValue;
+                newTile.textContent = tileData.revealed ? (tileData.wildValue || tileData.letter) : '';
+                newTile.addEventListener('click', placeTile);
+                player2Area.appendChild(newTile);
+            });
+
+            sendMove({
+                type: 'pileSwitch',
+                player1State: player1Tiles,
+                player2State: player2Tiles
+            });
+
+            updateTileColors();
+        }
+        
+        function checkGameEnd(playerArea) {
+    if (Array.from(playerArea.children).every(tile => tile.classList.contains('revealed'))) {
+        gameOver = true;
+        
+        const winningPlayer = playerArea === player1Area ? 1 : 2;
+        
+        const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+        const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+        
+        const p1Name = socket.id === players.first ? playerName : opponentName;
+        const p2Name = socket.id === players.second ? playerName : opponentName;
+        
+        // Get the winning player's name
+        const winnerName = winningPlayer === 1 ? p1Name : p2Name;
+        
+        // Determine if the current client is the winner
+        const iAmWinner = (winningPlayer === 1 && socket.id === players.first) || 
+                          (winningPlayer === 2 && socket.id === players.second);
+        
+        // Show appropriate screen based on whether this client won or lost
+        if (iAmWinner) {
+            showSimpleWinnerAnimation(winnerName);
+        } else {
+            showSimpleLoserScreen(winnerName);
+        }
+        
+        if (winningPlayer === 1) {
+            player1Label.textContent = `${p1Name}: Winner!`;
+            player2Label.textContent = `${p2Name}: ${p1Name} Wins!`;
+        } else {
+            player1Label.textContent = `${p1Name}: ${p2Name} Wins!`;
+            player2Label.textContent = `${p2Name}: Winner!`;
+        }
+        
+        socket.emit('makeMove', {
+    type: 'gameOver',
+    gameId: gameId,
+    winner: winningPlayer,
+    winnerName: winnerName,  // Add this line to share the winner's name
+    timestamp: Date.now()
+});
+        
+        isMyTurn = false;
+        updateTileColors();
+        return true;
+    }
+    
+    return false;
+}
+        
+        function updateTileColors() {
+            const player1Tiles = player1Area.querySelectorAll('.tile');
+            const player2Tiles = player2Area.querySelectorAll('.tile');
+            
+            if (currentPlayer === 1) {
+                if (socket.id === players.first) {
+                    player1Tiles.forEach(tile => {
+                        tile.classList.remove('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player2Tiles.forEach(tile => {
+                        tile.classList.add('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player1Area.classList.remove('inactive');
+                    player2Area.classList.remove('active');
+                } else {
+                    player1Tiles.forEach(tile => {
+                        tile.classList.remove('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player2Tiles.forEach(tile => {
+                        tile.classList.add('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player1Area.classList.remove('inactive');
+                    player2Area.classList.remove('active');
+                }
+            } else {
+                if (socket.id === players.second) {
+                    player2Tiles.forEach(tile => {
+                        tile.classList.remove('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player1Tiles.forEach(tile => {
+                        tile.classList.add('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player2Area.classList.add('active');
+                    player1Area.classList.add('inactive');
+                } else {
+                    player2Tiles.forEach(tile => {
+                        tile.classList.remove('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player1Tiles.forEach(tile => {
+                        tile.classList.add('inactive');
+                        if (!tile.classList.contains('revealed')) {
+                            tile.textContent = '';
+                        }
+                    });
+                    player2Area.classList.add('active');
+                    player1Area.classList.add('inactive');
+                }
+            }
+        }
+        
+        function initGame() {
+            setupOverlay.style.display = 'none';
+            document.getElementById('gameBoard').style.display = 'flex';
+            
+            player1Area.innerHTML = '';
+            player2Area.innerHTML = '';
+            drawPile.innerHTML = '';
+            
+            createTiles(player1Area, 26);
+            createTiles(player2Area, 26);
+            createTiles(drawPile, 38, true);
+            
+            const topLabel = document.querySelector('.game-section:nth-child(1) h3');
+            const bottomLabel = document.querySelector('.game-section:nth-child(3) h3');
+            
+            if (iAmPlayer1) {
+                topLabel.textContent = playerName;
+            } else {
+                bottomLabel.textContent = playerName;
+            }
+            
+            updateTileColors();
+            setTimeout(cleanupDuplicateTiles, 500);
+setTimeout(addPotionTile, 1000);
+        }
+
+setTimeout(() => {
+    const potionTiles = Array.from(drawPile.children).filter(t => t.dataset.letter === '🍄');
+    console.log("Number of potion tiles found in draw pile:", potionTiles.length);
+    if (potionTiles.length > 0) {
+        console.log("Potion tile exists at position:", Array.from(drawPile.children).indexOf(potionTiles[0]));
+    } else {
+        console.log("No potion tile found, calling addPotionTile()");
+        addPotionTile();
+    }
+}, 2000);
+
+// Add this function after your initGame function (or at the end of it)
+function addPotionTile() {
+    // Check if potion tile already exists
+    const existingPotionTile = Array.from(drawPile.children).find(t => t.dataset.letter === '🍄');
+    if (!existingPotionTile) {
+        // Create the potion tile (hidden - no textContent)
+        const potionTile = document.createElement('div');
+        potionTile.classList.add('tile');
+        potionTile.dataset.letter = '🍄';
+        potionTile.addEventListener('click', selectDrawTile);
+        
+        // Add to draw pile at a random position
+        const position = Math.floor(Math.random() * (drawPile.children.length + 1));
+        if (position >= drawPile.children.length) {
+            drawPile.appendChild(potionTile);
+        } else {
+            drawPile.insertBefore(potionTile, drawPile.children[position]);
+        }
+        
+        console.log("Potion tile added to draw pile at position", position);
+    }
+}
+
+// Call this at the end of your initGame function
+// Add this line at the end of your initGame function:
+setTimeout(addPotionTile, 1000);
+        
+        /* === UI HELPER FUNCTIONS === */
+        function updatePlayerLabelsBasedOnPosition() {
+            const topLabel = document.querySelector('.game-section:nth-child(1) h3');
+            const bottomLabel = document.querySelector('.game-section:nth-child(3) h3');
+            
+            if (iAmPlayer1) {
+                topLabel.textContent = playerName;
+            } else {
+                bottomLabel.textContent = playerName;
+            }
+            
+            socket.emit('makeMove', {
+                type: 'shareName',
+                gameId: gameId,
+                playerId: socket.id,
+                isPlayer1: iAmPlayer1,
+                name: playerName,
+                timestamp: Date.now()
+            });
+        }
+        
+        function updatePlayerLabels() {
+            const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+            const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+            
+            const player1Name = players.first && players.names[players.first] 
+                ? players.names[players.first] : "Player 1";
+            
+            const player2Name = players.second && players.names[players.second]
+                ? players.names[players.second] : "Player 2";
+            
+            player1Label.textContent = player1Name;
+            player2Label.textContent = player2Name;
+        }
+        
+        function handleEmojiSelection(emoji, button) {
+            const index = selectedEmojis.indexOf(emoji);
+            
+            if (index > -1) {
+                selectedEmojis.splice(index, 1);
+                button.classList.remove('selected');
+            } else if (selectedEmojis.length < 3) {
+                selectedEmojis.push(emoji);
+                button.classList.add('selected');
+                
+                button.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(1.2)' },
+                    { transform: 'scale(1)' }
+                ], {
+                    duration: 300,
+                    easing: 'ease-out'
+                });
+            } else {
+                const oldEmoji = selectedEmojis.pop();
+                const oldButton = Array.from(emojiGrid.querySelectorAll('.emoji-button'))
+                    .find(btn => btn.textContent === oldEmoji);
+                if (oldButton) oldButton.classList.remove('selected');
+                
+                selectedEmojis.push(emoji);
+                button.classList.add('selected');
+                
+                button.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(1.2)' },
+                    { transform: 'scale(1)' }
+                ], {
+                    duration: 300,
+                    easing: 'ease-out'
+                });
+            }
+            
+            updateEmojiSelection();
+        }
+        
+        function createEmojiGrid() {
+            emojiGrid.innerHTML = '';
+            
+            const uniqueEmojis = [...new Set(emojis)];
+            const shuffledEmojis = [...uniqueEmojis].sort(() => Math.random() - 0.5);
+            
+            shuffledEmojis.forEach(emoji => {
+                const button = document.createElement('div');
+                button.classList.add('emoji-button');
+                button.textContent = emoji;
+                button.addEventListener('click', () => {
+                    handleEmojiSelection(emoji, button);
+                });
+                emojiGrid.appendChild(button);
+            });
+            
+            selectedEmojis = [];
+            updateEmojiSelection();
+        }
+        
+        function updateEmojiSelection() {
+            emojiSlots.forEach((slot, index) => {
+                if (index < selectedEmojis.length) {
+                    slot.textContent = selectedEmojis[index];
+                } else {
+                    slot.textContent = '';
+                }
+            });
+        }
+        
+        setTimeout(fixCreateScreenVisibility, 500);
+        
+        function fixCreateScreenVisibility() {
+            if (gameId && iAmPlayer1 && setupOverlay.style.display !== 'none') {
+                startScreen.style.display = 'none';
+                createScreen.style.display = 'block';
+            }
+        }
+        
+        // Add this function to your script section, before checkGameEnd is defined
+function showSimpleWinnerAnimation(winnerName) {
+    // Create overlay container
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #ffffff; /* Solid white background */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    `;
+    
+    // Create and start confetti canvas - Put it INSIDE the overlay
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    `;
+    overlay.appendChild(canvas); // Add canvas to overlay so it's visible
+    
+    // Add winner text - Now on top of the canvas
+    const winnerText = document.createElement('div');
+    winnerText.textContent = `${winnerName} Won!`;
+    winnerText.style.cssText = `
+        font-size: 48px;
+        font-weight: bold;
+        color: #000000; 
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        animation: pulse 1.5s infinite;
+        z-index: 2001; /* Make sure text is above canvas */
+    `;
+    
+    // Add animation style
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Add a close button with the game's button style
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Play Again';
+    closeButton.className = 'setup-button'; // Use the game's button class
+    closeButton.style.zIndex = "2001"; // Ensure button is above canvas
+    
+    closeButton.addEventListener('click', () => {
+        overlay.remove();
+        // Reset game state here if needed
+        window.location.reload();
+    });
+    
+    overlay.appendChild(winnerText);
+    overlay.appendChild(closeButton);
+    document.body.appendChild(overlay);
+    
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // Confetti particles
+    const particles = [];
+    const particleCount = 200;
+    // Bright colors
+    const colors = ['#FF0000', '#FF00FF', '#0000FF', '#00FFFF', '#00FF00', 
+                   '#FFFF00', '#FFA500', '#FF4500', '#8A2BE2', '#FF1493'];
+    
+    // Create particles
+    for (let i = 0; i < particleCount; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            width: Math.random() * 8 + 4,  // Smaller width
+            height: Math.random() * 4 + 4, // Smaller height
+            color: colors[Math.floor(Math.random() * colors.length)],
+            speed: 2 + Math.random() * 3,  // Slightly slower than the last version
+            drift: Math.random() * 0.8 - 0.4,  // Keep the same drift
+            rotation: Math.random() * Math.PI * 2,
+            rotationSpeed: Math.random() * 0.005  // Keep rotation gentle
+        });
+    }
+    
+    // Animation function with smoother motion
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        particles.forEach((p, i) => {
+            // Update position
+            p.y += p.speed;
+            p.x += p.drift;
+            p.rotation += p.rotationSpeed;
+            
+            // Reset if off screen
+            if (p.y > canvas.height) {
+                particles[i] = {
+                    x: Math.random() * canvas.width,
+                    y: -20,
+                    width: Math.random() * 8 + 4,
+                    height: Math.random() * 4 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speed: 2 + Math.random() * 3,  // Same moderate speed
+                    drift: Math.random() * 0.8 - 0.4,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: Math.random() * 0.005
+                };
+            }
+            
+            // Draw a small rectangle
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rotation);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.width/2, -p.height/2, p.width, p.height);
+            ctx.restore();
+        });
+        
+        requestAnimationFrame(draw);
+    }
+    
+    draw();
+}
+// Also add the loser screen function
+function showSimpleLoserScreen(winnerName) {
+    // Create the main overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    `;
+    document.body.appendChild(overlay);
+    
+    // Add winner announcement
+    const winnerText = document.createElement('div');
+    winnerText.textContent = `${winnerName} Won!`;
+    winnerText.style.cssText = `
+        font-size: 48px;
+        font-weight: bold;
+        color: #000000;
+        margin-bottom: 20px;
+        z-index: 2001;
+        position: relative;
+    `;
+    overlay.appendChild(winnerText);
+    
+    // Add play again button
+    const playAgainBtn = document.createElement('button');
+    playAgainBtn.textContent = 'Play Again';
+    playAgainBtn.className = 'setup-button';
+    playAgainBtn.style.cssText = `
+        z-index: 2001;
+        position: relative;
+    `;
+    playAgainBtn.addEventListener('click', () => {
+        overlay.remove();
+        window.location.reload();
+    });
+    overlay.appendChild(playAgainBtn);
+}
+// Add the potion bubbles animation function
+function handlePotionBubbles(selectedTile) {
+    console.log("Potion Bubbles animation activated!");
+    
+    // Initialize playerArea correctly
+    const playerArea = currentPlayer === 1 ? player1Area : player2Area;
+    
+    // Get BOTH player labels
+    const player1Label = document.querySelector('.game-section:nth-child(1) h3');
+    const player2Label = document.querySelector('.game-section:nth-child(3) h3');
+    
+    // Clear any existing messages
+    player1Label.textContent = player1Label.textContent.split(':')[0];
+    player2Label.textContent = player2Label.textContent.split(':')[0];
+    
+    // Get my player name
+    const myName = currentPlayer === 1 ? player1Label.textContent : player2Label.textContent;
+    
+    // Update BOTH player labels
+    if (currentPlayer === 1) {
+        player1Label.textContent = `${myName}: Magic Mushroom Found!`;
+        player2Label.textContent = `${player2Label.textContent}: ${myName} Magic Mushroom Found!`;
+    } else {
+        player2Label.textContent = `${myName}: Magic Mushroom Found!`;
+        player1Label.textContent = `${player1Label.textContent}: ${myName} Magic Mushroom Found!`;
+    }
+    
+    // Store the draw pile position of the special tile
+    const specialTilePosition = Array.from(drawPile.children).indexOf(selectedTile);
+    
+    // Send the event with ALL relevant info
+    socket.emit('makeMove', {
+        type: 'specialTile',
+        tile: '🍄',
+        action: 'potionBubbles',
+        tilePosition: specialTilePosition,
+        currentPlayer: currentPlayer,
+        gameId: gameId,
+        playerId: socket.id,
+        playerName: myName,
+        activePlayerName: myName,
+        nextPlayer: currentPlayer // For consistency, although it doesn't change
+    });
+    
+    // Rest of the function to handle animations and revealing tiles...
+    
+    // Get unrevealed tiles
+    const unrevealed = Array.from(playerArea.children).filter(tile => !tile.classList.contains('revealed'));
+    if (unrevealed.length === 0) {
+        console.log("No unrevealed tiles found");
+        selectedTile.remove();
+        return;
+    }
+    
+    // Choose up to 3 random tiles to reveal
+    const maxTiles = Math.min(unrevealed.length, 3);
+    const tilesToReveal = [];
+    
+    // Make a copy of unrevealed for safer iteration
+    const unrevealed_copy = [...unrevealed];
+    
+    for (let i = 0; i < maxTiles; i++) {
+        const randomIndex = Math.floor(Math.random() * unrevealed_copy.length);
+        const tile = unrevealed_copy[randomIndex];
+        const tilePosition = Array.from(playerArea.children).indexOf(tile);
+        const correctLetter = alphabet[tilePosition]; // A-Z based on position
+        
+        tilesToReveal.push({
+            tile: tile,
+            position: tilePosition,
+            letter: correctLetter
+        });
+        unrevealed_copy.splice(randomIndex, 1);
+    }
+    
+    // Now reveal the tiles one by one with animation
+    for (let i = 0; i < tilesToReveal.length; i++) {
+        const tileData = tilesToReveal[i];
+        
+        // Set a timeout to stagger the tile reveals
+        setTimeout(() => {
+            // Get the tile element and position
+            const tile = tileData.tile;
+            const position = tileData.position;
+            const letter = tileData.letter;
+            
+            // Create the bubble animation for this tile
+            createBubbleAnimation(tile);
+            
+            // After a short delay, reveal the tile
+            setTimeout(() => {
+                // Update the tile with the correct letter
+                tile.dataset.letter = letter;
+                tile.textContent = letter;
+                tile.classList.add('revealed');
+                
+                // Send the tile reveal to the other player
+                socket.emit('makeMove', {
+                    type: 'potionRevealTile',
+                    position: position,
+                    tile: letter,
+                    currentPlayer: currentPlayer,
+                    gameId: gameId,
+                    playerId: socket.id
+                });
+            }, 1000);
+        }, i * 1500); // Stagger each tile by 1.5 seconds
+    }
+    
+    // After all tiles are processed, clean up
+    const totalDuration = tilesToReveal.length * 1500 + 1000;
+    setTimeout(() => {
+        // Remove the potion tile
+        if (selectedTile.parentNode === drawPile) {
+            selectedTile.remove();
+        }
+        
+        // Clear messages after delay
+        setTimeout(() => {
+            if (player1Label.textContent.includes('Magic Mushroom Found!')) {
+                player1Label.textContent = player1Label.textContent.split(':')[0].trim();
+            }
+            if (player2Label.textContent.includes('Magic Mushroom Found!')) {
+                player2Label.textContent = player2Label.textContent.split(':')[0].trim();
+            }
+        }, 5000);
+        
+        // Check if we filled ALL the tiles and trigger game end if needed
+        const allRevealed = Array.from(playerArea.children).every(tile => 
+            tile.classList.contains('revealed')
+        );
+        
+        if (allRevealed) {
+            // Player won! Check game end
+            checkGameEnd(playerArea);
+        } else {
+            // Reset current tile but KEEP turn with current player
+            currentTile = null;
+            updateTileColors();
+        }
+    }, totalDuration);
+}
+
+// Add this helper function for the bubble animation
+// Bubble animation function - smaller version
+function createBubbleAnimation(tile) {
+            const tileRect = tile.getBoundingClientRect();
+            
+            // Create animation container
+            const animContainer = document.createElement('div');
+            animContainer.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 9999;
+            `;
+            document.body.appendChild(animContainer);
+            
+            // Brighter bubble colors with higher saturation
+            const bubbleColors = [
+                '#FF007A', '#00A0FF', '#00FF84', '#FFD700', 
+                '#B300FF', '#FF8C00', '#00FF00', '#FF00FF'
+            ];
+            
+            // Create fewer bubbles with very tight spread
+            for (let i = 0; i < 15; i++) {  // Reduced from 20 to 15
+                const bubble = document.createElement('div');
+                const size = 4 + Math.random() * 10;  // Smaller bubbles (was 6-20)
+                const color = bubbleColors[Math.floor(Math.random() * bubbleColors.length)];
+                
+                // Position bubbles in a very tight area around the tile
+                const offset = 15;  // Even smaller spread (was 20)
+                const x = tileRect.left + Math.random() * (tileRect.width + offset) - offset/2;
+                const y = tileRect.top + Math.random() * (tileRect.height + offset) - offset/2;
+                
+                bubble.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    background-color: ${color};
+                    border-radius: 50%;
+                    left: ${x}px;
+                    top: ${y}px;
+                    opacity: 0;
+                    box-shadow: none;  // No glow effect
+                `;
+                animContainer.appendChild(bubble);
+                
+                // Animation with smaller scale and faster timing
+                bubble.animate([
+                    { opacity: 0, transform: 'scale(0.2)' },
+                    { opacity: 0.9, transform: 'scale(1)' },  // Even smaller maximum size
+                    { opacity: 0, transform: 'scale(0.2)' }
+                ], {
+                    duration: 600 + Math.random() * 500,  // Faster animation
+                    delay: Math.random() * 400,  // Less delay variation
+                    easing: 'ease-in-out'
+                });
+            }
+            
+            // Tile glow effect - even smaller
+            const glow = document.createElement('div');
+            glow.style.cssText = `
+                position: absolute;
+                width: ${tileRect.width}px;  // Same size as tile (was 1.2x)
+                height: ${tileRect.height}px;
+                background: radial-gradient(circle, rgba(255,255,255,0.7), rgba(255,255,255,0) 70%);
+                border-radius: 50%;
+                left: ${tileRect.left + tileRect.width/2 - tileRect.width/2}px;
+                top: ${tileRect.top + tileRect.height/2 - tileRect.height/2}px;
+                opacity: 0;
+                pointer-events: none;
+                z-index: 10000;
+                box-shadow: 0 0 10px 3px rgba(255,255,255,0.4);  // Smaller shadow
+            `;
+            animContainer.appendChild(glow);
+            
+            // Animate the glow - faster
+            glow.animate([
+                { opacity: 0, transform: 'scale(0.7)' },
+                { opacity: 0.9, transform: 'scale(1)' },
+                { opacity: 0, transform: 'scale(0.7)' }
+            ], {
+                duration: 600,  // Faster
+                easing: 'ease-out'
+            });
+            
+            // Add fewer sparkle effects
+            for (let i = 0; i < 4; i++) {  // Even fewer sparkles (was 6)
+                createSparkle(animContainer, tileRect);
+            }
+            
+            // Add a final flash effect - much smaller
+            setTimeout(() => {
+                const flash = document.createElement('div');
+                flash.style.cssText = `
+                    position: absolute;
+                    width: ${tileRect.width * 1.4}px;  // Much smaller (was 1.8x)
+                    height: ${tileRect.height * 1.4}px;
+                    background: radial-gradient(circle, white, rgba(255,255,255,0) 70%);
+                    border-radius: 50%;
+                    left: ${tileRect.left + tileRect.width/2 - tileRect.width * 0.7}px;
+                    top: ${tileRect.top + tileRect.height/2 - tileRect.height * 0.7}px;
+                    opacity: 0;
+                    pointer-events: none;
+                    z-index: 10000;
+                `;
+                animContainer.appendChild(flash);
+                
+                flash.animate([
+                    { opacity: 0 },
+                    { opacity: 0.7 },  // Less intense
+                    { opacity: 0 }
+                ], {
+                    duration: 500,  // Faster
+                    easing: 'ease-out'
+                });
+            }, 500);  // Less delay
+            
+            // Clean up after animation - faster
+            setTimeout(() => {
+                animContainer.remove();
+            }, 1500);  // Even shorter cleanup time
+        }
+
+        // Helper function to create sparkles - smaller and closer
+        function createSparkle(container, tileRect) {
+            const sparkle = document.createElement('div');
+            
+            // Random position with tighter spread
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 8 + Math.random() * 15;  // Even smaller distance from center (was 10-35)
+            const centerX = tileRect.left + tileRect.width/2;
+            const centerY = tileRect.top + tileRect.height/2;
+            
+            const x = centerX + Math.cos(angle) * distance;
+            const y = centerY + Math.sin(angle) * distance;
+            
+            // Random size and rotation - smaller
+            const size = 2 + Math.random() * 5;  // Smaller size (was 3-10)
+            const rotation = Math.random() * 180;
+            
+            sparkle.style.cssText = `
+                position: absolute;
+                width: ${size}px;
+                height: ${size}px;
+                background-color: white;
+                left: ${x}px;
+                top: ${y}px;
+                opacity: 0;
+                transform: rotate(${rotation}deg);
+                clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            `;
+            
+            container.appendChild(sparkle);
+            
+            // Animate the sparkle - faster and smaller
+            sparkle.animate([
+                { opacity: 0, transform: `rotate(${rotation}deg) scale(0)` },
+                { opacity: 1, transform: `rotate(${rotation + 180}deg) scale(1)` },  // Smaller scale
+                { opacity: 0, transform: `rotate(${rotation + 360}deg) scale(0)` }
+            ], {
+                duration: 500 + Math.random() * 300,  // Faster
+                delay: Math.random() * 300,  // Less delay
+                easing: 'ease-in-out'
+            });
+        }
+        
+        // Get elements
+        const animateTileBtn = document.getElementById('animateTileBtn');
+        const revealTileBtn = document.getElementById('revealTileBtn');
+        const animateAllBtn = document.getElementById('animateAllBtn');
+        const magicTile = document.querySelector('.magic-tile');
+        const tiles = document.querySelectorAll('.tile');
+        
+        // Add event listeners
+        animateTileBtn.addEventListener('click', () => {
+            createBubbleAnimation(magicTile);
+        });
+        
+        revealTileBtn.addEventListener('click', () => {
+            // Animate the magic tile
+            createBubbleAnimation(magicTile);
+            
+            // After animation, reveal a random tile
+            setTimeout(() => {
+                const regularTiles = Array.from(tiles).filter(t => !t.classList.contains('revealed') && !t.classList.contains('magic-tile'));
+                if (regularTiles.length > 0) {
+                    const randomTile = regularTiles[Math.floor(Math.random() * regularTiles.length)];
+                    createBubbleAnimation(randomTile);
+                    
+                    // Make sure the reveal happens after the animation
+                    setTimeout(() => {
+                        randomTile.classList.add('revealed');
+                    }, 600);  // Faster reveal
+                }
+            }, 700);  // Less delay between animations
+        });
+        
+        animateAllBtn.addEventListener('click', () => {
+            // Animate all regular tiles one by one
+            const regularTiles = Array.from(tiles).filter(t => !t.classList.contains('magic-tile'));
+            regularTiles.forEach((tile, index) => {
+                setTimeout(() => {
+                    createBubbleAnimation(tile);
+                    setTimeout(() => tile.classList.add('revealed'), 600);  // Faster reveal
+                }, index * 500);  // Less delay between tiles
+            });
+        });
+        
+        // Click on magic tile to test animation
+        magicTile.addEventListener('click', () => {
+            createBubbleAnimation(magicTile);
+        });
+        
+        // Click on other tiles to test animation and reveal
+        Array.from(tiles).filter(t => !t.classList.contains('magic-tile')).forEach(tile => {
+            tile.addEventListener('click', () => {
+                if (!tile.classList.contains('revealed')) {
+                    createBubbleAnimation(tile);
+                    setTimeout(() => tile.classList.add('revealed'), 600);  // Faster reveal
+                }
+            });
+        });
+
+// Initialize the potion emoji for proper display
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        // Find any potion tile and ensure it shows the emoji
+        const potionTiles = Array.from(drawPile.children).filter(t => t.dataset.letter === '🍄');
+        potionTiles.forEach(tile => {
+            tile.textContent = '🍄';
+        });
+    }, 1000);
+});
+
+// Add this function to your script - it will manually force sync the revealed tiles
+function forceSyncRevealedTiles() {
+    // Only run if we're in a game
+    if (!gameId) return;
+    
+    // Get the current player area
+    const playerArea = currentPlayer === 1 ? player1Area : player2Area;
+    
+    // Find all revealed tiles
+    const revealedTiles = Array.from(playerArea.children).filter(tile => 
+        tile.classList.contains('revealed')
+    );
+    
+    // Send a sync event for each revealed tile
+    revealedTiles.forEach(tile => {
+        const position = Array.from(playerArea.children).indexOf(tile);
+        const letter = tile.dataset.letter;
+        
+        // Send to other player
+        socket.emit('makeMove', {
+            type: 'syncRevealedTile',
+            position: position,
+            tile: letter,
+            currentPlayer: currentPlayer,
+            gameId: gameId,
+            playerId: socket.id,
+            timestamp: Date.now()
+        });
+        
+        console.log(`Syncing revealed tile at position ${position} with letter ${letter}`);
+    });
+}
+
+// Add this function call at appropriate intervals or after events
+// For example:
+setInterval(forceSyncRevealedTiles, 5000); // Sync every 5 seconds
+
+
+
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        // Find any potion tile and ensure it shows the emoji
+        const potionTiles = Array.from(drawPile.children).filter(t => t.dataset.letter === '🍄');
+        potionTiles.forEach(tile => {
+            tile.textContent = '🍄';
+        });
+    }, 1000);
+});
+
+function addPotionTile() {
+    // Check if potion tile already exists
+    const existingPotionTile = Array.from(drawPile.children).find(t => t.dataset.letter === '🍄');
+    if (!existingPotionTile) {
+        // Create the potion tile
+        const potionTile = document.createElement('div');
+        potionTile.classList.add('tile');
+        potionTile.dataset.letter = '🍄';
+        potionTile.textContent = '🍄';
+        potionTile.addEventListener('click', selectDrawTile);
+        
+        // Add to draw pile
+        drawPile.appendChild(potionTile);
+        console.log("Potion tile added to draw pile");
+    }
+}
+
+// === VIDEO CHAT IMPLEMENTATION ===
+// Global variable to store the video chat instance
+let gameVideoChat = null;
+
+// Function to initialize video chat
+function initializeVideoChat() {
+  // Only initialize if we have gameId and socket.id
+  if (gameId && socket.id) {
+    console.log("Initializing video chat for game:", gameId);
+    setupVideoChat();
+  }
+}
+
+// Clean up video chat resources
+function cleanupVideoChat() {
+  console.log("Cleaning up video chat");
+  if (gameVideoChat) {
+    if (gameVideoChat.localStream) {
+      gameVideoChat.localStream.getTracks().forEach(track => track.stop());
+    }
+    
+    if (gameVideoChat.peerConnection) {
+      gameVideoChat.peerConnection.close();
+    }
+    
+    document.getElementById('video-chat-container').style.display = 'none';
+    
+    gameVideoChat = null;
+  }
+}
+
+// Setup the video chat functionality
+function setupVideoChat() {
+  const videoChatContainer = document.getElementById('video-chat-container');
+  const localVideo = document.getElementById('local-video');
+  const remoteVideo = document.getElementById('remote-video');
+  const toggleVideoBtn = document.getElementById('toggle-video');
+  const toggleAudioBtn = document.getElementById('toggle-audio');
+  
+  let localStream = null;
+  let peerConnection = null;
+  let isVideoEnabled = true;
+  let isAudioEnabled = true;
+  
+  // WebRTC configuration (STUN servers for NAT traversal)
+  const rtcConfig = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+  };
+  
+  // Set up the video chat object
+  gameVideoChat = {
+    localStream,
+    peerConnection,
+    isVideoEnabled,
+    isAudioEnabled
+  };
+  
+  // Button event listeners
+  toggleVideoBtn.addEventListener('click', toggleVideo);
+  toggleAudioBtn.addEventListener('click', toggleAudio);
+  
+  // Setup socket listeners for WebRTC signaling
+  socket.on('video-ready', handleVideoReady);
+  socket.on('video-offer', handleVideoOffer);
+  socket.on('video-answer', handleVideoAnswer);
+  socket.on('video-ice-candidate', handleIceCandidate);
+  
+  // Initialize camera and microphone
+  startMedia();
+  
+  // Functions
+  function startMedia() {
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    .then(stream => {
+      console.log("Successfully got media stream:", stream.getTracks().map(t => t.kind).join(', '));
+        localStream = stream;
+        gameVideoChat.localStream = stream;
+        
+        // Display local video
+        localVideo.srcObject = stream;
+        
+        // Show the video container
+        videoChatContainer.style.display = 'block';
+        
+        // Notify other player
+        socket.emit('video-ready', {
+          roomId: gameId,
+          userId: socket.id
+        });
+      })
+      .catch(error => {
+      console.error("Error accessing media devices:", error.name, error.message);
+        
+        // Try audio only
+        if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+              localStream = stream;
+              gameVideoChat.localStream = stream;
+              toggleVideoBtn.disabled = true;
+              toggleVideoBtn.textContent = 'No Camera';
+              videoChatContainer.style.display = 'block';
+              
+              socket.emit('video-ready', {
+                roomId: gameId,
+                userId: socket.id
+              });
+            })
+            .catch(audioError => {
+              console.error("Audio-only fallback failed:", audioError);
+            });
+        }
+      });
+  }
+  
+  function setupPeerConnection() {
+    console.log("Setting up peer connection");
+    peerConnection = new RTCPeerConnection(rtcConfig);
+    gameVideoChat.peerConnection = peerConnection;
+    
+    // Add local stream to peer connection
+    if (localStream) {
+      localStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, localStream);
+      });
+    }
+    
+    // Handle ICE candidates
+    peerConnection.onicecandidate = event => {
+      if (event.candidate) {
+        socket.emit('video-ice-candidate', {
+          roomId: gameId,
+          sender: socket.id,
+          target: getPeerId(),
+          candidate: event.candidate
+        });
+      }
+    };
+    
+    // Handle remote stream
+    peerConnection.ontrack = event => {
+      console.log("Received remote track");
+      remoteVideo.srcObject = event.streams[0];
+    };
+  }
+  
+  function handleVideoReady(data) {
+    console.log("Received video-ready event:", data);
+    if (data.userId !== socket.id) {
+      setupPeerConnection();
+      createOffer();
+    }
+  }
+  
+  function createOffer() {
+    console.log("Creating offer");
+    peerConnection.createOffer()
+      .then(offer => peerConnection.setLocalDescription(offer))
+      .then(() => {
+        socket.emit('video-offer', {
+          roomId: gameId,
+          sender: socket.id,
+          target: getPeerId(),
+          offer: peerConnection.localDescription
+        });
+      })
+      .catch(error => console.error("Error creating offer:", error));
+  }
+  
+  function handleVideoOffer(data) {
+    console.log("Received video offer");
+    if (data.target === socket.id) {
+      if (!peerConnection) {
+        setupPeerConnection();
+      }
+      
+      peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer))
+        .then(() => peerConnection.createAnswer())
+        .then(answer => peerConnection.setLocalDescription(answer))
+        .then(() => {
+          socket.emit('video-answer', {
+            roomId: gameId,
+            sender: socket.id,
+            target: data.sender,
+            answer: peerConnection.localDescription
+          });
+        })
+        .catch(error => console.error("Error handling offer:", error));
+    }
+  }
+  
+  function handleVideoAnswer(data) {
+    console.log("Received video answer");
+    if (data.target === socket.id && peerConnection) {
+      peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer))
+        .catch(error => console.error("Error handling answer:", error));
+    }
+  }
+  
+  function handleIceCandidate(data) {
+    console.log("Received ICE candidate");
+    if (data.target === socket.id && peerConnection) {
+      peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate))
+        .catch(error => console.error("Error adding ICE candidate:", error));
+    }
+  }
+  
+  function getPeerId() {
+    // Get the other player's ID (first or second player)
+    return socket.id === players.first ? players.second : players.first;
+  }
+  
+  function toggleVideo() {
+    if (localStream) {
+      const videoTrack = localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        isVideoEnabled = !isVideoEnabled;
+        videoTrack.enabled = isVideoEnabled;
+        toggleVideoBtn.textContent = isVideoEnabled ? 'Turn Off Camera' : 'Turn On Camera';
+      }
+    }
+  }
+  
+  function toggleAudio() {
+    if (localStream) {
+      const audioTrack = localStream.getAudioTracks()[0];
+      if (audioTrack) {
+        isAudioEnabled = !isAudioEnabled;
+        audioTrack.enabled = isAudioEnabled;
+        toggleAudioBtn.textContent = isAudioEnabled ? 'Mute Audio' : 'Unmute Audio';
+      }
+    }
+  }
+}
+
+// Add cleanup to showSimpleWinnerAnimation
+const originalShowSimpleWinnerAnimation = showSimpleWinnerAnimation;
+showSimpleWinnerAnimation = function(winnerName) {
+  // Call original function
+  const result = originalShowSimpleWinnerAnimation(winnerName);
+  
+  // Find the Play Again button and add cleanup
+  const overlay = document.querySelector('div[style*="position: fixed"][style*="z-index: 2000"]');
+  if (overlay) {
+    const button = overlay.querySelector('button');
+    if (button) {
+      const originalClick = button.onclick;
+      button.onclick = function() {
+        cleanupVideoChat();
+        if (originalClick) originalClick.call(this);
+      };
+    }
+  }
+  
+  return result;
+};
+
+// Add cleanup to showSimpleLoserScreen
+const originalShowSimpleLoserScreen = showSimpleLoserScreen;
+showSimpleLoserScreen = function(winnerName) {
+  // Call original function
+  const result = originalShowSimpleLoserScreen(winnerName);
+  
+  // Find the Play Again button and add cleanup
+  const overlay = document.querySelector('div[style*="position: fixed"][style*="z-index: 2000"]');
+  if (overlay) {
+    const button = overlay.querySelector('button');
+    if (button) {
+      const originalClick = button.onclick;
+      button.onclick = function() {
+        cleanupVideoChat();
+        if (originalClick) originalClick.call(this);
+      };
+    }
+  }
+  
+  return result;
+};
+
+// Initialize video chat when game starts
+const originalInitGame = initGame;
+initGame = function() {
+  const result = originalInitGame.apply(this, arguments);
+  
+  // Initialize video chat after a delay
+  setTimeout(initializeVideoChat, 1500);
+  
+  return result;
+};
+
+// Add cleanup to game over handling
+socket.on('gameMove', (data) => {
+  if (data.type === 'gameOver') {
+    cleanupVideoChat();
+  }
+});
+
+function initializeVideoChat() {
+  // Only initialize if we have gameId and socket.id
+  if (gameId && socket.id) {
+    console.log("Initializing video chat for game:", gameId);
+    
+    // Debug check - make sure the container exists
+    const container = document.getElementById('video-chat-container');
+    console.log("Video container found:", !!container);
+    
+    // Make container visible before setup
+    if (container) {
+      container.style.display = 'block';
+      console.log("Set video container to display:block");
+    }
+    
+    // Then run setup
+    setupVideoChat();
+  }
+}
+
+window.showVideoChat = function() {
+  const container = document.getElementById('video-chat-container');
+  if (container) {
+    container.style.display = 'block';
+    console.log("Video container made visible");
+  } else {
+    console.error("Video container not found");
+  }
+};
+
+// Add this button for testing
+function addTestButton() {
+  const btn = document.createElement('button');
+  btn.textContent = "Test Camera/Mic";
+  btn.style.position = "fixed";
+  btn.style.bottom = "10px";
+  btn.style.left = "10px";
+  btn.style.zIndex = "9999";
+  btn.onclick = function() {
+    console.log("Testing media access...");
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(stream => {
+        console.log("Media access granted:", stream);
+        alert("Camera and mic access granted!");
+        // Stop tracks when done
+        stream.getTracks().forEach(t => t.stop());
+      })
+      .catch(err => {
+        console.error("Media access error:", err);
+        alert("Error: " + err.message);
+      });
+  };
+  document.body.appendChild(btn);
+}
+
+// Call this when page loads
+window.addEventListener('DOMContentLoaded', addTestButton);
+
+// Add this to check browser support
+function checkBrowserSupport() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    console.error("Browser doesn't support getUserMedia API");
+    return false;
+  }
+  
+  if (!window.RTCPeerConnection) {
+    console.error("Browser doesn't support RTCPeerConnection API");
+    return false;
+  }
+  
+  console.log("Browser supports required WebRTC APIs");
+  return true;
+}
+
+// Call this before setupVideoChat
+if (!checkBrowserSupport()) {
+  alert("Your browser doesn't support video chat features");
+}
+
+    </script>
 </body>
 </html>
