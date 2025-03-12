@@ -639,62 +639,6 @@
             animation: shake 0.5s ease-in-out;
         }
 
-.video-chat-container {
-  position: absolute !important;
-  top: 10px !important;
-  right: 10px !important;
-  width: 220px !important;
-  z-index: 1000 !important;
-  background: rgba(0, 0, 0, 0.5) !important;
-  border-radius: 8px !important;
-  overflow: hidden !important;
-  display: block !important;
-}
-
-#local-video-wrapper {
-  position: absolute;
-  width: 80px;
-  height: 60px;
-  bottom: 10px;
-  right: 10px;
-  z-index: 2;
-  border: 2px solid white;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-#local-video, #remote-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  background: #222;
-}
-
-#remote-video-wrapper {
-  width: 100%;
-  height: 160px;
-}
-
-.video-controls {
-  display: flex;
-  justify-content: space-around;
-  padding: 5px;
-}
-
-.video-controls button {
-  background: #333;
-  color: white;
-  border: none;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.video-controls button:hover {
-  background: #555;
-}
-
         /* === RESPONSIVE STYLES === */
         @media screen and (max-width: 480px) {
             .game-board {
@@ -771,27 +715,7 @@
                 text-align: center;
                 z-index: 1000;
             }
-        
-  .video-chat-container {
-    width: 140px;
-    top: 5px;
-    right: 5px;
-  }
-  
-  #remote-video-wrapper {
-    height: 100px;
-  }
-  
-  #local-video-wrapper {
-    width: 50px;
-    height: 40px;
-  }
-  
-  .video-controls button {
-    font-size: 10px;
-    padding: 3px 5px;
-  }
-}
+        }
     </style>
 </head>
 <body>
@@ -812,7 +736,7 @@
         <div class="title-tile tile-o">O</div>
     </div>
 </div>
-
+            
             <!-- Name Entry Screen (FIRST SCREEN) -->
             <div id="nameEntryScreen">
     <div class="instructions-container" style="text-align: center; margin-bottom: 40px; font-size: 16px; color: #000000; max-width: 600px; margin-left: auto; margin-right: auto;">
@@ -893,19 +817,6 @@
         </div>
         <div id="currentTile"></div>
         <div id="discardOption"></div>
-<!-- This should be directly inside your game board div, not inside the setup overlay -->
-<div id="video-chat-container" style="display: none;" class="video-chat-container">
-  <div id="local-video-wrapper">
-    <video id="local-video" autoplay muted></video>
-  </div>
-  <div id="remote-video-wrapper">
-    <video id="remote-video" autoplay></video>
-  </div>
-  <div class="video-controls">
-    <button id="toggle-video">Turn Off Camera</button>
-    <button id="toggle-audio">Mute Audio</button>
-  </div>
-</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
@@ -917,7 +828,7 @@
         let selectedEmojis = [];
         let playerName = "Player 1";
         let opponentName = "Player 2";
-        const socket = io('https://lmno-production.up.railway.app/');
+        const socket = io('http://localhost:3000');
         
         let gameId = null;
         let playerId = null;
@@ -1126,30 +1037,36 @@
         });
         
         socket.on('gameStarted', (data) => {
-            gameId = data.gameId;
-            playerId = socket.id;
-            players.first = data.players[0];
-            players.second = data.players[1];
-            setupOverlay.style.display = 'none';
-            gameBoard.style.display = 'flex';
-            isMyTurn = data.players[0] === socket.id;
-            currentPlayer = 1;
-            initGame();
-            updateTileColors();
-            
-            setTimeout(() => {
-                socket.emit('makeMove', {
-                    type: 'shareName',
-                    gameId: gameId,
-                    playerId: socket.id,
-                    isPlayer1: iAmPlayer1,
-                    name: playerName,
-                    timestamp: Date.now()
-                });
-            }, 1000);
-            
-            setTimeout(updatePlayerLabelsBasedOnPosition, 500);
+    gameId = data.gameId;
+    playerId = socket.id;
+    players.first = data.players[0];
+    players.second = data.players[1];
+    setupOverlay.style.display = 'none';
+    gameBoard.style.display = 'flex';
+    isMyTurn = data.players[0] === socket.id;
+    currentPlayer = 1;
+    initGame();
+    updateTileColors();
+    
+    setTimeout(() => {
+        socket.emit('makeMove', {
+            type: 'shareName',
+            gameId: gameId,
+            playerId: socket.id,
+            isPlayer1: iAmPlayer1,
+            name: playerName,
+            timestamp: Date.now()
         });
+    }, 1000);
+    
+    setTimeout(updatePlayerLabelsBasedOnPosition, 500);
+    
+    // Initialize video chat with a delay to ensure the game is properly started
+    setTimeout(() => {
+        console.log("Initializing video chat component...");
+        VideoChat.init(gameId, socket);
+    }, 2000);
+});
         
         socket.on('playerName', (data) => {
             if (data.playerId && data.playerId !== socket.id) {
@@ -2458,7 +2375,16 @@ setTimeout(() => {
         } else {
             player1Label.textContent = `${p1Name}: ${p2Name} Wins!`;
             player2Label.textContent = `${p2Name}: Winner!`;
+
+socket.on('gameOver', () => {
+    // Clean up video chat
+    if (VideoChat && VideoChat.cleanup) {
+        VideoChat.cleanup();
+    }
+});
         }
+
+
         
         socket.emit('makeMove', {
     type: 'gameOver',
@@ -3351,441 +3277,8 @@ function addPotionTile() {
     }
 }
 
-// ===== VIDEO CHAT IMPLEMENTATION =====
-let videoChatActive = false;
-let localStream = null;
-let peerConnection = null;
-let remoteStream = null;
-
-// Initialize video chat when game starts
-function initializeVideoChat() {
-  // Only initialize if we have gameId and socket.id
-  if (!gameId || !socket.id || videoChatActive) return;
-  
-  console.log("Initializing video chat for game:", gameId);
-  
-  // Make container visible
-  const videoChatContainer = document.getElementById('video-chat-container');
-  videoChatContainer.style.display = 'block';
-  
-  // Set up buttons
-  const toggleVideoBtn = document.getElementById('toggle-video');
-  const toggleAudioBtn = document.getElementById('toggle-audio');
-  
-  toggleVideoBtn.addEventListener('click', toggleVideo);
-  toggleAudioBtn.addEventListener('click', toggleAudio);
-  
-  // Set up socket event listeners for WebRTC signaling
-  socket.on('video-ready', handleVideoReady);
-  socket.on('video-offer', handleVideoOffer);
-  socket.on('video-answer', handleVideoAnswer);
-  socket.on('video-ice-candidate', handleNewICECandidateMsg);
-  
-  // Start by getting user media
-  startLocalMedia();
-}
-
-// Get access to camera and microphone
-function startLocalMedia() {
-  const localVideo = document.getElementById('local-video');
-  
-  console.log("Requesting camera and microphone access...");
-  
-  navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-    .then(stream => {
-      console.log("Got local media stream!");
-      localStream = stream;
-      localVideo.srcObject = stream;
-      
-      // Signal to other player that we're ready for video
-      socket.emit('video-ready', {
-        roomId: gameId,
-        userId: socket.id
-      });
-      
-      videoChatActive = true;
-    })
-    .catch(err => {
-      console.error("Error accessing media devices:", err);
-      
-      // Try audio only as fallback
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          console.log("Got audio-only stream as fallback");
-          localStream = stream;
-          document.getElementById('toggle-video').disabled = true;
-          document.getElementById('toggle-video').textContent = 'No Camera';
-          
-          // Signal to other player that we're ready (audio only)
-          socket.emit('video-ready', {
-            roomId: gameId,
-            userId: socket.id
-          });
-          
-          videoChatActive = true;
-        })
-        .catch(audioErr => {
-          console.error("Could not get audio access either:", audioErr);
-          document.getElementById('video-chat-container').innerHTML = 
-            '<p style="color: white; text-align: center;">Could not access camera or microphone</p>';
-        });
-    });
-}
-
-// Create and configure the RTCPeerConnection
-function createPeerConnection() {
-  console.log("Setting up peer connection...");
-  
-  // ICE servers configuration - include TURN servers for better connectivity
-  const configuration = {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-      // Add TURN servers here if you have them
-      // { urls: 'turn:your-turn-server.com', username: 'username', credential: 'credential' }
-    ]
-  };
-  
-  // Create the connection
-  peerConnection = new RTCPeerConnection(configuration);
-  
-  // Set up event handlers for the peer connection
-  peerConnection.onicecandidate = handleICECandidateEvent;
-  peerConnection.ontrack = handleTrackEvent;
-  peerConnection.oniceconnectionstatechange = handleICEConnectionStateChangeEvent;
-  peerConnection.onicegatheringstatechange = handleICEGatheringStateChangeEvent;
-  peerConnection.onsignalingstatechange = handleSignalingStateChangeEvent;
-  peerConnection.onnegotiationneeded = handleNegotiationNeededEvent;
-  
-  // Add our local stream to the connection
-  if (localStream) {
-    localStream.getTracks().forEach(track => {
-      peerConnection.addTrack(track, localStream);
-    });
-  }
-  
-  console.log("Peer connection set up successfully");
-}
-
-// Handle when the other player is ready for video
-function handleVideoReady(data) {
-  console.log("Other player is ready for video:", data.userId);
-  
-  // Only initiate the call if we're player 1 (to avoid both trying to call)
-  if (socket.id === players.first) {
-    console.log("We're player 1, initiating call");
-    createPeerConnection();
-  }
-}
-
-// Handle negotiation (only player 1 initiates)
-function handleNegotiationNeededEvent() {
-  console.log("Negotiation needed, creating offer...");
-  
-  if (socket.id !== players.first) {
-    console.log("We're not player 1, skipping offer creation");
-    return;
-  }
-  
-  peerConnection.createOffer()
-    .then(offer => {
-      console.log("Created offer, setting local description");
-      return peerConnection.setLocalDescription(offer);
-    })
-    .then(() => {
-      console.log("Sending offer to remote peer");
-      
-      // Get the other player's ID
-      const otherPlayerId = socket.id === players.first ? players.second : players.first;
-      
-      socket.emit('video-offer', {
-        roomId: gameId,
-        sender: socket.id,
-        target: otherPlayerId,
-        offer: peerConnection.localDescription
-      });
-    })
-    .catch(err => {
-      console.error("Error creating offer:", err);
-    });
-}
-
-// Handle incoming video call offer
-function handleVideoOffer(data) {
-  if (data.target !== socket.id) return;
-  
-  console.log("Received video offer from:", data.sender);
-  
-  if (!peerConnection) {
-    createPeerConnection();
-  }
-  
-  const desc = new RTCSessionDescription(data.offer);
-  
-  peerConnection.setRemoteDescription(desc)
-    .then(() => {
-      if (!localStream) {
-        console.warn("No local stream yet, starting local media");
-        return startLocalMedia();
-      }
-    })
-    .then(() => {
-      console.log("Creating answer...");
-      return peerConnection.createAnswer();
-    })
-    .then(answer => {
-      console.log("Setting local description from answer");
-      return peerConnection.setLocalDescription(answer);
-    })
-    .then(() => {
-      console.log("Sending answer to caller");
-      socket.emit('video-answer', {
-        roomId: gameId,
-        sender: socket.id,
-        target: data.sender,
-        answer: peerConnection.localDescription
-      });
-    })
-    .catch(err => {
-      console.error("Error handling offer:", err);
-    });
-}
-
-// Handle answer to our video call offer
-function handleVideoAnswer(data) {
-  if (data.target !== socket.id) return;
-  
-  console.log("Received answer from:", data.sender);
-  
-  const desc = new RTCSessionDescription(data.answer);
-  peerConnection.setRemoteDescription(desc)
-    .catch(err => {
-      console.error("Error handling answer:", err);
-    });
-}
-
-// Handle ICE candidates
-function handleICECandidateEvent(event) {
-  if (event.candidate) {
-    console.log("Outgoing ICE candidate:", event.candidate.candidate.substr(0, 50) + "...");
-    
-    // Get other player's ID
-    const otherPlayerId = socket.id === players.first ? players.second : players.first;
-    
-    socket.emit('video-ice-candidate', {
-      roomId: gameId,
-      sender: socket.id,
-      target: otherPlayerId,
-      candidate: event.candidate
-    });
-  }
-}
-
-// Handle incoming ICE candidates
-function handleNewICECandidateMsg(data) {
-  if (data.target !== socket.id) return;
-  
-  console.log("Received ICE candidate from:", data.sender);
-  
-  if (!peerConnection) {
-    console.warn("No peer connection yet, creating one");
-    createPeerConnection();
-  }
-  
-  const candidate = new RTCIceCandidate(data.candidate);
-  peerConnection.addIceCandidate(candidate)
-    .catch(err => {
-      console.error("Error adding ICE candidate:", err);
-    });
-}
-
-// Handle when we receive the remote video stream
-function handleTrackEvent(event) {
-  console.log("Received remote track!");
-  document.getElementById('remote-video').srcObject = event.streams[0];
-  remoteStream = event.streams[0];
-}
-
-// Connection state change handler
-function handleICEConnectionStateChangeEvent() {
-  console.log("ICE connection state:", peerConnection.iceConnectionState);
-  
-  // If we disconnect, try to clean up properly
-  if (peerConnection.iceConnectionState === 'disconnected' || 
-      peerConnection.iceConnectionState === 'failed' || 
-      peerConnection.iceConnectionState === 'closed') {
-    
-    console.log("ICE connection lost, cleaning up");
-    
-    // If we're player 1, try to re-establish if it fails
-    if (socket.id === players.first && peerConnection.iceConnectionState === 'failed') {
-      setTimeout(() => {
-        console.log("Attempting to restart video chat...");
-        cleanupVideoChat();
-        initializeVideoChat();
-      }, 3000);
-    }
-  }
-}
-
-// Other WebRTC state change handlers
-function handleICEGatheringStateChangeEvent() {
-  console.log("ICE gathering state:", peerConnection.iceGatheringState);
-}
-
-function handleSignalingStateChangeEvent() {
-  console.log("Signaling state:", peerConnection.signalingState);
-}
-
-// Toggle video on/off
-function toggleVideo() {
-  if (!localStream) return;
-  
-  const videoTracks = localStream.getVideoTracks();
-  if (videoTracks.length === 0) return;
-  
-  const enabled = !videoTracks[0].enabled;
-  videoTracks[0].enabled = enabled;
-  
-  const toggleVideoBtn = document.getElementById('toggle-video');
-  toggleVideoBtn.textContent = enabled ? 'Camera' : 'No Camera';
-  toggleVideoBtn.classList.toggle('active', enabled);
-}
-
-// Toggle audio on/off
-function toggleAudio() {
-  if (!localStream) return;
-  
-  const audioTracks = localStream.getAudioTracks();
-  if (audioTracks.length === 0) return;
-  
-  const enabled = !audioTracks[0].enabled;
-  audioTracks[0].enabled = enabled;
-  
-  const toggleAudioBtn = document.getElementById('toggle-audio');
-  toggleAudioBtn.textContent = enabled ? 'Mic' : 'Muted';
-  toggleAudioBtn.classList.toggle('active', enabled);
-}
-
-// Clean up video chat resources
-function cleanupVideoChat() {
-  console.log("Cleaning up video chat resources");
-  
-  // Stop all media tracks
-  if (localStream) {
-    localStream.getTracks().forEach(track => {
-      track.stop();
-    });
-    localStream = null;
-  }
-  
-  // Close peer connection
-  if (peerConnection) {
-    peerConnection.close();
-    peerConnection = null;
-  }
-  
-  // Hide video container
-  document.getElementById('video-chat-container').style.display = 'none';
-  
-  // Reset video elements
-  document.getElementById('local-video').srcObject = null;
-  document.getElementById('remote-video').srcObject = null;
-  
-  videoChatActive = false;
-}
-
-// Call this when game ends
-function endVideoChat() {
-  cleanupVideoChat();
-}
-
-// Hook up video chat to game events
-// Initialize video chat when game starts
-const originalInitGame = initGame;
-initGame = function() {
-  const result = originalInitGame.apply(this, arguments);
-  
-  // Initialize video chat after a delay to ensure game is fully set up
-  setTimeout(initializeVideoChat, 2000);
-  
-  return result;
-};
-
-// Add cleanup to game over handling
-socket.on('gameMove', (data) => {
-  if (data.type === 'gameOver') {
-    endVideoChat();
-  }
-});
-
-// Add cleanup to winner/loser screens
-const originalShowSimpleWinnerAnimation = showSimpleWinnerAnimation;
-showSimpleWinnerAnimation = function(winnerName) {
-  endVideoChat();
-  return originalShowSimpleWinnerAnimation(winnerName);
-};
-
-const originalShowSimpleLoserScreen = showSimpleLoserScreen;
-showSimpleLoserScreen = function(winnerName) {
-  endVideoChat();
-  return originalShowSimpleLoserScreen(winnerName);
-};
-
-// Add a debug button to help troubleshoot video issues
-function addDebugButton() {
-  const btn = document.createElement('button');
-  btn.textContent = "Test Camera/Mic";
-  btn.style.position = "fixed";
-  btn.style.bottom = "10px";
-  btn.style.left = "10px";
-  btn.style.zIndex = "9999";
-  btn.style.padding = "8px";
-  btn.style.background = "#4CAF50";
-  btn.style.color = "white";
-  btn.style.border = "none";
-  btn.style.borderRadius = "4px";
-  btn.style.cursor = "pointer";
-  
-  btn.onclick = function() {
-    console.log("Testing media access...");
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(stream => {
-        console.log("✅ Camera and mic access successful!", stream);
-        alert("Camera and mic access granted! Check console for details.");
-        // Show a preview
-        const video = document.createElement('video');
-        video.srcObject = stream;
-        video.autoplay = true;
-        video.muted = true;
-        video.style.position = "fixed";
-        video.style.bottom = "50px";
-        video.style.left = "10px";
-        video.style.width = "160px";
-        video.style.height = "120px";
-        video.style.zIndex = "10000";
-        video.style.borderRadius = "4px";
-        video.style.border = "2px solid #4CAF50";
-        document.body.appendChild(video);
-        
-        // Remove after 5 seconds
-        setTimeout(() => {
-          video.remove();
-          stream.getTracks().forEach(t => t.stop());
-        }, 5000);
-      })
-      .catch(err => {
-        console.error("❌ Media access error:", err);
-        alert("Error accessing camera/mic: " + err.message);
-      });
-  };
-  
-  document.body.appendChild(btn);
-}
-
-// Add this button when the page loads
-window.addEventListener('DOMContentLoaded', addDebugButton);
-
     </script>
+
+<script src="video-chat.js"></script>
 </body>
 </html>
