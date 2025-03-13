@@ -1037,7 +1037,6 @@
         });
         
         socket.on('gameStarted', (data) => {
-    // Keep all the original code
     gameId = data.gameId;
     playerId = socket.id;
     players.first = data.players[0];
@@ -1048,12 +1047,6 @@
     currentPlayer = 1;
     initGame();
     updateTileColors();
-    
-    // Then add this:
-    setTimeout(() => {
-        console.log("Initializing video chat...");
-        VideoChat.init(gameId, socket);
-    }, 2000);
     
     setTimeout(() => {
         socket.emit('makeMove', {
