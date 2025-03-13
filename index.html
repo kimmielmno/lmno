@@ -828,7 +828,7 @@
         let selectedEmojis = [];
         let playerName = "Player 1";
         let opponentName = "Player 2";
-        const socket = io('https://lmno-production.up.railway.app/');
+        const socket = io('http://localhost:3000');
         
         let gameId = null;
         let playerId = null;
@@ -1037,6 +1037,7 @@
         });
         
         socket.on('gameStarted', (data) => {
+    // Keep all the original code
     gameId = data.gameId;
     playerId = socket.id;
     players.first = data.players[0];
@@ -1047,6 +1048,12 @@
     currentPlayer = 1;
     initGame();
     updateTileColors();
+    
+    // Then add this:
+    setTimeout(() => {
+        console.log("Initializing video chat...");
+        VideoChat.init(gameId, socket);
+    }, 2000);
     
     setTimeout(() => {
         socket.emit('makeMove', {
