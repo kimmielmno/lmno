@@ -103,33 +103,61 @@ socket.on('makeMove', (data) => {
 });
 
 // Video chat signaling
+// Video chat signaling
 socket.on('video-offer', (data) => {
-    console.log('Server: Relaying video offer');
+    console.log('Server: Relaying video offer from:', socket.id);
     const gameId = players.get(socket.id);
     if (gameId && games[gameId]) {
-        socket.to(gameId).emit('video-offer', {
-            offer: data.offer
-        });
+        // Find the other player in the game
+        const otherPlayers = games[gameId].players.filter(p => p !== socket.id);
+        if (otherPlayers.length > 0) {
+            console.log('Server: Sending offer to:', otherPlayers[0]);
+            socket.to(otherPlayers[0]).emit('video-offer', {
+                offer: data.offer
+            });
+        } else {
+            console.log('Server: No other player found to relay offer to');
+        }
+    } else {
+        console.log('Server: Game not found for offer relay');
     }
 });
 
 socket.on('video-answer', (data) => {
-    console.log('Server: Relaying video answer');
+    console.log('Server: Relaying video answer from:', socket.id);
     const gameId = players.get(socket.id);
     if (gameId && games[gameId]) {
-        socket.to(gameId).emit('video-answer', {
-            answer: data.answer
-        });
+        // Find the other player in the game
+        const otherPlayers = games[gameId].players.filter(p => p !== socket.id);
+        if (otherPlayers.length > 0) {
+            console.log('Server: Sending answer to:', otherPlayers[0]);
+            socket.to(otherPlayers[0]).emit('video-answer', {
+                answer: data.answer
+            });
+        } else {
+            console.log('Server: No other player found to relay answer to');
+        }
+    } else {
+        console.log('Server: Game not found for answer relay');
     }
 });
 
 socket.on('video-ice-candidate', (data) => {
-    console.log('Server: Relaying ICE candidate');
+    console.log('Server: Relaying ICE candidate from:', socket.id);
     const gameId = players.get(socket.id);
     if (gameId && games[gameId]) {
-        socket.to(gameId).emit('video-ice-candidate', {
-            candidate: data.candidate
-        });
+        // Find the other player in the game
+        const otherPlayers = games[gameId].players.filter(p => p !== socket.id);
+        if (otherPlayers.length > 0) {
+            console.log('Server: Sending ICE candidate to:', otherPlayers[0]);
+            socket.to(otherPlayers[0]).emit('video-ice-candidate', {
+                candidate: data.candidate
+            });
+        } else {
+            console.log('Server: No other player found to relay ICE candidate to');
+        }
+    } else {
+        console.log('Server: Game not found for ICE candidate relay');
     }
 });
     
